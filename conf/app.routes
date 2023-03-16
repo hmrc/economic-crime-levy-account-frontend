@@ -1,5 +1,15 @@
 # microservice specific routes
 
-->         /hmrc-frontend           hmrcfrontend.Routes
-GET        /                        uk.gov.hmrc.economiccrimelevyaccountfrontend.controllers.HelloWorldController.helloWorld
-GET        /assets/*file            controllers.Assets.versioned(path = "/public", file: Asset)
+->         /hmrc-frontend                      hmrcfrontend.Routes
+
+GET        /                                   uk.gov.hmrc.economiccrimelevyaccount.controllers.AccountController.onPageLoad()
+
+GET        /not-registered                     uk.gov.hmrc.economiccrimelevyaccount.controllers.NotableErrorController.notRegistered()
+
+GET        /agent-cannot-access-service        uk.gov.hmrc.economiccrimelevyaccount.controllers.NotableErrorController.agentCannotAccessService()
+
+GET        /account/sign-out-survey            uk.gov.hmrc.economiccrimelevyaccount.controllers.SignOutController.signOut()
+GET        /account/sign-out                   uk.gov.hmrc.economiccrimelevyaccount.controllers.SignOutController.signOutNoSurvey()
+GET        /account/signed-out                 uk.gov.hmrc.economiccrimelevyaccount.controllers.SignOutController.signedOut()
+
+GET        /assets/*file                       controllers.Assets.versioned(path = "/public", file: Asset)

@@ -1,21 +1,21 @@
-import play.core.PlayVersion
-import play.sbt.PlayImport._
-import sbt.Keys.libraryDependencies
 import sbt._
 
 object AppDependencies {
 
-  private val bootstrapVersion = "7.14.0"
-  
-
-  val compile = Seq(
-    "uk.gov.hmrc"             %% "bootstrap-frontend-play-28" % bootstrapVersion,
-    "uk.gov.hmrc"             %% "play-frontend-hmrc"         % "6.8.0-play-28"
+  val compile: Seq[ModuleID] = Seq(
+    "uk.gov.hmrc" %% "bootstrap-frontend-play-28" % "7.12.0",
+    "uk.gov.hmrc" %% "play-frontend-hmrc"         % "6.2.0-play-28"
   )
 
-  val test = Seq(
-    "uk.gov.hmrc"             %% "bootstrap-test-play-28"     % bootstrapVersion            % "test, it",
-    
-    "org.jsoup"               %  "jsoup"                      % "1.13.1"            % Test,
-  )
+  val test: Seq[ModuleID]    = Seq(
+    "uk.gov.hmrc"          %% "bootstrap-test-play-28"   % "7.12.0",
+    "org.jsoup"             % "jsoup"                    % "1.15.3",
+    "org.mockito"          %% "mockito-scala"            % "1.17.12",
+    "org.scalatestplus"    %% "scalatestplus-scalacheck" % "3.1.0.0-RC2",
+    "com.danielasfregola"  %% "random-data-generator"    % "2.9",
+    "io.github.wolfendale" %% "scalacheck-gen-regexp"    % "1.1.0"
+  ).map(_ % "test, it")
+
+  def apply(): Seq[ModuleID] = compile ++ test
+
 }
