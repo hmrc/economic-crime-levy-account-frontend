@@ -1,2 +1,49 @@
-service.name = economic-crime-levy-account-frontend
-service.text = This is your new service
+service.name = Economic Crime Levy Account
+
+site.back = Back
+site.remove = Remove
+site.change = Change
+site.no = No
+site.yes = Yes
+site.continue = Continue
+site.saveAndContinue = Save and continue
+site.start = Start now
+site.startAgain = Start again
+site.signIn = Sign in
+site.govuk = GOV.UK
+
+timeout.title = You’re about to be signed out
+timeout.message = For security reasons, you will be signed out of this service in
+timeout.keepAlive = Stay signed in
+timeout.signOut = Sign out
+
+error.browser.title.prefix = Error:
+
+account.title = My ECL Account
+account.heading = My ECL Account
+account.eclReferenceNumber = ECL reference number
+account.eclRegistrationDate = ECL registration date
+
+agentCannotAccessService.title = You cannot use this service
+agentCannotAccessService.heading = You cannot use this service
+agentCannotAccessService.p1 = Agents cannot use this service on behalf of a client.
+agentCannotAccessService.p2 = Your client must access the service using their own Government Gateway ID.
+agentCannotAccessService.p3 = Go to your {0}.
+agentCannotAccessService.p3.link = <a href="https://www.gov.uk/guidance/sign-in-to-your-agent-services-account" class="govuk-link">agent services account</a>
+
+notRegistered.title = You need to register for the Economic Crime Levy
+notRegistered.heading = You need to register for the Economic Crime Levy
+notRegistered.body = You need to <a href="{0}" class="govuk-link">register for the Economic Crime Levy (ECL)</a> before you can access this service.
+
+date.month.1 = January
+date.month.2 = February
+date.month.3 = March
+date.month.4 = April
+date.month.5 = May
+date.month.6 = June
+date.month.7 = July
+date.month.8 = August
+date.month.9 = September
+date.month.10 = October
+date.month.11 = November
+date.month.12 = December
