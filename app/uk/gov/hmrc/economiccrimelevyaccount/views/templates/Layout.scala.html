@@ -15,11 +15,11 @@
  *@
 
 @import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-@import views.html.helper.CSPNonce
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.hmrcstandardpage.{Banners, HmrcStandardPageParams, ServiceURLs, TemplateOverrides}
 
 @this(
         appConfig: AppConfig,
-        hmrcLayout: HmrcLayout,
+        hmrcStandardPage: HmrcStandardPage,
         govukBackLink: GovukBackLink,
         hmrcHead: HmrcHead,
         hmrcTimeoutDialog: HmrcTimeoutDialog,
@@ -27,7 +27,7 @@
         betaBanner: StandardBetaBanner
 )
 
-@(pageTitle: String, showBackLink: Boolean = true, timeout: Boolean = true, showSignOut: Boolean = true)(contentBlock: Html)(implicit request: Request[_], messages: Messages)
+@(pageTitle: String, showBackLink: Boolean = true, timeout: Boolean = true, showSignOut: Boolean = true, fullWidthContent: Boolean = false)(contentBlock: Html)(implicit request: Request[_], messages: Messages)
 
 @head = @{
     if(timeout) {
@@ -57,14 +57,32 @@
     </div>
 }
 
-@hmrcLayout(
+@mainTemplateClass = {
+@if(fullWidthContent) { "govuk-grid-column-full" } else { "govuk-grid-column-two-thirds" }
+}
+
+@mainContent = {
+    <div class="govuk-grid-row">
+        <div class=@mainTemplateClass>
+        @content
+        </div>
+    </div>
+}
+
+@hmrcStandardPage(HmrcStandardPageParams(
     pageTitle = Some(pageTitle),
-    nonce = CSPNonce.get,
-    signOutUrl = Some(SignOutController.signOut.url),
-    serviceUrl = Some(AccountController.onPageLoad.url),
+    serviceURLs = ServiceURLs(
+        serviceUrl = Some(AccountController.onPageLoad.url),
+        signOutUrl = Some(SignOutController.signOut.url)
+    ),
+    banners = Banners(
+        phaseBanner = Some(betaBanner(appConfig.feedbackUrl))
+    ),
     isWelshTranslationAvailable = appConfig.languageTranslationEnabled,
-    additionalScriptsBlock = Some(additionalScripts),
-    additionalHeadBlock = head,
-    backLink = if(showBackLink) Some(BackLink.mimicsBrowserBackButtonViaJavaScript) else None,
-    phaseBanner = Some(betaBanner(appConfig.feedbackUrl))
-)(content)
+    templateOverrides = TemplateOverrides(
+        additionalScriptsBlock = Some(additionalScripts),
+        additionalHeadBlock = head,
+        mainContentLayout = Some(_ => mainContent)
+    ),
+    backLink = if(showBackLink) Some(BackLink.mimicsBrowserBackButtonViaJavaScript) else None
+))(content)
