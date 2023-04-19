@@ -57,13 +57,13 @@
     </div>
 }
 
-@mainTemplateCass = {
+@mainTemplateClass = {
 @if(fullWidthContent) { "govuk-grid-column-full" } else { "govuk-grid-column-two-thirds" }
 }
 
 @mainContent = {
     <div class="govuk-grid-row">
-        <div class=@mainTemplateCass>
+        <div class=@mainTemplateClass>
         @content
         </div>
     </div>
