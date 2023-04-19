@@ -24,22 +24,11 @@
 
 @layout(
     pageTitle = title(messages("account.title")),
-    showBackLink = false
+    showBackLink = false,
+    fullWidthContent = true
 ) {
 
-    <h1 class="govuk-heading-l">@messages("account.heading")</h1>
-
-    @summaryList(SummaryListViewModel(
-        Seq(
-            SummaryListRowViewModel(
-                key = Key("account.eclReferenceNumber"),
-                value = ValueViewModel(HtmlContent(HtmlFormat.escape(messages(eclRegistrationReference))))
-            ),
-            SummaryListRowViewModel(
-                key = Key("account.eclRegistrationDate"),
-                value = ValueViewModel(HtmlContent(HtmlFormat.escape(messages(eclRegistrationDate))))
-            )
-        )
-    ))
+    <h1 class="govuk-heading-xl govuk-!-margin-bottom-0">@messages("account.heading")</h1>
+    <span class="govuk-caption-m">@messages("account.eclReferenceNumber", eclRegistrationReference)</span>
 
 }

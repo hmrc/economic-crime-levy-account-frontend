@@ -19,10 +19,9 @@ timeout.signOut = Sign out
 
 error.browser.title.prefix = Error:
 
-account.title = My ECL Account
-account.heading = My ECL Account
-account.eclReferenceNumber = ECL reference number
-account.eclRegistrationDate = ECL registration date
+account.title = Your Economic Crime Levy account
+account.heading = Your Economic Crime Levy account
+account.eclReferenceNumber = ECL reference number: {0}
 
 agentCannotAccessService.title = You cannot use this service
 agentCannotAccessService.heading = You cannot use this service

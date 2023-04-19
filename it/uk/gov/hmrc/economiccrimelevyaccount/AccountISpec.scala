@@ -38,7 +38,7 @@ class AccountISpec extends ISpecBase with AuthorisedBehaviour {
       val result = callRoute(FakeRequest(routes.AccountController.onPageLoad()))
 
       status(result) shouldBe OK
-      html(result)     should include("My ECL Account")
+      html(result)     should include("Your Economic Crime Levy account")
     }
   }
 
