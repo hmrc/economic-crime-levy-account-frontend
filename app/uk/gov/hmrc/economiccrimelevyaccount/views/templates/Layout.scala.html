@@ -16,7 +16,7 @@
 
 @import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 @import uk.gov.hmrc.hmrcfrontend.views.viewmodels.hmrcstandardpage.{Banners, HmrcStandardPageParams, ServiceURLs, TemplateOverrides}
-
+@import views.html.helper.CSPNonce
 @this(
         appConfig: AppConfig,
         hmrcStandardPage: HmrcStandardPage,
@@ -29,20 +29,21 @@
 
 @(pageTitle: String, showBackLink: Boolean = true, timeout: Boolean = true, showSignOut: Boolean = true, fullWidthContent: Boolean = false)(contentBlock: Html)(implicit request: Request[_], messages: Messages)
 
-@head = @{
-    if(timeout) {
-        Some(
-            hmrcTimeoutDialog(TimeoutDialog(
-                timeout = Some(appConfig.timeout),
-                countdown = Some(appConfig.countdown),
-                keepAliveUrl = Some(uk.gov.hmrc.hmrcfrontend.controllers.routes.KeepAliveController.keepAlive.url),
-                keepAliveButtonText = Some(messages("timeout.keepAlive")),
-                signOutUrl = Some(SignOutController.signOut.url),
-                signOutButtonText = Some(messages("timeout.signOut")),
-                title = Some(messages("timeout.title")),
-                message = Some(messages("timeout.message"))
-            )))
-    } else None
+@head = {
+    <link rel="stylesheet" href="@{controllers.routes.Assets.versioned("stylesheets/cards.css")}" @{CSPNonce.attr}>
+
+@if(timeout) {
+    @hmrcTimeoutDialog(TimeoutDialog(
+        timeout = Some(appConfig.timeout),
+        countdown = Some(appConfig.countdown),
+        keepAliveUrl = Some(uk.gov.hmrc.hmrcfrontend.controllers.routes.KeepAliveController.keepAlive.url),
+        keepAliveButtonText = Some(messages("timeout.keepAlive")),
+        signOutUrl = Some(SignOutController.signOut.url),
+        signOutButtonText = Some(messages("timeout.signOut")),
+        title = Some(messages("timeout.title")),
+        message = Some(messages("timeout.message"))
+    ))
+}
 }
 
 @additionalScripts = {
@@ -81,7 +82,7 @@
     isWelshTranslationAvailable = appConfig.languageTranslationEnabled,
     templateOverrides = TemplateOverrides(
         additionalScriptsBlock = Some(additionalScripts),
-        additionalHeadBlock = head,
+        additionalHeadBlock = Some(head),
         mainContentLayout = Some(_ => mainContent)
     ),
     backLink = if(showBackLink) Some(BackLink.mimicsBrowserBackButtonViaJavaScript) else None

@@ -30,5 +30,83 @@
 
     <h1 class="govuk-heading-xl govuk-!-margin-bottom-0">@messages("account.heading")</h1>
     <span class="govuk-caption-m">@messages("account.eclReferenceNumber", eclRegistrationReference)</span>
+    <p>
 
+
+        <br>
+
+    <div class="flex-container govuk-grid-row">
+        <div class="card" id="aft-overdue-charges">
+            <div class="card-body">
+                <h2 class="card-heading govuk-heading-m">
+                    @messages("account.return.card.title")
+                </h2>
+                <p class="card-sub-heading bold govuk-body-m">
+                    <span class="font-xsmall">@messages("account.return.subHeading")</span>
+            <p class="card-sub-heading bold govuk-body-m">
+                <span class="font-xsmall"></span>
+                <p class="card-sub-heading bold govuk-body-m">
+                    <span class="font-xsmall"></span>
+                </p>
+            </div>
+            <div class="card-action">
+                <ul class="govuk-list">
+                    <li>
+                        <a id="view-your-financial-overview" class="govuk-link" href="tbc">@messages("account.submitEcl")</a>
+                    </li>
+                    <li>
+                        <a id="past-payments-and-charges" class="govuk-link" href="tbc">@messages("account.howToComplete")</a>
+                    </li>
+                    <li>
+                        <a id="past-payments-and-charges" class="govuk-link" href="view-or-amend-returns">@messages("account.viewReturns")</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card" id="aft-overview">
+            <div class="card-body">
+                <h2 class="card-heading govuk-heading-m">
+                    @messages("account.payments.card.title")
+                </h2>
+                <p class="card-sub-heading bold govuk-body-m">
+                    <span class="font-xsmall">@messages("account.payments.subHeading")</span></p>
+                <p class="card-sub-heading bold govuk-body-m">
+                    <span class="font-xsmall"></span>
+                </p>
+            </div>
+            <div class="card-action">
+                <ul class="govuk-list">
+                    <li>
+                        <a id="aftContinueInProgressLink" class="govuk-link" href="tbc">@messages("account.payments.makePayment")</a>
+                    </li>
+                    <li>
+                        <a id="aftLoginLink" class="govuk-link" href="tbc">@messages("account.payments.setDirectDebit")</a>
+                    </li>
+                    <li>
+                        <a id="aftAmendLink" class="govuk-link" href="tbc">@messages("account.payments.viewHistory")</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+
+        <div class="card" id="event-reporting">
+            <div class="card-body">
+                <h2 class="card-heading govuk-heading-m">
+                    @messages("account.history.card.title")
+                </h2>
+            </div>
+            <div class="card-action">
+                <ul class="govuk-list">
+                    <li>
+                        <a id="aftContinueInProgressLink" class="govuk-link" href="tbc">@messages("account.history.viewHistory")</a>
+                    </li>
+                    <li>
+                        <a id="aftLoginLink" class="govuk-link" href="tbc">@messages("account.history.viewReturns")</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
 }
