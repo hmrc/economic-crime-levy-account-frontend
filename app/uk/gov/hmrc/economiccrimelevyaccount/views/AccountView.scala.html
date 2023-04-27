@@ -14,13 +14,17 @@
  * limitations under the License.
  *@
 
+@import java.time.LocalDate
+@import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
+
+
 @this(
         layout: templates.Layout,
         summaryList: GovukSummaryList,
         button: GovukButton
 )
 
-@(eclRegistrationReference: String, eclRegistrationDate: String)(implicit request: Request[_], messages: Messages)
+@(eclRegistrationReference: String, eclRegistrationDate: String, obligationDetails: Option[ObligationDetails])(implicit request: Request[_], messages: Messages)
 
 @layout(
     pageTitle = title(messages("account.title")),
@@ -36,13 +40,29 @@
         <br>
 
     <div class="flex-container govuk-grid-row">
+    <!-- RETURNS CARD -->
         <div class="card" id="aft-overdue-charges">
             <div class="card-body">
                 <h2 class="card-heading govuk-heading-m">
                     @messages("account.return.card.title")
                 </h2>
                 <p class="card-sub-heading bold govuk-body-m">
-                    <span class="font-xsmall">@messages("account.return.subHeading")</span>
+                    @if(obligationDetails.nonEmpty && obligationDetails.get.status == Open){
+                        @defining(obligationDetails.get) { details =>
+                            @if(details.inboundCorrespondenceDueDate.isBefore(LocalDate.now())){
+                                    <!-- Overdue -->
+                            <span class="font-xsmall">@messages("account.overdue.return.subHeading",
+                                ViewUtils.formatLocalDate(details.inboundCorrespondenceFromDate),
+                                ViewUtils.formatLocalDate(details.inboundCorrespondenceToDate))</span>
+                                } else {
+                                    <!-- Due -->
+                            <span class="font-xsmall">@messages("account.due.return.subHeading",
+                                ViewUtils.formatLocalDate(details.inboundCorrespondenceFromDate),
+                                ViewUtils.formatLocalDate(details.inboundCorrespondenceToDate),
+                                ViewUtils.formatLocalDate(details.inboundCorrespondenceDueDate))</span>
+                            }
+                        }
+                    }
             <p class="card-sub-heading bold govuk-body-m">
                 <span class="font-xsmall"></span>
                 <p class="card-sub-heading bold govuk-body-m">
@@ -65,6 +85,7 @@
         </div>
 
         <div class="card" id="aft-overview">
+            <!-- PAYMENTS CARD -->
             <div class="card-body">
                 <h2 class="card-heading govuk-heading-m">
                     @messages("account.payments.card.title")
@@ -92,6 +113,7 @@
 
 
         <div class="card" id="event-reporting">
+            <!-- HISTORY CARD -->
             <div class="card-body">
                 <h2 class="card-heading govuk-heading-m">
                     @messages("account.history.card.title")
