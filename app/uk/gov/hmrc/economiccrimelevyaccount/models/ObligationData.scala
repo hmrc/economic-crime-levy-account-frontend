@@ -55,22 +55,11 @@ object ObligationData {
 }
 
 final case class Obligation(
-  identification: Option[Identification],
   obligationDetails: Seq[ObligationDetails]
 )
 
 object Obligation {
   implicit val format: OFormat[Obligation] = Json.format[Obligation]
-}
-
-final case class Identification(
-  incomeSourceType: Option[String],
-  referenceNumber: String,
-  referenceType: String
-)
-
-object Identification {
-  implicit val format: OFormat[Identification] = Json.format[Identification]
 }
 
 final case class ObligationDetails(

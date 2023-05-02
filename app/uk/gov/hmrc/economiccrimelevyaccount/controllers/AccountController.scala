@@ -44,20 +44,20 @@ class AccountController @Inject() (
     enrolmentStoreProxyService.getEclRegistrationDate(request.eclRegistrationReference).flatMap { registrationDate =>
       obligationDataConnector
         .getObligationData()
-        .map { obligationData =>
-          Ok(
-            view(
-              request.eclRegistrationReference,
-              ViewUtils.formatLocalDate(registrationDate),
-              getLatestObligation(obligationData)
+        .map {
+          case Some(obligationData) =>
+            Ok(
+              view(
+                request.eclRegistrationReference,
+                ViewUtils.formatLocalDate(registrationDate),
+                getLatestObligation(obligationData)
+              )
             )
-          )
+          case None                 => throw new IllegalStateException("TODO")
         }
     }
   }
 
-  private def getLatestObligation(obligationData: Option[ObligationData]): Option[ObligationDetails] = {
-   var test = obligationData.map(_.obligations.flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate))).flatMap(_.headOption)
-    test
-  }
+  private def getLatestObligation(obligationData: ObligationData): Option[ObligationDetails] =
+    obligationData.obligations.flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate)).headOption
 }

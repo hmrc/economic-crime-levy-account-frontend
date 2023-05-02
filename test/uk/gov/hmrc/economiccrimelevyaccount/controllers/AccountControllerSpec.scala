@@ -21,6 +21,9 @@ import org.mockito.ArgumentMatchers.any
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
+import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries.arbObligationData
+import uk.gov.hmrc.economiccrimelevyaccount.models.{ObligationData, ObligationDetails, Open}
 import uk.gov.hmrc.economiccrimelevyaccount.services.EnrolmentStoreProxyService
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
@@ -31,6 +34,7 @@ import scala.concurrent.Future
 class AccountControllerSpec extends SpecBase {
 
   val mockEnrolmentStoreProxyService: EnrolmentStoreProxyService = mock[EnrolmentStoreProxyService]
+  val mockObligationDataConnector: ObligationDataConnector       = mock[ObligationDataConnector]
 
   val view: AccountView = app.injector.instanceOf[AccountView]
 
@@ -38,21 +42,25 @@ class AccountControllerSpec extends SpecBase {
     mcc,
     fakeAuthorisedAction,
     mockEnrolmentStoreProxyService,
-    view
+    view,
+    mockObligationDataConnector
   )
 
   "onPageLoad" should {
-    "return OK and the correct view" in forAll { eclRegistrationDate: LocalDate =>
+    "return OK and the correct view" in forAll { (eclRegistrationDate: LocalDate, obligationData: ObligationData) =>
       when(mockEnrolmentStoreProxyService.getEclRegistrationDate(ArgumentMatchers.eq(eclRegistrationReference))(any()))
         .thenReturn(Future.successful(eclRegistrationDate))
+      when(mockObligationDataConnector.getObligationData()(any())).thenReturn(Future.successful(Some(obligationData)))
 
       val result: Future[Result] = controller.onPageLoad()(fakeRequest)
+      val obligationDetails      =
+        ObligationDetails(Open, LocalDate.now(), LocalDate.now(), Some(LocalDate.now()), LocalDate.now(), "period-key")
 
-      status(result) shouldBe OK
-
+      status(result)          shouldBe OK
       contentAsString(result) shouldBe view(
         eclRegistrationReference,
-        ViewUtils.formatLocalDate(eclRegistrationDate)(messages)
+        ViewUtils.formatLocalDate(eclRegistrationDate)(messages),
+        Some(obligationDetails)
       )(fakeRequest, messages).toString
     }
   }
