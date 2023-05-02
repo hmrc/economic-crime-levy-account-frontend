@@ -69,7 +69,9 @@ final case class ObligationDetails(
   inboundCorrespondenceDateReceived: Option[LocalDate],
   inboundCorrespondenceDueDate: LocalDate,
   periodKey: String
-)
+){
+  def isOverdue: Boolean = LocalDate.now().isAfter(inboundCorrespondenceDueDate)
+}
 
 object ObligationDetails {
   implicit val format: OFormat[ObligationDetails] = Json.format[ObligationDetails]

@@ -53,7 +53,8 @@ class AccountController @Inject() (
                 getLatestObligation(obligationData)
               )
             )
-          case None                 => throw new IllegalStateException("TODO")
+          case None                 =>
+            Ok(view(request.eclRegistrationReference, ViewUtils.formatLocalDate(registrationDate), None))
         }
     }
   }
