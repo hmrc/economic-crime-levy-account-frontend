@@ -20,10 +20,9 @@ import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import play.api.mvc.Result
 import play.api.test.Helpers._
+import uk.gov.hmrc.economiccrimelevyaccount.ObligationDataWithObligation
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
-import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries.arbObligationData
-import uk.gov.hmrc.economiccrimelevyaccount.models.{ObligationData, ObligationDetails, Open}
 import uk.gov.hmrc.economiccrimelevyaccount.services.EnrolmentStoreProxyService
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
@@ -47,21 +46,23 @@ class AccountControllerSpec extends SpecBase {
   )
 
   "onPageLoad" should {
-    "return OK and the correct view" in forAll { (eclRegistrationDate: LocalDate, obligationData: ObligationData) =>
-      when(mockEnrolmentStoreProxyService.getEclRegistrationDate(ArgumentMatchers.eq(eclRegistrationReference))(any()))
-        .thenReturn(Future.successful(eclRegistrationDate))
-      when(mockObligationDataConnector.getObligationData()(any())).thenReturn(Future.successful(Some(obligationData)))
+    "return OK and the correct view" in forAll {
+      (eclRegistrationDate: LocalDate, obligationData: ObligationDataWithObligation) =>
+        when(
+          mockEnrolmentStoreProxyService.getEclRegistrationDate(ArgumentMatchers.eq(eclRegistrationReference))(any())
+        )
+          .thenReturn(Future.successful(eclRegistrationDate))
+        when(mockObligationDataConnector.getObligationData()(any()))
+          .thenReturn(Future.successful(Some(obligationData.obligationData)))
 
-      val result: Future[Result] = controller.onPageLoad()(fakeRequest)
-      val obligationDetails      =
-        ObligationDetails(Open, LocalDate.now(), LocalDate.now(), Some(LocalDate.now()), LocalDate.now(), "period-key")
+        val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
-      status(result)          shouldBe OK
-      contentAsString(result) shouldBe view(
-        eclRegistrationReference,
-        ViewUtils.formatLocalDate(eclRegistrationDate)(messages),
-        Some(obligationDetails)
-      )(fakeRequest, messages).toString
+        status(result)          shouldBe OK
+        contentAsString(result) shouldBe view(
+          eclRegistrationReference,
+          ViewUtils.formatLocalDate(eclRegistrationDate)(messages),
+          Some(obligationData.obligationData.obligations.head.obligationDetails.head)
+        )(fakeRequest, messages).toString
     }
   }
 

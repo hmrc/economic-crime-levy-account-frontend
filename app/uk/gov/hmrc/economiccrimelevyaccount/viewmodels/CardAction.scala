@@ -16,6 +16,4 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
 
-case class CardAction(id: String,
-                      href: String,
-                      text: String)
+case class CardAction(id: String, href: String, text: String)

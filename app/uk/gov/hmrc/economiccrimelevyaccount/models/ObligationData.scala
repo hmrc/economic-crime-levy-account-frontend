@@ -69,7 +69,7 @@ final case class ObligationDetails(
   inboundCorrespondenceDateReceived: Option[LocalDate],
   inboundCorrespondenceDueDate: LocalDate,
   periodKey: String
-){
+) {
   def isOverdue: Boolean = LocalDate.now().isAfter(inboundCorrespondenceDueDate)
 }
 
