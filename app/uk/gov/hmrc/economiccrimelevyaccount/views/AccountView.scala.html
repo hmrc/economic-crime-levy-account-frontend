@@ -14,13 +14,71 @@
  * limitations under the License.
  *@
 
+@import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.CardAction
+@import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
+
 @this(
         layout: templates.Layout,
         summaryList: GovukSummaryList,
-        button: GovukButton
+        button: GovukButton,
+        appConfig: AppConfig,
+        card: uk.gov.hmrc.economiccrimelevyaccount.views.html.components.Card
 )
 
-@(eclRegistrationReference: String, eclRegistrationDate: String)(implicit request: Request[_], messages: Messages)
+@(eclRegistrationReference: String, eclRegistrationDate: String, obligationDetails: Option[ObligationDetails])(implicit request: Request[_], messages: Messages)
+
+@returnsSubHeading = {
+@obligationDetails match {
+    case Some(value) if obligationDetails.get.status == Open => {
+        @defining(obligationDetails.get) { details =>
+            @if(details.isOverdue) {
+                <!-- Overdue -->
+                @messages("account.overdue.return.subHeading",
+                    ViewUtils.formatLocalDate(details.inboundCorrespondenceFromDate),
+                    ViewUtils.formatLocalDate(details.inboundCorrespondenceToDate))
+            } else {
+                <!-- Due -->
+                @messages("account.due.return.subHeading",
+                    ViewUtils.formatLocalDate(details.inboundCorrespondenceFromDate),
+                    ViewUtils.formatLocalDate(details.inboundCorrespondenceToDate),
+                    ViewUtils.formatLocalDate(details.inboundCorrespondenceDueDate))
+            }
+        }
+    }
+    case _ => {}
+}
+}
+@getReturnsLink = @{
+    obligationDetails match {
+        case Some(value) => {
+            s"${appConfig.economicCrimeLevyReturnsFrontendBaseUrl}/submit-economic-crime-levy-return/period/${value.periodKey}"
+        }
+        case None => "XXYY"
+
+    }
+}
+
+@returnsActions = @{
+    Seq(
+        CardAction("submit-return", getReturnsLink, messages("account.submitEcl")),
+        CardAction("how-to-complete-return", "#", messages("account.howToComplete")),
+        CardAction("view-returns", "#", messages("account.viewReturns"))
+    )
+}
+@paymentsAction = @{
+    Seq(
+        CardAction("make-payment", "#", messages("account.payments.makePayment")),
+        CardAction("set-up-dd", "#", messages("account.payments.setDirectDebit")),
+        CardAction("view-payment-history", "#", messages("account.payments.viewHistory"))
+    )
+}
+@historyActions = @{
+    Seq(
+        CardAction("view-payment-history", "#", messages("account.history.viewHistory")),
+        CardAction("view-submitted-returns", "#", messages("account.history.viewReturns"))
+    )
+}
 
 @layout(
     pageTitle = title(messages("account.title")),
@@ -30,5 +88,12 @@
 
     <h1 class="govuk-heading-xl govuk-!-margin-bottom-0">@messages("account.heading")</h1>
     <span class="govuk-caption-m">@messages("account.eclReferenceNumber", eclRegistrationReference)</span>
+    <p>
 
+        <br>
+<div class="flex-container govuk-grid-row">
+    @card("returns", messages("account.return.card.title"), Some(returnsSubHeading), returnsActions)
+    @card("payments", messages("account.payments.card.title"), None, paymentsAction)
+    @card("history", messages("account.history.card.title"), None, historyActions)
+</div>
 }

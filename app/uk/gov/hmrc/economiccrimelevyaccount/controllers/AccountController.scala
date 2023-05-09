@@ -18,7 +18,9 @@ package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
+import uk.gov.hmrc.economiccrimelevyaccount.models.{ObligationData, ObligationDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.services.EnrolmentStoreProxyService
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
@@ -32,15 +34,31 @@ class AccountController @Inject() (
   val controllerComponents: MessagesControllerComponents,
   authorise: AuthorisedAction,
   enrolmentStoreProxyService: EnrolmentStoreProxyService,
-  view: AccountView
+  view: AccountView,
+  obligationDataConnector: ObligationDataConnector
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    enrolmentStoreProxyService.getEclRegistrationDate(request.eclRegistrationReference).map { registrationDate =>
-      Ok(view(request.eclRegistrationReference, ViewUtils.formatLocalDate(registrationDate)))
+    enrolmentStoreProxyService.getEclRegistrationDate(request.eclRegistrationReference).flatMap { registrationDate =>
+      obligationDataConnector
+        .getObligationData()
+        .map {
+          case Some(obligationData) =>
+            Ok(
+              view(
+                request.eclRegistrationReference,
+                ViewUtils.formatLocalDate(registrationDate),
+                getLatestObligation(obligationData)
+              )
+            )
+          case None                 =>
+            Ok(view(request.eclRegistrationReference, ViewUtils.formatLocalDate(registrationDate), None))
+        }
     }
   }
 
+  private def getLatestObligation(obligationData: ObligationData): Option[ObligationDetails] =
+    obligationData.obligations.flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate)).headOption
 }

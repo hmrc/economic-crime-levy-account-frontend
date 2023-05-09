@@ -20,12 +20,17 @@ import org.scalacheck.{Arbitrary, Gen}
 import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments}
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.EclEnrolment
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
+import uk.gov.hmrc.economiccrimelevyaccount.models.{Fulfilled, Obligation, ObligationData, ObligationDetails, Open}
 
 import java.time.{Instant, LocalDate}
 
 case class EnrolmentsWithEcl(enrolments: Enrolments)
 
 case class EnrolmentsWithoutEcl(enrolments: Enrolments)
+
+case class ObligationDataWithObligation(obligationData: ObligationData)
+case class ObligationDataWithOverdueObligation(obligationData: ObligationData)
+case class ObligationDataWithSubmittedObligation(obligationData: ObligationData)
 
 trait EclTestData {
 
@@ -47,6 +52,56 @@ trait EclTestData {
         enrolment.copy(key = EclEnrolment.ServiceName, identifiers = enrolment.identifiers :+ eclEnrolmentIdentifier)
     } yield EnrolmentsWithEcl(enrolments.copy(enrolments.enrolments + eclEnrolment))
   }
+
+  implicit val arbObligationDataWithObligation: Arbitrary[ObligationDataWithObligation] = Arbitrary {
+    for {
+      obligationData                 <- Arbitrary.arbitrary[ObligationData]
+      obligation                     <- Arbitrary.arbitrary[Obligation]
+      obligationDetails               = ObligationDetails(
+                                          Open,
+                                          LocalDate.now(),
+                                          LocalDate.now(),
+                                          Some(LocalDate.now()),
+                                          LocalDate.now().plusDays(1),
+                                          "period-key"
+                                        )
+      obligationWithObligationDetails = obligation.copy(Seq(obligationDetails))
+    } yield ObligationDataWithObligation(obligationData.copy(Seq(obligationWithObligationDetails)))
+  }
+
+  implicit val arbObligationDataWithObligationThatIsOverdue: Arbitrary[ObligationDataWithOverdueObligation] =
+    Arbitrary {
+      for {
+        obligationData   <- Arbitrary.arbitrary[ObligationData]
+        obligation       <- Arbitrary.arbitrary[Obligation]
+        obligationDetails = ObligationDetails(
+                              Open,
+                              LocalDate.now(),
+                              LocalDate.now(),
+                              Some(LocalDate.now()),
+                              LocalDate.now().minusDays(1),
+                              "period-key"
+                            )
+        overdueObligation = obligation.copy(Seq(obligationDetails))
+      } yield ObligationDataWithOverdueObligation(obligationData.copy(Seq(overdueObligation)))
+    }
+
+  implicit val arbObligationDataWithObligationThatIsSubmitted: Arbitrary[ObligationDataWithSubmittedObligation] =
+    Arbitrary {
+      for {
+        obligationData   <- Arbitrary.arbitrary[ObligationData]
+        obligation       <- Arbitrary.arbitrary[Obligation]
+        obligationDetails = ObligationDetails(
+                              Fulfilled,
+                              LocalDate.now(),
+                              LocalDate.now(),
+                              Some(LocalDate.now()),
+                              LocalDate.now().plusDays(1),
+                              "period-key"
+                            )
+        overdueObligation = obligation.copy(Seq(obligationDetails))
+      } yield ObligationDataWithSubmittedObligation(obligationData.copy(Seq(overdueObligation)))
+    }
 
   implicit val arbEnrolmentsWithoutEcl: Arbitrary[EnrolmentsWithoutEcl] = Arbitrary {
     Arbitrary
