@@ -1,0 +1,79 @@
+@*
+ * Copyright 2023 HM Revenue & Customs
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *@
+
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
+@import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
+
+
+@this(
+        layout: templates.Layout,
+        table: GovukTable
+)
+
+@(returnData: Seq[ReturnsOverview])(implicit request: Request[_], messages: Messages)
+
+@resolveStatusColour(status: String) = @{
+    status match {
+        case "DUE" => "blue"
+        case "SUBMITTED" => "green"
+        case _ => "red"
+    }
+}
+
+@checkIfTableLinkIsNeeded(status: String) =@{
+    status match {
+        case "DUE" => {(messages("account.viewReturns.table.link"), "")}
+        case "OVERDUE" => {(messages("account.viewReturns.table.link"), "")}
+        case "SUBMITTED" => {(messages("account.viewReturns.table.placeholder"), "submit-link")}
+    }
+}
+
+@tableRows(rowData: ReturnsOverview) = @{
+    val tableLinkInfo = checkIfTableLinkIsNeeded(rowData.status)
+
+    Seq(TableRow(content = ViewUtils.formatLocalDate(rowData.dueDate), classes = "govuk-table__header"),
+        TableRow(content = HtmlContent(messages("account.viewReturns.table.status", resolveStatusColour(rowData.status), rowData.status)), classes = "govuk-table__cell"),
+        TableRow(content = HtmlContent(tableLinkInfo._1), classes = tableLinkInfo._2))
+}
+@generateTable =@{
+    returnData.map{ data =>
+        table(Table(
+            rows = Seq(tableRows(data)),
+            head = Some(Seq(
+                HeadCell(content = Text(messages("account.viewReturns.table.column.1")), classes = "govuk-table__header"),
+                HeadCell(content = Text(messages("account.viewReturns.table.column.2")), classes = "govuk-table__header"),
+                HeadCell(content = Text(""))
+            )),
+            firstCellIsHeader = true,
+            caption = Some(data.fromTo),
+            captionClasses = "govuk-table__caption--m",
+            classes = "govuk-table"
+        ))
+    }
+}
+@layout(
+    pageTitle = title(messages("account.title")),
+    showBackLink = true,
+    fullWidthContent = false
+) {
+    <h1 class="govuk-heading-xl govuk-!-margin-bottom-0">@messages("account.viewReturns.title")</h1>
+
+    <br>
+    <br>
+    <br>
+
+@generateTable
+}
