@@ -18,6 +18,9 @@ timeout.keepAlive = Stay signed in
 timeout.signOut = Sign out
 
 error.browser.title.prefix = Error:
+error.problemWithService.title = Sorry, there is a problem with the service - Economic Crime Levy - GOV.UK
+error.problemWithService.heading = Sorry, there is a problem with the service
+error.problemWithService.message = Try again later.
 
 account.title = Your Economic Crime Levy account
 account.heading = Your Economic Crime Levy account
