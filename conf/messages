@@ -27,6 +27,7 @@ account.howToComplete = How to complete and submit a return
 account.viewReturns = View your returns
 account.viewReturns.title = Your Economic Crime Levy returns
 account.viewReturns.table.column.1 = Return and payment due by
+account.viewReturns.table.column.1.fulfilled = Date of fulfilment
 account.viewReturns.table.column.2 = Return status
 account.viewReturns.table.link = <a href="#" class="govuk-link">Submit return</a>
 account.viewReturns.table.placeholder = Submit return
