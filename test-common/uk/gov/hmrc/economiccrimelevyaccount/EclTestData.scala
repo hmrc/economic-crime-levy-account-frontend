@@ -59,7 +59,7 @@ trait EclTestData {
       obligation                     <- Arbitrary.arbitrary[Obligation]
       obligationDetails               = ObligationDetails(
                                           Open,
-                                          LocalDate.now(),
+                                          LocalDate.now().minusYears(1),
                                           LocalDate.now(),
                                           Some(LocalDate.now()),
                                           LocalDate.now().plusDays(1),
@@ -76,7 +76,7 @@ trait EclTestData {
         obligation       <- Arbitrary.arbitrary[Obligation]
         obligationDetails = ObligationDetails(
                               Open,
-                              LocalDate.now(),
+                              LocalDate.now().minusYears(1),
                               LocalDate.now(),
                               Some(LocalDate.now()),
                               LocalDate.now().minusDays(1),
@@ -93,7 +93,7 @@ trait EclTestData {
         obligation       <- Arbitrary.arbitrary[Obligation]
         obligationDetails = ObligationDetails(
                               Fulfilled,
-                              LocalDate.now(),
+                              LocalDate.now().minusYears(1),
                               LocalDate.now(),
                               Some(LocalDate.now()),
                               LocalDate.now().plusDays(1),

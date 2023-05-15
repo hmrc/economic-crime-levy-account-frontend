@@ -41,7 +41,9 @@
   justify-content: flex-start;
   padding: 0 15px;
 }
-
+.submit-link {
+  opacity: 0.0;
+}
 .card {
   flex-grow: 0;
   flex-basis: 100%;

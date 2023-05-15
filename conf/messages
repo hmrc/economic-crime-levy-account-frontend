@@ -25,6 +25,14 @@ account.eclReferenceNumber = ECL reference number: {0}
 account.submitEcl = Submit an Economic Crime Levy return
 account.howToComplete = How to complete and submit a return
 account.viewReturns = View your returns
+account.viewReturns.title = Your Economic Crime Levy returns
+account.viewReturns.table.column.1 = Return and payment due by
+account.viewReturns.table.column.2 = Return status
+account.viewReturns.table.link = <a href="#" class="govuk-link">Submit return</a>
+account.viewReturns.table.placeholder = Submit return
+account.viewReturns.table.status = <strong class="govuk-tag govuk-tag--{0}">{1}</strong>
+account.viewReturns.noReturnsFound.heading = You have not submitted any Economic Crime Levy returns.
+account.viewReturns.noReturnsFound.p1 = Once you have submitted a return, it will appear here.
 account.return.card.title = Returns
 account.due.return.subHeading = Your return for {0} to {1} is due by {2}.
 account.overdue.return.subHeading = You have an overdue return for {0} to {1}.

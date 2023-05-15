@@ -63,7 +63,7 @@
     Seq(
         CardAction("submit-return", getReturnsLink, messages("account.submitEcl")),
         CardAction("how-to-complete-return", "#", messages("account.howToComplete")),
-        CardAction("view-returns", "#", messages("account.viewReturns"))
+        CardAction("view-returns", uk.gov.hmrc.economiccrimelevyaccount.controllers.routes.ViewYourReturnsController.onPageLoad().url, messages("account.viewReturns"))
     )
 }
 @paymentsAction = @{
