@@ -48,12 +48,20 @@
         TableRow(content = HtmlContent(messages("account.viewReturns.table.status", resolveStatusColour(rowData.status), rowData.status)), classes = "govuk-table__cell"),
         TableRow(content = HtmlContent(tableLinkInfo._1), classes = tableLinkInfo._2))
 }
+
+@firstHeadCellResolved(status: String) = @{
+    if(status.equalsIgnoreCase("SUBMITTED")){
+        "account.viewReturns.table.column.1.fulfilled"
+    }else {
+        "account.viewReturns.table.column.1"
+    }
+}
 @generateTable =@{
     returnData.map{ data =>
         table(Table(
             rows = Seq(tableRows(data)),
             head = Some(Seq(
-                HeadCell(content = Text(messages("account.viewReturns.table.column.1")), classes = "govuk-table__header"),
+                HeadCell(content = Text(messages(firstHeadCellResolved(data.status))), classes = "govuk-table__header"),
                 HeadCell(content = Text(messages("account.viewReturns.table.column.2")), classes = "govuk-table__header"),
                 HeadCell(content = Text(""))
             )),
