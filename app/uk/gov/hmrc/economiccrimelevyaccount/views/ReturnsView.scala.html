@@ -16,10 +16,12 @@
 
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
+@import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 
 
 @this(
         layout: templates.Layout,
+        appConfig: AppConfig,
         table: GovukTable
 )
 
@@ -33,16 +35,16 @@
     }
 }
 
-@checkIfTableLinkIsNeeded(status: String) =@{
+@checkIfTableLinkIsNeeded(status: String, periodKey: String) =@{
     status match {
-        case "DUE" => {(messages("account.viewReturns.table.link"), "")}
-        case "OVERDUE" => {(messages("account.viewReturns.table.link"), "")}
-        case "SUBMITTED" => {(messages("account.viewReturns.table.placeholder"), "submit-link")}
+        case "DUE" => {(messages("account.viewReturns.table.link",s"${appConfig.economicCrimeLevyReturnsFrontendBaseUrl}/submit-economic-crime-levy-return/period/$periodKey" ), "")}
+        case "OVERDUE" => {(messages("account.viewReturns.table.link", s"${appConfig.economicCrimeLevyReturnsFrontendBaseUrl}/submit-economic-crime-levy-return/period/$periodKey"), "")}
+        case "SUBMITTED" => {(messages("account.viewReturns.table.placeholder", "#"), "submit-link")}
     }
 }
 
 @tableRows(rowData: ReturnsOverview) = @{
-    val tableLinkInfo = checkIfTableLinkIsNeeded(rowData.status)
+    val tableLinkInfo = checkIfTableLinkIsNeeded(rowData.status, rowData.periodKey)
 
     Seq(TableRow(content = ViewUtils.formatLocalDate(rowData.dueDate), classes = "govuk-table__header"),
         TableRow(content = HtmlContent(messages("account.viewReturns.table.status", resolveStatusColour(rowData.status), rowData.status)), classes = "govuk-table__cell"),

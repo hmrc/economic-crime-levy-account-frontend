@@ -18,4 +18,4 @@ package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
 
 import java.time.LocalDate
 
-case class ReturnsOverview(fromTo: String, dueDate: LocalDate, status: String)
+case class ReturnsOverview(fromTo: String, dueDate: LocalDate, status: String, periodKey: String)

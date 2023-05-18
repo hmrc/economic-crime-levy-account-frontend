@@ -54,7 +54,8 @@ class ViewYourReturnsController @Inject() (
       ReturnsOverview(
         forgeFromToCaption(details.inboundCorrespondenceFromDate.getYear, details.inboundCorrespondenceToDate.getYear),
         details.inboundCorrespondenceDueDate,
-        resolveStatus(details)
+        resolveStatus(details),
+        details.periodKey
       )
     }
 
