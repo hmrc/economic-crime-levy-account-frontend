@@ -44,18 +44,19 @@ class ViewYourReturnsController @Inject() (
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
     obligationDataConnector.getObligationData().map {
       case Some(obligationData) =>
-        Ok(returnsView(assembleReturnsViewData(obligationData)))
+        Ok(returnsView(assembleReturnsViewData(obligationData, request.eclRegistrationReference)))
       case None                 => Ok(noSubmittedReturnsView())
     }
   }
 
-  private def assembleReturnsViewData(obligationData: ObligationData): Seq[ReturnsOverview] =
+  private def assembleReturnsViewData(obligationData: ObligationData, eclReference: String): Seq[ReturnsOverview] =
     obligationData.obligations.flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate)).map { details =>
       ReturnsOverview(
         forgeFromToCaption(details.inboundCorrespondenceFromDate.getYear, details.inboundCorrespondenceToDate.getYear),
         details.inboundCorrespondenceDueDate,
         resolveStatus(details),
-        details.periodKey
+        details.periodKey,
+        eclReference
       )
     }
 
