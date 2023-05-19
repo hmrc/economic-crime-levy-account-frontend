@@ -19,29 +19,31 @@
 @this()
 @(cardId: String, heading: String, subHeading: Option[Html], cardActions: Seq[CardAction])
 
-<div class="card" id="@cardId">
-    <div class="card-body">
-        <h2 class="card-heading govuk-heading-m">
-        @heading
-        </h2>
-        <p class="card-sub-heading bold govuk-body-m">
-            <span class="font-xsmall">@subHeading match {
-                case Some(value) => {
-                    @value
+<div class="govuk-grid-column-one-half">
+    <div class="card" id="@cardId">
+        <div class="card-body">
+            <h2 class="card-heading govuk-heading-m">
+            @heading
+            </h2>
+            <p class="card-sub-heading bold govuk-body-m">
+                <span class="font-xsmall">@subHeading match {
+                    case Some(value) => {
+                        @value
+                    }
+                    case _ => {}
                 }
-                case _ => {}
+                </span>
+            </p>
+        </div>
+        <div class="card-action">
+            <ul class="govuk-list">
+            @cardActions.map { action =>
+                <li>
+                    <a id="@action.id" class="govuk-link" href="@action.href">@action.text</a>
+                </li>
             }
-            </span>
-        </p>
-    </div>
-    <div class="card-action">
-        <ul class="govuk-list">
-        @cardActions.map { action =>
-            <li>
-                <a id="@action.id" class="govuk-link" href="@action.href">@action.text</a>
-            </li>
-        }
-        </ul>
+            </ul>
+        </div>
     </div>
 </div>
 

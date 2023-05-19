@@ -73,12 +73,6 @@
         CardAction("view-payment-history", "#", messages("account.payments.viewHistory"))
     )
 }
-@historyActions = @{
-    Seq(
-        CardAction("view-payment-history", "#", messages("account.history.viewHistory")),
-        CardAction("view-submitted-returns", "#", messages("account.history.viewReturns"))
-    )
-}
 
 @layout(
     pageTitle = title(messages("account.title")),
@@ -94,6 +88,5 @@
 <div class="flex-container govuk-grid-row">
     @card("returns", messages("account.return.card.title"), Some(returnsSubHeading), returnsActions)
     @card("payments", messages("account.payments.card.title"), None, paymentsAction)
-    @card("history", messages("account.history.card.title"), None, historyActions)
 </div>
 }
