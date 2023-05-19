@@ -52,7 +52,9 @@ class ViewYourReturnsControllerSpec extends SpecBase {
         ReturnsOverview(
           "2022-2023",
           obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
-          "DUE"
+          "DUE",
+          "period-key",
+          eclRegistrationReference
         )
       )
       status(result)          shouldBe OK
@@ -72,7 +74,9 @@ class ViewYourReturnsControllerSpec extends SpecBase {
           ReturnsOverview(
             "2022-2023",
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
-            "OVERDUE"
+            "OVERDUE",
+            "period-key",
+            eclRegistrationReference
           )
         )
         status(result)          shouldBe OK
@@ -92,7 +96,9 @@ class ViewYourReturnsControllerSpec extends SpecBase {
           ReturnsOverview(
             "2022-2023",
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
-            "SUBMITTED"
+            "SUBMITTED",
+            "period-key",
+            eclRegistrationReference
           )
         )
         status(result)          shouldBe OK

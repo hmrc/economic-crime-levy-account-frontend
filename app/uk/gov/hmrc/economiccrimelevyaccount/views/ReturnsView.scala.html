@@ -16,10 +16,12 @@
 
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
+@import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 
 
 @this(
         layout: templates.Layout,
+        appConfig: AppConfig,
         table: GovukTable
 )
 
@@ -32,38 +34,51 @@
         case _ => "red"
     }
 }
-
-@checkIfTableLinkIsNeeded(status: String) =@{
-    status match {
-        case "DUE" => {(messages("account.viewReturns.table.link"), "")}
-        case "OVERDUE" => {(messages("account.viewReturns.table.link"), "")}
-        case "SUBMITTED" => {(messages("account.viewReturns.table.placeholder"), "submit-link")}
-    }
-}
-
-@tableRows(rowData: ReturnsOverview) = @{
-    val tableLinkInfo = checkIfTableLinkIsNeeded(rowData.status)
-
-    Seq(TableRow(content = ViewUtils.formatLocalDate(rowData.dueDate), classes = "govuk-table__header"),
-        TableRow(content = HtmlContent(messages("account.viewReturns.table.status", resolveStatusColour(rowData.status), rowData.status)), classes = "govuk-table__cell"),
-        TableRow(content = HtmlContent(tableLinkInfo._1), classes = tableLinkInfo._2))
-}
-
 @firstHeadCellResolved(status: String) = @{
-    if(status.equalsIgnoreCase("SUBMITTED")){
+    if(status.equalsIgnoreCase("SUBMITTED")) {
         "account.viewReturns.table.column.1.fulfilled"
-    }else {
+    } else {
         "account.viewReturns.table.column.1"
     }
 }
-@generateTable =@{
-    returnData.map{ data =>
+
+@resolveThirdHeaderCell(status: String) = @{
+    if(status.equalsIgnoreCase("SUBMITTED")) {
+        messages("account.viewReturns.table.header.3")
+    } else {
+        ""
+    }
+}
+
+@thirdCellResolve(status: String, periodKey: String, eclReference: String) = @{
+    status match {
+        case "DUE" => {
+            (messages("account.viewReturns.table.link", s"${appConfig.economicCrimeLevyReturnsFrontendBaseUrl}/submit-economic-crime-levy-return/period/$periodKey"), "")
+        }
+        case "OVERDUE" => {
+            (messages("account.viewReturns.table.link", s"${appConfig.economicCrimeLevyReturnsFrontendBaseUrl}/submit-economic-crime-levy-return/period/$periodKey"), "")
+        }
+        case "SUBMITTED" => {
+            (eclReference, "")
+        }
+    }
+}
+@tableRows(rowData: ReturnsOverview) = @{
+    val tableLinkInfo = thirdCellResolve(rowData.status, rowData.periodKey, rowData.eclReference)
+
+    Seq(TableRow(content = ViewUtils.formatLocalDate(rowData.dueDate), classes = "govuk-table__header govuk-!-width-one-half"),
+        TableRow(content = HtmlContent(messages("account.viewReturns.table.status", resolveStatusColour(rowData.status), rowData.status)), classes = "govuk-table__cell"),
+        TableRow(content = HtmlContent(tableLinkInfo._1)))
+}
+
+@generateTable = @{
+    returnData.map { data =>
         table(Table(
             rows = Seq(tableRows(data)),
             head = Some(Seq(
                 HeadCell(content = Text(messages(firstHeadCellResolved(data.status))), classes = "govuk-table__header"),
                 HeadCell(content = Text(messages("account.viewReturns.table.column.2")), classes = "govuk-table__header"),
-                HeadCell(content = Text(""))
+                HeadCell(content = Text(resolveThirdHeaderCell(data.status)), classes = "govuk-table__header govuk-!-width-one-quarter")
             )),
             firstCellIsHeader = true,
             caption = Some(data.fromTo),
@@ -83,5 +98,5 @@
     <br/>
     <br/>
 
-@generateTable
+    @generateTable
 }
