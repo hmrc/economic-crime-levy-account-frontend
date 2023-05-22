@@ -37,7 +37,7 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
   val signInUrl: String       = configuration.get[String]("urls.signIn")
   val signOutUrl: String      = configuration.get[String]("urls.signOut")
   val registrationUrl: String = configuration.get[String]("urls.registration")
-  val submitReturn: String    = configuration.get[String]("urls.submitReturn")
+  val returns: String    = configuration.get[String]("urls.returns")
 
   private val exitSurveyHost              = configuration.get[String]("feedback-frontend.host")
   private val exitSurveyServiceIdentifier = configuration.get[String]("feedback-frontend.serviceId")

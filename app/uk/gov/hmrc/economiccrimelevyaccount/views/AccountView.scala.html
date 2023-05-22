@@ -52,7 +52,7 @@
 @getReturnsLink = @{
     obligationDetails match {
         case Some(value) => {
-            s"${appConfig.submitReturn}/period/${value.periodKey}"
+            s"${appConfig.returns}/period/${value.periodKey}"
         }
         case None => "XXYY"
 
