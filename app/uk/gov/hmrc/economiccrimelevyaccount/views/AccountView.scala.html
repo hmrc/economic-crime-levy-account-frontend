@@ -52,7 +52,7 @@
 @getReturnsLink = @{
     obligationDetails match {
         case Some(value) => {
-            s"${appConfig.economicCrimeLevyReturnsFrontendBaseUrl}/submit-economic-crime-levy-return/period/${value.periodKey}"
+            s"${appConfig.submitReturn}/period/${value.periodKey}"
         }
         case None => "XXYY"
 
