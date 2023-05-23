@@ -53,10 +53,10 @@
 @thirdCellResolve(status: String, periodKey: String, eclReference: String) = @{
     status match {
         case "DUE" => {
-            (messages("account.viewReturns.table.link", s"${appConfig.returns}/period/$periodKey"), "")
+            (messages("account.viewReturns.table.link", s"${appConfig.returnsUrl}/period/$periodKey"), "")
         }
         case "OVERDUE" => {
-            (messages("account.viewReturns.table.link", s"${appConfig.returns}/period/$periodKey"), "")
+            (messages("account.viewReturns.table.link", s"${appConfig.returnsUrl}/period/$periodKey"), "")
         }
         case "SUBMITTED" => {
             (eclReference, "")
