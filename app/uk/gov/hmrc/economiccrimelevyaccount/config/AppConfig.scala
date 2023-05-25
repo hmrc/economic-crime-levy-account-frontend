@@ -37,6 +37,7 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
   val signInUrl: String  = configuration.get[String]("urls.signIn")
   val signOutUrl: String = configuration.get[String]("urls.signOut")
   val claimUrl: String   = configuration.get[String]("urls.claim")
+  val returnsUrl: String = configuration.get[String]("urls.returns")
 
   private val exitSurveyHost              = configuration.get[String]("feedback-frontend.host")
   private val exitSurveyServiceIdentifier = configuration.get[String]("feedback-frontend.serviceId")
@@ -52,7 +53,4 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
   val enrolmentStoreProxyBaseUrl: String = servicesConfig.baseUrl("enrolment-store-proxy")
 
   val economicCrimeLevyAccountBaseUrl: String = servicesConfig.baseUrl("economic-crime-levy-account")
-
-  val economicCrimeLevyReturnsFrontendBaseUrl: String = servicesConfig.baseUrl("economic-crime-levy-returns-frontend")
-
 }
