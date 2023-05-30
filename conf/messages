@@ -32,7 +32,6 @@ account.viewReturns.title = Your Economic Crime Levy returns
 account.viewReturns.table.column.1 = Return and payment due by
 account.viewReturns.table.column.1.fulfilled = Date of fulfilment
 account.viewReturns.table.column.2 = Return status
-account.viewReturns.table.header.3 = ECL return number
 account.viewReturns.table.link = <a href="{0}" class="govuk-link">Submit return</a>
 account.viewReturns.table.placeholder = Submit return
 account.viewReturns.table.status = <strong class="govuk-tag govuk-tag--{0}">{1}</strong>
@@ -44,7 +43,7 @@ account.overdue.return.subHeading = You have an overdue return for {0} to {1}.
 account.payments.card.title = Payments
 account.payments.subHeading = You have a payment of {0} due on {1} for {2} to {3}.
 account.payments.makePayment = Make an ECL payment
-account.payments.setDirectDebit = Set up or amend a Direct Debit
+account.payments.howTo = How to make an ECL payment
 account.payments.viewHistory = View your payment history
 account.history.card.title = History
 account.history.viewHistory = View payment history

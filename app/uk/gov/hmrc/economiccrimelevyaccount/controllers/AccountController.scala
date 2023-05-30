@@ -26,6 +26,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
+import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
@@ -60,5 +61,7 @@ class AccountController @Inject() (
   }
 
   private def getLatestObligation(obligationData: ObligationData): Option[ObligationDetails] =
-    obligationData.obligations.flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate)).headOption
+    obligationData.obligations
+      .flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate)(Ordering[LocalDate].reverse))
+      .headOption
 }
