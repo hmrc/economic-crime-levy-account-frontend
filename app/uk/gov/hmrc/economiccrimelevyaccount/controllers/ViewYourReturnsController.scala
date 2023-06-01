@@ -50,15 +50,21 @@ class ViewYourReturnsController @Inject() (
   }
 
   private def assembleReturnsViewData(obligationData: ObligationData, eclReference: String): Seq[ReturnsOverview] =
-    obligationData.obligations.flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate)).map { details =>
-      ReturnsOverview(
-        forgeFromToCaption(details.inboundCorrespondenceFromDate.getYear, details.inboundCorrespondenceToDate.getYear),
-        details.inboundCorrespondenceDueDate,
-        resolveStatus(details),
-        details.periodKey,
-        eclReference
-      )
-    }
+    obligationData.obligations
+      .flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate))
+      .map { details =>
+        ReturnsOverview(
+          forgeFromToCaption(
+            details.inboundCorrespondenceFromDate.getYear,
+            details.inboundCorrespondenceToDate.getYear
+          ),
+          details.inboundCorrespondenceDueDate,
+          resolveStatus(details),
+          details.periodKey,
+          eclReference
+        )
+      }
+      .sortBy(_.dueDate)(Ordering[LocalDate].reverse)
 
   private def resolveStatus(details: ObligationDetails): String = details.status match {
     case Open if details.inboundCorrespondenceDueDate.isBefore(LocalDate.now()) => "OVERDUE"
