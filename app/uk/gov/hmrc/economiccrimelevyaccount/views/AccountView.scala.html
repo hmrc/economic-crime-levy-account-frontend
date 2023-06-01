@@ -87,9 +87,13 @@
     <span class="govuk-caption-m">@messages("account.eclReferenceNumber", eclRegistrationReference)</span>
     <p>
 
-        <br>
-<div class="flex-container govuk-grid-row">
-    @card("returns", messages("account.return.card.title"), Some(returnsSubHeading), returnsActions)
-    @card("payments", messages("account.payments.card.title"), None, paymentsAction)
-</div>
+    <br>
+
+  <div class="container govuk-grid-row">
+    <div class="flex-container govuk-grid-row">
+        @card("returns", messages("account.return.card.title"), Some(returnsSubHeading), returnsActions)
+        @card("payments", messages("account.payments.card.title"), None, paymentsAction)
+    </div>
+  </div>
+
 }
