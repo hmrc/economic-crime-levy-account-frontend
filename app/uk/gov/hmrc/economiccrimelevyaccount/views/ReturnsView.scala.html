@@ -34,13 +34,6 @@
         case _ => "red"
     }
 }
-@firstHeadCellResolved(status: String) = @{
-    if(status.equalsIgnoreCase("SUBMITTED")) {
-        "account.viewReturns.table.column.1.fulfilled"
-    } else {
-        "account.viewReturns.table.column.1"
-    }
-}
 
 @thirdCellResolve(status: String, periodKey: String, eclReference: String) = @{
     status match {
@@ -61,7 +54,7 @@
         table(Table(
             rows = Seq(tableRows(data)),
             head = Some(Seq(
-                HeadCell(content = Text(messages(firstHeadCellResolved(data.status))), classes = "govuk-table__header"),
+                HeadCell(content = Text(messages("account.viewReturns.table.column.1")), classes = "govuk-table__header"),
                 HeadCell(content = Text(messages("account.viewReturns.table.column.2")), classes = "govuk-table__header"),
                 HeadCell(content = Text(""), classes = "govuk-table__header govuk-!-width-one-quarter")
             )),
