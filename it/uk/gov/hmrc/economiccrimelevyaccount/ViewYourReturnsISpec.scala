@@ -23,7 +23,7 @@ class ViewYourReturnsISpec extends ISpecBase with AuthorisedBehaviour{
       val result = callRoute(FakeRequest(routes.ViewYourReturnsController.onPageLoad()))
 
       status(result) shouldBe OK
-      html(result) should include("Your Economic Crime Levy account")
+      html(result) should include("Your Economic Crime Levy returns")
     }
   }
 }
