@@ -18,4 +18,18 @@ package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
 
 import java.time.LocalDate
 
-case class ReturnsOverview(fromTo: String, dueDate: LocalDate, status: String, periodKey: String, eclReference: String)
+sealed trait ReturnStatus
+
+object ReturnStatus {
+  case object Due extends ReturnStatus
+  case object Overdue extends ReturnStatus
+  case object Submitted extends ReturnStatus
+}
+
+case class ReturnsOverview(
+  fromTo: String,
+  dueDate: LocalDate,
+  status: ReturnStatus,
+  periodKey: String,
+  eclReference: String
+)

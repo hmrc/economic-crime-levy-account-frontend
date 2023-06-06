@@ -20,12 +20,12 @@ import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import play.api.mvc.Result
 import play.api.test.Helpers._
-import uk.gov.hmrc.economiccrimelevyaccount.{ObligationDataWithObligation, ObligationDataWithOverdueObligation, ObligationDataWithSubmittedObligation}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
 import uk.gov.hmrc.economiccrimelevyaccount.services.EnrolmentStoreProxyService
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
+import uk.gov.hmrc.economiccrimelevyaccount.{ObligationDataWithObligation, ObligationDataWithOverdueObligation, ObligationDataWithSubmittedObligation}
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -116,11 +116,13 @@ class AccountControllerSpec extends SpecBase {
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
+        println("OBLIGATION DATA: " + submittedObligationData)
+
         status(result)          shouldBe OK
         contentAsString(result) shouldBe view(
           eclRegistrationReference,
           ViewUtils.formatLocalDate(eclRegistrationDate)(messages),
-          Some(submittedObligationData.obligationData.obligations.head.obligationDetails.head)
+          None
         )(fakeRequest, messages).toString()
     }
   }

@@ -11,7 +11,7 @@ trait ObligationDataStubs { self: WireMockStubs =>
 
   def stubGetObligations(obligationData: ObligationData): StubMapping =
     stub(
-      get(urlEqualTo(s"/obligation-data")),
+      get(urlEqualTo(s"/economic-crime-levy-account/obligation-data")),
       aResponse()
         .withStatus(OK)
         .withBody(Json.toJson(obligationData).toString())
