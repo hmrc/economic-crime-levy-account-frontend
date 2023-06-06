@@ -20,11 +20,13 @@ import org.mockito.ArgumentMatchers.any
 import play.api.http.Status.OK
 import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, status}
-import uk.gov.hmrc.economiccrimelevyaccount.{ObligationDataWithObligation, ObligationDataWithOverdueObligation, ObligationDataWithSubmittedObligation}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
+import uk.gov.hmrc.economiccrimelevyaccount.{ObligationDataWithObligation, ObligationDataWithOverdueObligation, ObligationDataWithSubmittedObligation}
+
 import scala.concurrent.Future
 
 class ViewYourReturnsControllerSpec extends SpecBase {
@@ -52,7 +54,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
         ReturnsOverview(
           "2022-2023",
           obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
-          "DUE",
+          Due,
           "period-key",
           eclRegistrationReference
         )
@@ -74,7 +76,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
           ReturnsOverview(
             "2022-2023",
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
-            "OVERDUE",
+            Overdue,
             "period-key",
             eclRegistrationReference
           )
@@ -96,7 +98,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
           ReturnsOverview(
             "2022-2023",
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
-            "SUBMITTED",
+            Submitted,
             "period-key",
             eclRegistrationReference
           )

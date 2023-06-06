@@ -15,9 +15,9 @@
  *@
 
 @import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus._
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview}
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
-
 
 @this(
         layout: templates.Layout,
@@ -25,20 +25,21 @@
         table: GovukTable
 )
 
+
 @(returnData: Seq[ReturnsOverview])(implicit request: Request[_], messages: Messages)
 
-@resolveStatusColour(status: String) = @{
+@resolveStatusColour(status: ReturnStatus) = @{
     status match {
-        case "DUE" => "blue"
-        case "SUBMITTED" => "green"
-        case _ => "red"
+        case Due => "blue"
+        case Submitted => "green"
+        case Overdue => "red"
     }
 }
 
-@thirdCellResolve(status: String, periodKey: String, eclReference: String) = @{
+@thirdCellResolve(status: ReturnStatus, periodKey: String, eclReference: String) = @{
     status match {
-        case "DUE" | "OVERDUE" => messages("account.viewReturns.table.link", s"${appConfig.returnsUrl}/period/$periodKey")
-        case "SUBMITTED" => ""
+        case Due | Overdue => messages("account.viewReturns.table.link", s"${appConfig.returnsUrl}/period/$periodKey")
+        case Submitted => ""
     }
 }
 @tableRows(rowData: ReturnsOverview) = @{

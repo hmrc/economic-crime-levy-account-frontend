@@ -20,8 +20,9 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
-import uk.gov.hmrc.economiccrimelevyaccount.models.{ObligationData, ObligationDetails, Open}
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
+import uk.gov.hmrc.economiccrimelevyaccount.models.{Fulfilled, ObligationData, ObligationDetails, Open}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
@@ -65,13 +66,10 @@ class ViewYourReturnsController @Inject() (
       }
       .sortBy(_.dueDate)(Ordering[LocalDate].reverse)
 
-  private def resolveStatus(details: ObligationDetails): String = details.status match {
-    case Open if details.inboundCorrespondenceDueDate.isBefore(LocalDate.now()) => "OVERDUE"
-    case Open
-        if details.inboundCorrespondenceDueDate.isAfter(LocalDate.now()) |
-          details.inboundCorrespondenceDueDate.isEqual(LocalDate.now()) =>
-      "DUE"
-    case _                                                                      => "SUBMITTED"
+  private def resolveStatus(details: ObligationDetails): ReturnStatus = details.status match {
+    case Open if details.isOverdue  => Overdue
+    case Open if !details.isOverdue => Due
+    case Fulfilled                  => Submitted
   }
 
   private def forgeFromToCaption(yearFrom: Integer, yearTo: Integer): String = s"$yearFrom-$yearTo"

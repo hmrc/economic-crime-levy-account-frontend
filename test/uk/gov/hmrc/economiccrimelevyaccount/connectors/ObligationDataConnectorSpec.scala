@@ -17,7 +17,7 @@
 package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
 import org.mockito.ArgumentMatchers
-import org.mockito.ArgumentMatchers.{any, notNull}
+import org.mockito.ArgumentMatchers.any
 import uk.gov.hmrc.economiccrimelevyaccount.ObligationDataWithObligation
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationData
