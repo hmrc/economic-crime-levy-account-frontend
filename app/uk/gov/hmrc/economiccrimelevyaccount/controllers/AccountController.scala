@@ -63,7 +63,7 @@ class AccountController @Inject() (
     obligationData.obligations
       .flatMap(
         _.obligationDetails
-          .filter(record => record.status == Open)
+          .filter(_.status == Open)
           .sortBy(_.inboundCorrespondenceDueDate)
       )
       .headOption

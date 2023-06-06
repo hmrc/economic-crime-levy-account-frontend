@@ -14,9 +14,9 @@
  * limitations under the License.
  *@
 
+@import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
-@import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 
 
 @this(
@@ -66,11 +66,11 @@
     }
 }
 @layout(
-    pageTitle = title(messages("account.title")),
+    pageTitle = title(messages("account.viewReturns.title")),
     showBackLink = true,
     fullWidthContent = false
 ) {
-    <h1 class="govuk-heading-xl govuk-!-margin-bottom-0">@messages("account.viewReturns.title")</h1>
+    <h1 class="govuk-heading-xl govuk-!-margin-bottom-0">@messages("account.viewReturns.heading")</h1>
 
     <br/>
     <br/>

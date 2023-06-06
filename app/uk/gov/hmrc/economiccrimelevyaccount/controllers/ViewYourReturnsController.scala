@@ -22,12 +22,11 @@ import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.{ObligationData, ObligationDetails, Open}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
-
-import javax.inject.{Inject, Singleton}
-import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoSubmittedReturnsView, ReturnsView}
+import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import java.time.LocalDate
+import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
 @Singleton
@@ -36,7 +35,7 @@ class ViewYourReturnsController @Inject() (
   authorise: AuthorisedAction,
   obligationDataConnector: ObligationDataConnector,
   returnsView: ReturnsView,
-  noSubmittedReturnsView: NoSubmittedReturnsView
+  noReturnsView: NoReturnsView
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
@@ -45,7 +44,7 @@ class ViewYourReturnsController @Inject() (
     obligationDataConnector.getObligationData().map {
       case Some(obligationData) =>
         Ok(returnsView(assembleReturnsViewData(obligationData, request.eclRegistrationReference)))
-      case None                 => Ok(noSubmittedReturnsView())
+      case None                 => Ok(noReturnsView())
     }
   }
 

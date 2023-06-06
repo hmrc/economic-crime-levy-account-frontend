@@ -24,13 +24,13 @@ import uk.gov.hmrc.economiccrimelevyaccount.{ObligationDataWithObligation, Oblig
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
-import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoSubmittedReturnsView, ReturnsView}
+import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
 import scala.concurrent.Future
 
 class ViewYourReturnsControllerSpec extends SpecBase {
 
   val returnsView: ReturnsView                             = app.injector.instanceOf[ReturnsView]
-  val noSubmittedReturnsView: NoSubmittedReturnsView       = app.injector.instanceOf[NoSubmittedReturnsView]
+  val noReturnsView: NoReturnsView                         = app.injector.instanceOf[NoReturnsView]
   val mockObligationDataConnector: ObligationDataConnector = mock[ObligationDataConnector]
 
   val controller = new ViewYourReturnsController(
@@ -38,7 +38,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
     fakeAuthorisedAction,
     mockObligationDataConnector,
     returnsView,
-    noSubmittedReturnsView
+    noReturnsView
   )
 
   "onPageLoad" should {
@@ -115,7 +115,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
       val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
       status(result)          shouldBe OK
-      contentAsString(result) shouldBe noSubmittedReturnsView()(fakeRequest, messages).toString()
+      contentAsString(result) shouldBe noReturnsView()(fakeRequest, messages).toString()
     }
   }
 }
