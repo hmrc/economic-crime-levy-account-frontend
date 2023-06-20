@@ -62,14 +62,14 @@
 @returnsActions = @{
     Seq(
         CardAction("submit-return", getReturnsLink, messages("account.submitEcl")),
-        CardAction("how-to-complete-return", "https://www.gov.uk/guidance/pay-the-economic-crime-levy", messages("account.howToComplete")),
+        CardAction("how-to-complete-return", "#", messages("account.howToComplete")),
         CardAction("view-returns", uk.gov.hmrc.economiccrimelevyaccount.controllers.routes.ViewYourReturnsController.onPageLoad().url, messages("account.viewReturns"))
     )
 }
 @paymentsAction = @{
     Seq(
         CardAction("make-payment", "#", messages("account.payments.makePayment")),
-        CardAction("set-up-dd", "#", messages("account.payments.setDirectDebit")),
+        CardAction("how-to-make-payment", "https://www.gov.uk/guidance/pay-the-economic-crime-levy", messages("account.payments.howTo")),
         CardAction("view-payment-history", "#", messages("account.payments.viewHistory"))
     )
 }

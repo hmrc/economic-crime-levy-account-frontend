@@ -45,6 +45,7 @@ account.payments.card.title = Payments
 account.payments.subHeading = You have a payment of {0} due on {1} for {2} to {3}.
 account.payments.makePayment = Make an ECL payment
 account.payments.setDirectDebit = Set up or amend a Direct Debit
+account.payments.howTo = How to make an ECL payment
 account.payments.viewHistory = View your payment history
 account.history.card.title = History
 account.history.viewHistory = View payment history
