@@ -25,15 +25,11 @@
             <h2 class="card-heading govuk-heading-m">
             @heading
             </h2>
-            <p class="card-sub-heading bold govuk-body-m">
-                <span class="font-xsmall">@subHeading match {
-                    case Some(value) => {
-                        @value
-                    }
-                    case _ => {}
-                }
-                </span>
-            </p>
+            @subHeading.map { s =>
+                <p class="card-sub-heading bold govuk-body-m">
+                    <span class="font-xsmall">@s</span>
+                </p>
+            }
         </div>
         <div class="card-action">
             <ul class="govuk-list">

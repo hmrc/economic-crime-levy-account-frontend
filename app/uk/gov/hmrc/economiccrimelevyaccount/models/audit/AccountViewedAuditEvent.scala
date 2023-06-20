@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
+package uk.gov.hmrc.economiccrimelevyaccount.models.audit
 
-import java.time.LocalDate
+import play.api.libs.json.{JsValue, Json, OFormat}
+import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationDetails
 
-sealed trait ReturnStatus
-
-object ReturnStatus {
-  case object Due extends ReturnStatus
-  case object Overdue extends ReturnStatus
-  case object Submitted extends ReturnStatus
+case class AccountViewedAuditEvent(
+  internalId: String,
+  eclReference: String,
+  obligationDetails: Option[Seq[ObligationDetails]]
+) extends AuditEvent {
+  override val auditType: String   = "AccountViewed"
+  override val detailJson: JsValue = Json.toJson(this)
 }
 
-case class ReturnsOverview(
-  fromTo: String,
-  dueDate: LocalDate,
-  status: ReturnStatus,
-  periodKey: String,
-  eclReference: String
-)
+object AccountViewedAuditEvent {
+  implicit val format: OFormat[AccountViewedAuditEvent] = Json.format[AccountViewedAuditEvent]
+}

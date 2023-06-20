@@ -14,9 +14,10 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
-@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.CardAction
 @import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.CardAction
+@import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
+@import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationDetails
 
 @this(
         layout: templates.Layout,
@@ -26,47 +27,46 @@
         card: uk.gov.hmrc.economiccrimelevyaccount.views.html.components.Card
 )
 
-@(eclRegistrationReference: String, eclRegistrationDate: String, obligationDetails: Option[ObligationDetails])(implicit request: Request[_], messages: Messages)
+@(eclRegistrationReference: String, eclRegistrationDate: String, optOpenObligation: Option[ObligationDetails])(implicit request: Request[_], messages: Messages)
 
-@returnsSubHeading = {
-@obligationDetails match {
-    case Some(value) if obligationDetails.get.status == Open => {
-        @defining(obligationDetails.get) { details =>
-            @if(details.isOverdue) {
-                <!-- Overdue -->
-                @messages("account.overdue.return.subHeading",
-                    ViewUtils.formatLocalDate(details.inboundCorrespondenceFromDate),
-                    ViewUtils.formatLocalDate(details.inboundCorrespondenceToDate))
+@returnsSubHeading = @{
+    optOpenObligation match {
+        case Some(o) =>
+            if(o.isOverdue) {
+                Html(messages("account.overdue.return.subHeading",
+                    ViewUtils.formatLocalDate(o.inboundCorrespondenceFromDate),
+                    ViewUtils.formatLocalDate(o.inboundCorrespondenceToDate)))
             } else {
-                <!-- Due -->
-                @messages("account.due.return.subHeading",
-                    ViewUtils.formatLocalDate(details.inboundCorrespondenceFromDate),
-                    ViewUtils.formatLocalDate(details.inboundCorrespondenceToDate),
-                    ViewUtils.formatLocalDate(details.inboundCorrespondenceDueDate))
+                Html(messages("account.due.return.subHeading",
+                    ViewUtils.formatLocalDate(o.inboundCorrespondenceFromDate),
+                    ViewUtils.formatLocalDate(o.inboundCorrespondenceToDate),
+                    ViewUtils.formatLocalDate(o.inboundCorrespondenceDueDate)))
             }
-        }
+        case None => Html(messages("account.noneDue.return.subHeading"))
     }
-    case _ => {}
 }
-}
-@getReturnsLink = @{
-    obligationDetails match {
-        case Some(value) => {
-            s"${appConfig.returnsUrl}/period/${value.periodKey}"
-        }
-        case None => "XXYY"
 
+@submitReturnLink = @{
+    optOpenObligation.map(o => s"${appConfig.returnsUrl}/period/${o.periodKey}")
+}
+
+@getViewReturnsLinkName = @{
+    if(appConfig.privateBetaEnabled){
+        messages("account.viewReturns")
+    } else {
+        messages("account.viewOrAmendReturns")
     }
 }
 
 @returnsActions = @{
-    Seq(
-        CardAction("submit-return", getReturnsLink, messages("account.submitEcl")),
-        CardAction("how-to-complete-return", "#", messages("account.howToComplete")),
-        CardAction("view-returns", uk.gov.hmrc.economiccrimelevyaccount.controllers.routes.ViewYourReturnsController.onPageLoad().url, messages("account.viewReturns"))
-    )
+    submitReturnLink.map(CardAction("submit-return", _, messages("account.submitEcl"))).toSeq ++
+            Seq(
+                CardAction("how-to-complete-return", "https://www.gov.uk/guidance/submit-a-return-for-the-economic-crime-levy", messages("account.howToComplete")),
+                CardAction("view-returns", uk.gov.hmrc.economiccrimelevyaccount.controllers.routes.ViewYourReturnsController.onPageLoad().url, getViewReturnsLinkName)
+            )
 }
-@paymentsAction = @{
+
+@paymentsActions = @{
     Seq(
         CardAction("make-payment", "#", messages("account.payments.makePayment")),
         CardAction("how-to-make-payment", "https://www.gov.uk/guidance/pay-the-economic-crime-levy", messages("account.payments.howTo")),
@@ -80,13 +80,23 @@
     fullWidthContent = true
 ) {
 
-    <h1 class="govuk-heading-xl govuk-!-margin-bottom-0">@messages("account.heading")</h1>
-    <span class="govuk-caption-m">@messages("account.eclReferenceNumber", eclRegistrationReference)</span>
+    <h1 class="govuk-heading-xl govuk-!-margin-bottom-0">
+    @messages("account.heading")
+    </h1>
+    <span class="govuk-caption-m">
+    @messages("account.eclReferenceNumber", eclRegistrationReference)
+    </span>
     <p>
 
         <br>
-<div class="flex-container govuk-grid-row">
-    @card("returns", messages("account.return.card.title"), Some(returnsSubHeading), returnsActions)
-    @card("payments", messages("account.payments.card.title"), None, paymentsAction)
+
+<div class="container govuk-grid-row">
+    <div class="flex-container govuk-grid-row">
+        @card("returns", messages("account.return.card.title"), Some(returnsSubHeading), returnsActions)
+        @if(!appConfig.privateBetaEnabled) {
+            @card("payments", messages("account.payments.card.title"), None, paymentsActions)
+        }
+    </div>
 </div>
+
 }

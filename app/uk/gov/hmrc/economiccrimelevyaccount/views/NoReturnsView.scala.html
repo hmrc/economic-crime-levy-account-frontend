@@ -21,7 +21,7 @@
 @()(implicit request: Request[_], messages: Messages)
 
 @layout(
-    pageTitle = title(messages("account.title")),
+    pageTitle = title(messages("account.viewReturns.noReturnsFound.title")),
     showBackLink = true,
     fullWidthContent = false
 ) {
@@ -29,5 +29,6 @@
     <h1 class="govuk-heading-l">@messages("account.viewReturns.noReturnsFound.heading")</h1>
 
     <p class="govuk-body">@messages("account.viewReturns.noReturnsFound.p1")</p>
+    <p class="govuk-body">@messages("account.viewReturns.noReturnsFound.p2")</p>
 
 }

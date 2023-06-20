@@ -14,10 +14,10 @@
  * limitations under the License.
  *@
 
-@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
-@import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 @import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus._
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview}
+@import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 
 @this(
         layout: templates.Layout,
@@ -25,42 +25,21 @@
         table: GovukTable
 )
 
+
 @(returnData: Seq[ReturnsOverview])(implicit request: Request[_], messages: Messages)
 
-@resolveStatusColour(status: String) = @{
+@resolveStatusColour(status: ReturnStatus) = @{
     status match {
-        case "DUE" => "blue"
-        case "SUBMITTED" => "green"
-        case _ => "red"
-    }
-}
-@firstHeadCellResolved(status: String) = @{
-    if(status.equalsIgnoreCase("SUBMITTED")) {
-        "account.viewReturns.table.column.1.fulfilled"
-    } else {
-        "account.viewReturns.table.column.1"
+        case Due => "blue"
+        case Submitted => "green"
+        case Overdue => "red"
     }
 }
 
-@resolveThirdHeaderCell(status: String) = @{
-    if(status.equalsIgnoreCase("SUBMITTED")) {
-        messages("account.viewReturns.table.header.3")
-    } else {
-        ""
-    }
-}
-
-@thirdCellResolve(status: String, periodKey: String, eclReference: String) = @{
+@thirdCellResolve(status: ReturnStatus, periodKey: String, eclReference: String) = @{
     status match {
-        case "DUE" => {
-            (messages("account.viewReturns.table.link", s"${appConfig.returnsUrl}/period/$periodKey"), "")
-        }
-        case "OVERDUE" => {
-            (messages("account.viewReturns.table.link", s"${appConfig.returnsUrl}/period/$periodKey"), "")
-        }
-        case "SUBMITTED" => {
-            (eclReference, "")
-        }
+        case Due | Overdue => messages("account.viewReturns.table.link", s"${appConfig.returnsUrl}/period/$periodKey")
+        case Submitted => ""
     }
 }
 @tableRows(rowData: ReturnsOverview) = @{
@@ -68,7 +47,7 @@
 
     Seq(TableRow(content = ViewUtils.formatLocalDate(rowData.dueDate), classes = "govuk-table__header govuk-!-width-one-half"),
         TableRow(content = HtmlContent(messages("account.viewReturns.table.status", resolveStatusColour(rowData.status), rowData.status)), classes = "govuk-table__cell"),
-        TableRow(content = HtmlContent(tableLinkInfo._1)))
+        TableRow(content = HtmlContent(tableLinkInfo)))
 }
 
 @generateTable = @{
@@ -76,9 +55,9 @@
         table(Table(
             rows = Seq(tableRows(data)),
             head = Some(Seq(
-                HeadCell(content = Text(messages(firstHeadCellResolved(data.status))), classes = "govuk-table__header"),
+                HeadCell(content = Text(messages("account.viewReturns.table.column.1")), classes = "govuk-table__header"),
                 HeadCell(content = Text(messages("account.viewReturns.table.column.2")), classes = "govuk-table__header"),
-                HeadCell(content = Text(resolveThirdHeaderCell(data.status)), classes = "govuk-table__header govuk-!-width-one-quarter")
+                HeadCell(content = Text(""), classes = "govuk-table__header govuk-!-width-one-quarter")
             )),
             firstCellIsHeader = true,
             caption = Some(data.fromTo),
@@ -88,11 +67,11 @@
     }
 }
 @layout(
-    pageTitle = title(messages("account.title")),
+    pageTitle = title(messages("account.viewReturns.title")),
     showBackLink = true,
     fullWidthContent = false
 ) {
-    <h1 class="govuk-heading-xl govuk-!-margin-bottom-0">@messages("account.viewReturns.title")</h1>
+    <h1 class="govuk-heading-xl govuk-!-margin-bottom-0">@messages("account.viewReturns.heading")</h1>
 
     <br/>
     <br/>

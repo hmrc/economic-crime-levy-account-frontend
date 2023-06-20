@@ -20,10 +20,13 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
-import uk.gov.hmrc.economiccrimelevyaccount.models.{ObligationData, ObligationDetails}
+import uk.gov.hmrc.economiccrimelevyaccount.models.audit.AccountViewedAuditEvent
+import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
+import uk.gov.hmrc.economiccrimelevyaccount.models.{ObligationData, ObligationDetails, Open}
 import uk.gov.hmrc.economiccrimelevyaccount.services.EnrolmentStoreProxyService
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
+import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.{Inject, Singleton}
@@ -35,7 +38,8 @@ class AccountController @Inject() (
   authorise: AuthorisedAction,
   enrolmentStoreProxyService: EnrolmentStoreProxyService,
   view: AccountView,
-  obligationDataConnector: ObligationDataConnector
+  obligationDataConnector: ObligationDataConnector,
+  auditConnector: AuditConnector
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
@@ -44,21 +48,40 @@ class AccountController @Inject() (
     enrolmentStoreProxyService.getEclRegistrationDate(request.eclRegistrationReference).flatMap { registrationDate =>
       obligationDataConnector
         .getObligationData()
-        .map {
-          case Some(obligationData) =>
-            Ok(
-              view(
-                request.eclRegistrationReference,
-                ViewUtils.formatLocalDate(registrationDate),
-                getLatestObligation(obligationData)
+        .map { o =>
+          auditAccountViewed(o)
+
+          o match {
+            case Some(obligationData) =>
+              Ok(
+                view(
+                  request.eclRegistrationReference,
+                  ViewUtils.formatLocalDate(registrationDate),
+                  getLatestObligation(obligationData)
+                )
               )
-            )
-          case None                 =>
-            Ok(view(request.eclRegistrationReference, ViewUtils.formatLocalDate(registrationDate), None))
+            case None                 =>
+              Ok(view(request.eclRegistrationReference, ViewUtils.formatLocalDate(registrationDate), None))
+          }
         }
     }
   }
 
+  private def auditAccountViewed(obligationData: Option[ObligationData])(implicit request: AuthorisedRequest[_]): Unit =
+    auditConnector.sendExtendedEvent(
+      AccountViewedAuditEvent(
+        internalId = request.internalId,
+        eclReference = request.eclRegistrationReference,
+        obligationDetails = obligationData.map(_.obligations.flatMap(_.obligationDetails))
+      ).extendedDataEvent
+    )
+
   private def getLatestObligation(obligationData: ObligationData): Option[ObligationDetails] =
-    obligationData.obligations.flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate)).headOption
+    obligationData.obligations
+      .flatMap(
+        _.obligationDetails
+          .filter(_.status == Open)
+          .sortBy(_.inboundCorrespondenceDueDate)
+      )
+      .headOption
 }

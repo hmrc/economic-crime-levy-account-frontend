@@ -20,17 +20,19 @@ import org.mockito.ArgumentMatchers.any
 import play.api.http.Status.OK
 import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, status}
-import uk.gov.hmrc.economiccrimelevyaccount.{ObligationDataWithObligation, ObligationDataWithOverdueObligation, ObligationDataWithSubmittedObligation}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
-import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoSubmittedReturnsView, ReturnsView}
+import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
+import uk.gov.hmrc.economiccrimelevyaccount.{ObligationDataWithObligation, ObligationDataWithOverdueObligation, ObligationDataWithSubmittedObligation}
+
 import scala.concurrent.Future
 
 class ViewYourReturnsControllerSpec extends SpecBase {
 
   val returnsView: ReturnsView                             = app.injector.instanceOf[ReturnsView]
-  val noSubmittedReturnsView: NoSubmittedReturnsView       = app.injector.instanceOf[NoSubmittedReturnsView]
+  val noReturnsView: NoReturnsView                         = app.injector.instanceOf[NoReturnsView]
   val mockObligationDataConnector: ObligationDataConnector = mock[ObligationDataConnector]
 
   val controller = new ViewYourReturnsController(
@@ -38,7 +40,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
     fakeAuthorisedAction,
     mockObligationDataConnector,
     returnsView,
-    noSubmittedReturnsView
+    noReturnsView
   )
 
   "onPageLoad" should {
@@ -52,7 +54,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
         ReturnsOverview(
           "2022-2023",
           obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
-          "DUE",
+          Due,
           "period-key",
           eclRegistrationReference
         )
@@ -74,7 +76,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
           ReturnsOverview(
             "2022-2023",
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
-            "OVERDUE",
+            Overdue,
             "period-key",
             eclRegistrationReference
           )
@@ -96,7 +98,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
           ReturnsOverview(
             "2022-2023",
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
-            "SUBMITTED",
+            Submitted,
             "period-key",
             eclRegistrationReference
           )
@@ -115,7 +117,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
       val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
       status(result)          shouldBe OK
-      contentAsString(result) shouldBe noSubmittedReturnsView()(fakeRequest, messages).toString()
+      contentAsString(result) shouldBe noReturnsView()(fakeRequest, messages).toString()
     }
   }
 }

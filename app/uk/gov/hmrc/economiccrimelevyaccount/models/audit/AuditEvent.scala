@@ -14,22 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
+package uk.gov.hmrc.economiccrimelevyaccount.models.audit
 
-import java.time.LocalDate
+import play.api.libs.json.JsValue
+import uk.gov.hmrc.play.audit.model.ExtendedDataEvent
 
-sealed trait ReturnStatus
+trait AuditEvent {
+  private val AuditSource: String = "economic-crime-levy-account-frontend"
+  val auditType: String
+  val detailJson: JsValue
 
-object ReturnStatus {
-  case object Due extends ReturnStatus
-  case object Overdue extends ReturnStatus
-  case object Submitted extends ReturnStatus
+  def extendedDataEvent: ExtendedDataEvent =
+    ExtendedDataEvent(auditSource = AuditSource, auditType = auditType, detail = detailJson)
 }
-
-case class ReturnsOverview(
-  fromTo: String,
-  dueDate: LocalDate,
-  status: ReturnStatus,
-  periodKey: String,
-  eclReference: String
-)
