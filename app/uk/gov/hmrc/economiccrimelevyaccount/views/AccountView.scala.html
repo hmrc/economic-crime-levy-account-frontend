@@ -69,10 +69,11 @@
 @paymentsActions = @{
     Seq(
         CardAction("make-payment", "#", messages("account.payments.makePayment")),
-        CardAction("set-up-dd", "#", messages("account.payments.howTo")),
+        CardAction("how-to-make-payment", "https://www.gov.uk/guidance/pay-the-economic-crime-levy", messages("account.payments.howTo")),
         CardAction("view-payment-history", "#", messages("account.payments.viewHistory"))
     )
 }
+
 @layout(
     pageTitle = title(messages("account.title")),
     showBackLink = false,
