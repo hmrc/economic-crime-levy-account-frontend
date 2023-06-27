@@ -22,7 +22,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationDetails
 case class AccountViewedAuditEvent(
   internalId: String,
   eclReference: String,
-  obligationDetails: Option[Seq[ObligationDetails]]
+  obligationDetails: Seq[ObligationDetails]
 ) extends AuditEvent {
   override val auditType: String   = "AccountViewed"
   override val detailJson: JsValue = Json.toJson(this)
