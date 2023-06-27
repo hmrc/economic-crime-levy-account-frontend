@@ -72,7 +72,7 @@ class AccountController @Inject() (
       AccountViewedAuditEvent(
         internalId = request.internalId,
         eclReference = request.eclRegistrationReference,
-        obligationDetails = obligationData.map(_.obligations.flatMap(_.obligationDetails))
+        obligationDetails = obligationData.map(_.obligations.flatMap(_.obligationDetails)).toSeq.flatten
       ).extendedDataEvent
     )
 
