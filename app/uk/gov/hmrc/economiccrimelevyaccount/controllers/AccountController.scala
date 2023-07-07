@@ -54,7 +54,6 @@ class AccountController @Inject() (
 
           o match {
             case Some(obligationData) =>
-              val test = financialDataConnector.getFinancialData()
               Ok(
                 view(
                   request.eclRegistrationReference,
