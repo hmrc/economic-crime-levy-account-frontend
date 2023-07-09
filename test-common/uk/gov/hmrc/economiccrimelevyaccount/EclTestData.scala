@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount
 
+import com.danielasfregola.randomdatagenerator.RandomDataGenerator.derivedArbitrary
 import org.scalacheck.{Arbitrary, Gen}
 import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments}
+import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries.{genSameVale, localDateGen}
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.EclEnrolment
-import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
-import uk.gov.hmrc.economiccrimelevyaccount.models.{Fulfilled, Obligation, ObligationData, ObligationDetails, Open}
+import uk.gov.hmrc.economiccrimelevyaccount.models._
 
 import java.time.{Instant, LocalDate}
 
@@ -32,7 +33,15 @@ case class ObligationDataWithObligation(obligationData: ObligationData)
 case class ObligationDataWithOverdueObligation(obligationData: ObligationData)
 case class ObligationDataWithSubmittedObligation(obligationData: ObligationData)
 
+case class ValidFinancialDataResponse(financialDataResponse: FinancialDataResponse)
+
 trait EclTestData {
+
+  private val currentYear       = LocalDate.now().getYear
+  private val startDayFY: Int   = 1
+  private val endDayFY: Int     = 31
+  private val startMonthFY: Int = 4
+  private val endMonthFY: Int   = 3
 
   implicit val arbInstant: Arbitrary[Instant] = Arbitrary {
     Instant.now()
@@ -114,7 +123,58 @@ trait EclTestData {
       .map(EnrolmentsWithoutEcl)
   }
 
+  implicit val arbValidFinancialDataResponse: Arbitrary[ValidFinancialDataResponse] = Arbitrary {
+    for {
+      totalisation    <- Arbitrary.arbitrary[Totalisation]
+      chargeReference <- Arbitrary.arbitrary[String]
+      postingDateArb   =
+        Arbitrary(localDateGen(currentYear - 1, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY))
+      issueDateArb     =
+        Arbitrary(localDateGen(currentYear - 1, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY))
+      totalAmount      = Arbitrary(genSameVale(10_000))
+      clearedAmount    = Arbitrary(genSameVale(1_000))
+      documentDetails <- Arbitrary.arbitrary[DocumentDetails]
+      lineItemDetails <- Arbitrary.arbitrary[LineItemDetails]
+      itemFromDate     =
+        Arbitrary(localDateGen(currentYear - 1, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY))
+      itemToDate       = Arbitrary(localDateGen(currentYear, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY))
+      itemNetDueDate   = Arbitrary(localDateGen(currentYear, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY))
+
+    } yield ValidFinancialDataResponse(
+      FinancialDataResponse(
+        totalisation = Some(totalisation),
+        documentDetails = Some(
+          Seq(
+            documentDetails.copy(
+              documentType = Some(NewCharge),
+              chargeReferenceNumber = Some(chargeReference),
+              postingDate = Some(postingDateArb.toString),
+              issueDate = Some(issueDateArb.toString),
+              documentTotalAmount = Some(BigDecimal(totalAmount.toString)),
+              documentClearedAmount = Some(BigDecimal(clearedAmount.toString)),
+              documentOutstandingAmount = Some(BigDecimal(totalAmount.toString) - BigDecimal(clearedAmount.toString)),
+              lineItemDetails = Some(
+                Seq(
+                  lineItemDetails.copy(
+                    chargeDescription = Some(chargeReference),
+                    periodFromDate = Some(itemFromDate.toString),
+                    periodToDate = Some(itemToDate.toString),
+                    periodKey = Some(calculatePeriodKey(postingDateArb.toString.takeRight(4))),
+                    netDueDate = Some(itemNetDueDate.toString),
+                    amount = Some(BigDecimal(clearedAmount.toString))
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  }
+
   def alphaNumericString: String = Gen.alphaNumStr.sample.get
+
+  private def calculatePeriodKey(year: String): String = s"${year.takeRight(2)}XY"
 
   val testInternalId: String               = alphaNumericString
   val testEclRegistrationReference: String = alphaNumericString

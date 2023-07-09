@@ -49,10 +49,10 @@ account.payments.card.title = Payments
 account.payments.subHeading = You have a payment of {0} due on {1} for {2} to {3}.
 account.payments.makePayment = Make an ECL payment
 account.payments.howTo = How to make an ECL payment
-account.payments.viewHistory = View your payment history
-account.history.card.title = History
-account.history.viewHistory = View payment history
-account.history.viewReturns = View or amend submitted returns
+account.payments.viewHistory = View your payments
+account.noneDue.payments.subHeading = You have no payments due.
+account.due.payments.subHeading = You have a payment of {0} due on 30 September {1} for 1 April {2} to 31 March {3}.
+account.overdue.payments.subHeading.1 = You have an overdue payment for 1 April {0} to 31 March {1}. <br> We are charging you interest on this payment. You owe {2}.
 
 agentCannotAccessService.title = You cannot use this service
 agentCannotAccessService.heading = You cannot use this service

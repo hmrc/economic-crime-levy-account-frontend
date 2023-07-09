@@ -65,7 +65,12 @@ case class DocumentDetails(
   documentClearedAmount: Option[BigDecimal],
   documentOutstandingAmount: Option[BigDecimal],
   lineItemDetails: Option[Seq[LineItemDetails]]
-)
+) {
+  val isCleared: Boolean = documentOutstandingAmount match {
+    case None        => throw new IllegalStateException()
+    case Some(value) => value <= 0
+  }
+}
 object DocumentDetails {
   implicit val format: OFormat[DocumentDetails] = Json.format[DocumentDetails]
 }
@@ -73,7 +78,24 @@ object DocumentDetails {
 sealed trait FinancialDataDocumentType
 
 object FinancialDataDocumentType {
-  implicit val format: OFormat[FinancialDataDocumentType] = Json.format[FinancialDataDocumentType]
+  implicit val format: Format[FinancialDataDocumentType] = new Format[FinancialDataDocumentType] {
+    override def reads(json: JsValue): JsResult[FinancialDataDocumentType] = json.validate[String] match {
+      case JsSuccess(value, _) =>
+        value match {
+          case "TRM New Charge"      => JsSuccess(NewCharge)
+          case "TRM Amended Charge"  => JsSuccess(AmendedCharge)
+          case "TRM Reversed Charge" => JsSuccess(ReversedCharge)
+          case _                     => JsError("Invalid charge type has been passed")
+        }
+      case e: JsError          => e
+    }
+
+    override def writes(o: FinancialDataDocumentType): JsValue = o match {
+      case NewCharge      => JsString("TRM New Charge")
+      case AmendedCharge  => JsString("TRM Amended Charge")
+      case ReversedCharge => JsString("TRM Reversed Charge")
+    }
+  }
 }
 
 case object NewCharge extends FinancialDataDocumentType
