@@ -33,10 +33,24 @@ object FinancialDataResponse {
         case OK                    =>
           response.json.validate[FinancialDataResponse] match {
             case JsSuccess(response, _) => Right(response)
+            case JsError(errors)        =>
+              Left(
+                FinancialDataErrorResponse(
+                  Some(INTERNAL_SERVER_ERROR.toString),
+                  Some(errors.flatMap(_._2).mkString(","))
+                )
+              )
           }
         case INTERNAL_SERVER_ERROR =>
           response.json.validate[FinancialDataErrorResponse] match {
             case JsSuccess(errorResponse, _) => Left(errorResponse)
+            case JsError(errors)             =>
+              Left(
+                FinancialDataErrorResponse(
+                  Some(INTERNAL_SERVER_ERROR.toString),
+                  Some(errors.flatMap(_._2).mkString(","))
+                )
+              )
           }
       }
   }

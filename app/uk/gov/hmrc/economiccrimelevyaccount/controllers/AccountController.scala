@@ -51,30 +51,21 @@ class AccountController @Inject() (
         .getObligationData()
         .flatMap { o =>
           auditAccountViewed(o)
-          o match {
-            case Some(obligationData) =>
-              financialDataService.latestFinancialObligation.map { financialData =>
-                Ok(
-                  view(
-                    request.eclRegistrationReference,
-                    ViewUtils.formatLocalDate(registrationDate),
-                    getLatestObligation(obligationData),
-                    financialData
-                  )
-                )
-              }
-            case None                 =>
-              financialDataService.latestFinancialObligation.map { financialData =>
-                Ok(
-                  view(
-                    request.eclRegistrationReference,
-                    ViewUtils.formatLocalDate(registrationDate),
-                    None,
-                    financialData
-                  )
-                )
-              }
+          financialDataService.latestFinancialObligation.map { financialData =>
+            Ok(
+              view(
+                request.eclRegistrationReference,
+                ViewUtils.formatLocalDate(registrationDate),
+                o match {
+                  case Some(obligationData) =>
+                    getLatestObligation(obligationData)
+                  case None                 => None
+                },
+                financialData
+              )
+            )
           }
+
         }
     }
   }
