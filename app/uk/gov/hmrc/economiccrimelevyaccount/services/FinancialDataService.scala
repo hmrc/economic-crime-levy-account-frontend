@@ -17,7 +17,7 @@
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.FinancialDataConnector
-import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialDataErrorResponse, FinancialDataResponse, FinancialDetails}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialDataErrorResponse, FinancialDataResponse, FinancialDetails, NewCharge}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
@@ -42,6 +42,7 @@ class FinancialDataService @Inject() (
       case None        => None
       case Some(value) =>
         value
+          .filter(docDetails => extractValue(docDetails.documentType) == NewCharge)
           .filter(!_.isCleared)
           .sortBy(_.postingDate)
           .headOption
