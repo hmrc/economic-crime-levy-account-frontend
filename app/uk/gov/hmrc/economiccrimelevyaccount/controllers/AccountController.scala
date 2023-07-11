@@ -18,12 +18,12 @@ package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.{FinancialDataConnector, ObligationDataConnector}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.audit.AccountViewedAuditEvent
 import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
 import uk.gov.hmrc.economiccrimelevyaccount.models.{ObligationData, ObligationDetails, Open}
-import uk.gov.hmrc.economiccrimelevyaccount.services.EnrolmentStoreProxyService
+import uk.gov.hmrc.economiccrimelevyaccount.services.{EnrolmentStoreProxyService, FinancialDataService}
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
@@ -39,6 +39,7 @@ class AccountController @Inject() (
   enrolmentStoreProxyService: EnrolmentStoreProxyService,
   view: AccountView,
   obligationDataConnector: ObligationDataConnector,
+  financialDataService: FinancialDataService,
   auditConnector: AuditConnector
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -48,21 +49,23 @@ class AccountController @Inject() (
     enrolmentStoreProxyService.getEclRegistrationDate(request.eclRegistrationReference).flatMap { registrationDate =>
       obligationDataConnector
         .getObligationData()
-        .map { o =>
+        .flatMap { o =>
           auditAccountViewed(o)
-
-          o match {
-            case Some(obligationData) =>
-              Ok(
-                view(
-                  request.eclRegistrationReference,
-                  ViewUtils.formatLocalDate(registrationDate),
-                  getLatestObligation(obligationData)
-                )
+          financialDataService.latestFinancialObligation.map { financialData =>
+            Ok(
+              view(
+                request.eclRegistrationReference,
+                ViewUtils.formatLocalDate(registrationDate),
+                o match {
+                  case Some(obligationData) =>
+                    getLatestObligation(obligationData)
+                  case None                 => None
+                },
+                financialData
               )
-            case None                 =>
-              Ok(view(request.eclRegistrationReference, ViewUtils.formatLocalDate(registrationDate), None))
+            )
           }
+
         }
     }
   }

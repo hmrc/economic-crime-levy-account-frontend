@@ -27,7 +27,10 @@
         card: uk.gov.hmrc.economiccrimelevyaccount.views.html.components.Card
 )
 
-@(eclRegistrationReference: String, eclRegistrationDate: String, optOpenObligation: Option[ObligationDetails])(implicit request: Request[_], messages: Messages)
+@(eclRegistrationReference: String,
+        eclRegistrationDate: String,
+        optOpenObligation: Option[ObligationDetails],
+        optFinancialDetails: Option[FinancialDetails])(implicit request: Request[_], messages: Messages)
 
 @returnsSubHeading = @{
     optOpenObligation match {
@@ -45,13 +48,32 @@
         case None => Html(messages("account.noneDue.return.subHeading"))
     }
 }
-
+@paymentsSubHeading = @{
+    optFinancialDetails match {
+        case Some(financialData) =>
+            if(financialData.isOverdue) {
+                Html(messages("account.overdue.payments.subHeading.1",
+                    ViewUtils.formatLocalDate(financialData.fromDate).takeRight(4),
+                    ViewUtils.formatLocalDate(financialData.toDate).takeRight(4),
+                    ViewUtils.formatMoney(financialData.amount)
+                ))
+            } else {
+                Html(messages("account.due.payments.subHeading",
+                    ViewUtils.formatMoney(financialData.amount),
+                    ViewUtils.formatLocalDate(financialData.dueDate).takeRight(4),
+                    ViewUtils.formatLocalDate(financialData.fromDate).takeRight(4),
+                    ViewUtils.formatLocalDate(financialData.toDate).takeRight(4)
+                ))
+            }
+        case None => Html(messages("account.noneDue.payments.subHeading"))
+    }
+}
 @submitReturnLink = @{
     optOpenObligation.map(o => s"${appConfig.returnsUrl}/period/${o.periodKey}")
 }
 
 @getViewReturnsLinkName = @{
-    if(appConfig.privateBetaEnabled){
+    if(appConfig.privateBetaEnabled) {
         messages("account.viewReturns")
     } else {
         messages("account.viewOrAmendReturns")
@@ -93,9 +115,7 @@
 <div class="container govuk-grid-row">
     <div class="flex-container govuk-grid-row">
         @card("returns", messages("account.return.card.title"), Some(returnsSubHeading), returnsActions)
-        @if(!appConfig.privateBetaEnabled) {
-            @card("payments", messages("account.payments.card.title"), None, paymentsActions)
-        }
+        @card("payments", messages("account.payments.card.title"), Some(paymentsSubHeading), paymentsActions)
     </div>
 </div>
 

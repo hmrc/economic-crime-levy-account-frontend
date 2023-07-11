@@ -21,6 +21,8 @@ import play.api.test.FakeRequest
 import uk.gov.hmrc.economiccrimelevyaccount.base.ISpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.behaviours.AuthorisedBehaviour
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
+import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
+import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationData
 
 class AccountISpec extends ISpecBase with AuthorisedBehaviour {
 
@@ -33,7 +35,11 @@ class AccountISpec extends ISpecBase with AuthorisedBehaviour {
       val eclRegistrationReference = random[String]
       val eclRegistrationDate      = "20230901"
 
+      val obligationData = random[ObligationData]
+
       stubQueryKnownFacts(eclRegistrationReference, eclRegistrationDate)
+      stubGetObligations(obligationData)
+      stubFinancialData
 
       val result = callRoute(FakeRequest(routes.AccountController.onPageLoad()))
 
