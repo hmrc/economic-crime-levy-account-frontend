@@ -22,7 +22,7 @@ import play.api.mvc.Result
 import play.api.test.Helpers._
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
-import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDetails
+import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{EnrolmentStoreProxyService, FinancialDataService}
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
@@ -57,7 +57,8 @@ class AccountControllerSpec extends SpecBase {
       (
         eclRegistrationDate: LocalDate,
         obligationData: ObligationDataWithObligation,
-        financialDetails: FinancialDetails
+        financialDetails: FinancialDetails,
+        validFinancialDataResponse: ValidFinancialDataResponse
       ) =>
         val validFinancialDetails = financialDetails.copy(amount = BigDecimal("10000"))
         when(
@@ -73,6 +74,10 @@ class AccountControllerSpec extends SpecBase {
 
         when(mockFinancialDataService.getLatestFinancialObligation(any()))
           .thenReturn(Some(validFinancialDetails))
+
+        when(mockFinancialDataService.retrieveFinancialData(any()))
+          .thenReturn(Future.successful(Right(validFinancialDataResponse.financialDataResponse)))
+
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
