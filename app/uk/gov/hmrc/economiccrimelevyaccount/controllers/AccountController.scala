@@ -52,11 +52,11 @@ class AccountController @Inject() (
         .flatMap { obligationData =>
           val latestObligationData = obligationData match {
             case Some(o) => getLatestObligation(o)
-            case None => None
+            case None    => None
           }
 
           financialDataService.retrieveFinancialData.map {
-            case Left(_) =>
+            case Left(_)             =>
               auditAccountViewed(obligationData, None)
               Ok(
                 view(
@@ -81,8 +81,9 @@ class AccountController @Inject() (
     }
   }
 
-  private def auditAccountViewed(obligationData: Option[ObligationData], financialData: Option[FinancialDataResponse])
-                                (implicit request: AuthorisedRequest[_]): Unit =
+  private def auditAccountViewed(obligationData: Option[ObligationData], financialData: Option[FinancialDataResponse])(
+    implicit request: AuthorisedRequest[_]
+  ): Unit =
     auditConnector.sendExtendedEvent(
       AccountViewedAuditEvent(
         internalId = request.internalId,
@@ -90,7 +91,7 @@ class AccountController @Inject() (
         obligationDetails = obligationData.map(_.obligations.flatMap(_.obligationDetails)).toSeq.flatten,
         financialDetails = financialData match {
           case Some(details) => mapAccountViewedAuditFinancialDetails(details)
-          case None => None
+          case None          => None
         }
       ).extendedDataEvent
     )
@@ -104,45 +105,53 @@ class AccountController @Inject() (
       )
       .headOption
 
-  private def mapAccountViewedAuditFinancialDetails(response: FinancialDataResponse): Option[AccountViewedAuditFinancialDetails] =
+  private def mapAccountViewedAuditFinancialDetails(
+    response: FinancialDataResponse
+  ): Option[AccountViewedAuditFinancialDetails] =
     Some(
       AccountViewedAuditFinancialDetails(
         response.totalisation.flatMap(_.totalAccountBalance),
         response.totalisation.flatMap(_.totalAccountOverdue),
         response.documentDetails match {
-          case None => None
-          case Some(details) => Some(
-            details.map(detail => AccountViewedAuditDocumentDetails(
-              detail.chargeReferenceNumber,
-              detail.issueDate,
-              detail.interestPostedAmount,
-              detail.postingDate,
-              detail.penaltyTotals match {
-                case None => None
-                case Some(penaltyTotals) => Some(
-                  penaltyTotals.map(penaltyTotal =>
-                    AccountViewedAuditPenaltyTotals(
-                      penaltyType = penaltyTotal.penaltyType,
-                      penaltyStatus = penaltyTotal.penaltyStatus,
-                      penaltyAmount = penaltyTotal.penaltyAmount
-                    )
-                  )
+          case None          => None
+          case Some(details) =>
+            Some(
+              details.map(detail =>
+                AccountViewedAuditDocumentDetails(
+                  detail.chargeReferenceNumber,
+                  detail.issueDate,
+                  detail.interestPostedAmount,
+                  detail.postingDate,
+                  detail.penaltyTotals match {
+                    case None                => None
+                    case Some(penaltyTotals) =>
+                      Some(
+                        penaltyTotals.map(penaltyTotal =>
+                          AccountViewedAuditPenaltyTotals(
+                            penaltyType = penaltyTotal.penaltyType,
+                            penaltyStatus = penaltyTotal.penaltyStatus,
+                            penaltyAmount = penaltyTotal.penaltyAmount
+                          )
+                        )
+                      )
+                  },
+                  detail.lineItemDetails match {
+                    case None            => None
+                    case Some(lineItems) =>
+                      Some(
+                        lineItems.map(lineItem =>
+                          AccountViewedAuditLineItem(
+                            lineItem.chargeDescription,
+                            lineItem.periodFromDate,
+                            lineItem.periodToDate,
+                            lineItem.periodKey
+                          )
+                        )
+                      )
+                  }
                 )
-              },
-              detail.lineItemDetails match {
-                case None => None
-                case Some(lineItems) => Some(
-                  lineItems.map(lineItem => AccountViewedAuditLineItem(
-                    lineItem.chargeDescription,
-                    lineItem.periodFromDate,
-                    lineItem.periodToDate,
-                    lineItem.periodKey
-                  ))
-                )
-              }
               )
             )
-          )
         }
       )
     )

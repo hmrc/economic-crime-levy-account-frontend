@@ -42,5 +42,5 @@ trait Generators {
     Gen.const(value)
 
   def generateBigDecimal(): Gen[BigDecimal] =
-    Gen.chooseNum(0, Int.MaxValue).map( n => BigDecimal(n))
+    Gen.chooseNum(0, Int.MaxValue).map(n => BigDecimal(n))
 }

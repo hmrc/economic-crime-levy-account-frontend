@@ -70,7 +70,7 @@ case class AccountViewedAuditLineItem(
   chargeDescription: Option[String],
   periodFromDate: Option[String],
   periodToDate: Option[String],
-  periodKey: Option[String],
+  periodKey: Option[String]
 )
 
 object AccountViewedAuditLineItem {

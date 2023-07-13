@@ -22,13 +22,12 @@ import play.api.mvc.Result
 import play.api.test.Helpers._
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
-import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialDetails}
+import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDetails
 import uk.gov.hmrc.economiccrimelevyaccount.services.{EnrolmentStoreProxyService, FinancialDataService}
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
 import uk.gov.hmrc.economiccrimelevyaccount._
 import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
-import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -77,7 +76,6 @@ class AccountControllerSpec extends SpecBase {
 
         when(mockFinancialDataService.retrieveFinancialData(any()))
           .thenReturn(Future.successful(Right(validFinancialDataResponse.financialDataResponse)))
-
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
