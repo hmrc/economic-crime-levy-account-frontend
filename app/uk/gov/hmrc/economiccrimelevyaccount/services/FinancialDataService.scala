@@ -17,6 +17,7 @@
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.FinancialDataConnector
+import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse.findLatestFinancialObligation
 import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialDataErrorResponse, FinancialDataResponse, FinancialDetails, NewCharge}
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -28,27 +29,14 @@ class FinancialDataService @Inject() (
   financialDataConnector: FinancialDataConnector
 )(implicit ec: ExecutionContext) {
 
-  private def retrieveFinancialData(implicit
+  def retrieveFinancialData(implicit
     hc: HeaderCarrier
   ): Future[Either[FinancialDataErrorResponse, FinancialDataResponse]] = financialDataConnector.getFinancialData()
 
-  def latestFinancialObligation(implicit hc: HeaderCarrier): Future[Option[FinancialDetails]] =
-    retrieveFinancialData.map {
-      case Left(error)          => findLatestFinancialObligation(FinancialDataResponse(None, None))
-      case Right(financialData) => findLatestFinancialObligation(financialData)
-    }
-  private def findLatestFinancialObligation(financialData: FinancialDataResponse): Option[FinancialDetails] = {
-    val documentDetails: Option[DocumentDetails] = financialData.documentDetails match {
-      case None        => None
-      case Some(value) =>
-        value
-          .filter(docDetails => extractValue(docDetails.documentType) == NewCharge)
-          .filter(!_.isCleared)
-          .sortBy(_.postingDate)
-          .headOption
-    }
+  def getLatestFinancialObligation(financialData: FinancialDataResponse): Option[FinancialDetails] = {
+    val latestObligationDetails = findLatestFinancialObligation(financialData)
 
-    documentDetails match {
+    latestObligationDetails match {
       case None        => None
       case Some(value) =>
         val outstandingAmount           = extractValue(value.documentOutstandingAmount)

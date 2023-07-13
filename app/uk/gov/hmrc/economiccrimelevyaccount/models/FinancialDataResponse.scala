@@ -56,9 +56,25 @@ object FinancialDataResponse {
   }
 
   implicit val format: OFormat[FinancialDataResponse] = Json.format[FinancialDataResponse]
+
+  def findLatestFinancialObligation(financialData: FinancialDataResponse): Option[DocumentDetails] = {
+    financialData.documentDetails match {
+      case None => None
+      case Some(value) =>
+        value
+          .filter(docDetails => extractValue(docDetails.documentType) == NewCharge)
+          .filter(!_.isCleared)
+          .sortBy(_.postingDate)
+          .headOption
+    }
+  }
+
+  private def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
 }
 
 case class Totalisation(
+  totalAccountBalance: Option[BigDecimal],
+  totalAccountOverdue: Option[BigDecimal],
   totalOverdue: Option[BigDecimal],
   totalNotYetDue: Option[BigDecimal],
   totalBalance: Option[BigDecimal],
@@ -78,7 +94,11 @@ case class DocumentDetails(
   documentTotalAmount: Option[BigDecimal],
   documentClearedAmount: Option[BigDecimal],
   documentOutstandingAmount: Option[BigDecimal],
-  lineItemDetails: Option[Seq[LineItemDetails]]
+  lineItemDetails: Option[Seq[LineItemDetails]],
+  interestPostedAmount: Option[BigDecimal],
+  interestAccruingAmount: Option[BigDecimal],
+  interestPostedChargeRef: Option[String],
+  penaltyTotals: Option[Seq[PenaltyTotals]]
 ) {
   val isCleared: Boolean = documentOutstandingAmount match {
     case None        => throw new IllegalStateException()
@@ -130,4 +150,15 @@ case class LineItemDetails(
 
 object LineItemDetails {
   implicit val format: OFormat[LineItemDetails] = Json.format[LineItemDetails]
+}
+
+case class PenaltyTotals(
+  penaltyType: Option[String],
+  penaltyStatus: Option[String],
+  penaltyAmount: Option[BigDecimal],
+  postedChargeReference: Option[String]
+)
+
+object PenaltyTotals {
+  implicit val format: OFormat[PenaltyTotals] = Json.format[PenaltyTotals]
 }

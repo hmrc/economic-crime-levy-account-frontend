@@ -71,8 +71,8 @@ class AccountControllerSpec extends SpecBase {
         when(mockAuditConnector.sendExtendedEvent(any())(any(), any()))
           .thenReturn(Future.successful(AuditResult.Success))
 
-        when(mockFinancialDataService.latestFinancialObligation(any()))
-          .thenReturn(Future.successful(Some(validFinancialDetails)))
+        when(mockFinancialDataService.getLatestFinancialObligation(any()))
+          .thenReturn(Some(validFinancialDetails))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
@@ -104,8 +104,8 @@ class AccountControllerSpec extends SpecBase {
         when(mockAuditConnector.sendExtendedEvent(any())(any(), any()))
           .thenReturn(Future.successful(AuditResult.Success))
 
-        when(mockFinancialDataService.latestFinancialObligation(any()))
-          .thenReturn(Future.successful(Some(validFinancialDetails)))
+        when(mockFinancialDataService.getLatestFinancialObligation(any()))
+          .thenReturn(Some(validFinancialDetails))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
@@ -141,8 +141,8 @@ class AccountControllerSpec extends SpecBase {
         when(mockAuditConnector.sendExtendedEvent(any())(any(), any()))
           .thenReturn(Future.successful(AuditResult.Success))
 
-        when(mockFinancialDataService.latestFinancialObligation(any()))
-          .thenReturn(Future.successful(Some(validFinancialDetails)))
+        when(mockFinancialDataService.getLatestFinancialObligation(any()))
+          .thenReturn(Some(validFinancialDetails))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
@@ -178,8 +178,8 @@ class AccountControllerSpec extends SpecBase {
         when(mockAuditConnector.sendExtendedEvent(any())(any(), any()))
           .thenReturn(Future.successful(AuditResult.Success))
 
-        when(mockFinancialDataService.latestFinancialObligation(any()))
-          .thenReturn(Future.successful(Some(validFinancialDetails)))
+        when(mockFinancialDataService.getLatestFinancialObligation(any()))
+          .thenReturn(Some(validFinancialDetails))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 

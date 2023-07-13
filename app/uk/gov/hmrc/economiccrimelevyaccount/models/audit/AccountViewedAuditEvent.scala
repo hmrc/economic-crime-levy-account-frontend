@@ -22,7 +22,8 @@ import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationDetails
 case class AccountViewedAuditEvent(
   internalId: String,
   eclReference: String,
-  obligationDetails: Seq[ObligationDetails]
+  obligationDetails: Seq[ObligationDetails],
+  financialDetails: Option[AccountViewedAuditFinancialDetails]
 ) extends AuditEvent {
   override val auditType: String   = "AccountViewed"
   override val detailJson: JsValue = Json.toJson(this)
@@ -30,4 +31,48 @@ case class AccountViewedAuditEvent(
 
 object AccountViewedAuditEvent {
   implicit val format: OFormat[AccountViewedAuditEvent] = Json.format[AccountViewedAuditEvent]
+}
+
+case class AccountViewedAuditFinancialDetails(
+  totalAccountBalance: Option[BigDecimal],
+  totalAccountOverdue: Option[BigDecimal],
+  documentDetails: Option[Seq[AccountViewedAuditDocumentDetails]]
+)
+
+object AccountViewedAuditFinancialDetails {
+  implicit val format: OFormat[AccountViewedAuditFinancialDetails] = Json.format[AccountViewedAuditFinancialDetails]
+}
+
+case class AccountViewedAuditDocumentDetails(
+  chargeReferenceNumber: Option[String],
+  issueDate: Option[String],
+  interestPostedAmount: Option[BigDecimal],
+  postingDate: Option[String],
+  penaltyTotals: Option[Seq[AccountViewedAuditPenaltyTotals]],
+  lineItems: Option[Seq[AccountViewedAuditLineItem]]
+)
+
+object AccountViewedAuditDocumentDetails {
+  implicit val format: OFormat[AccountViewedAuditDocumentDetails] = Json.format[AccountViewedAuditDocumentDetails]
+}
+
+case class AccountViewedAuditPenaltyTotals(
+  penaltyType: Option[String],
+  penaltyStatus: Option[String],
+  penaltyAmount: Option[BigDecimal]
+)
+
+object AccountViewedAuditPenaltyTotals {
+  implicit val format: OFormat[AccountViewedAuditPenaltyTotals] = Json.format[AccountViewedAuditPenaltyTotals]
+}
+
+case class AccountViewedAuditLineItem(
+  chargeDescription: Option[String],
+  periodFromDate: Option[String],
+  periodToDate: Option[String],
+  periodKey: Option[String],
+)
+
+object AccountViewedAuditLineItem {
+  implicit val format: OFormat[AccountViewedAuditLineItem] = Json.format[AccountViewedAuditLineItem]
 }

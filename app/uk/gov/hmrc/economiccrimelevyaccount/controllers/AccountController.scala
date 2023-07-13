@@ -18,11 +18,11 @@ package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.{FinancialDataConnector, ObligationDataConnector}
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
-import uk.gov.hmrc.economiccrimelevyaccount.models.audit.AccountViewedAuditEvent
+import uk.gov.hmrc.economiccrimelevyaccount.models.audit._
 import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
-import uk.gov.hmrc.economiccrimelevyaccount.models.{ObligationData, ObligationDetails, Open}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, ObligationData, ObligationDetails, Open}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{EnrolmentStoreProxyService, FinancialDataService}
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
@@ -49,33 +49,49 @@ class AccountController @Inject() (
     enrolmentStoreProxyService.getEclRegistrationDate(request.eclRegistrationReference).flatMap { registrationDate =>
       obligationDataConnector
         .getObligationData()
-        .flatMap { o =>
-          auditAccountViewed(o)
-          financialDataService.latestFinancialObligation.map { financialData =>
-            Ok(
-              view(
-                request.eclRegistrationReference,
-                ViewUtils.formatLocalDate(registrationDate),
-                o match {
-                  case Some(obligationData) =>
-                    getLatestObligation(obligationData)
-                  case None                 => None
-                },
-                financialData
-              )
-            )
+        .flatMap { obligationData =>
+          val latestObligationData = obligationData match {
+            case Some(o) => getLatestObligation(o)
+            case None => None
           }
 
+          financialDataService.retrieveFinancialData.map {
+            case Left(_) =>
+              auditAccountViewed(obligationData, None)
+              Ok(
+                view(
+                  request.eclRegistrationReference,
+                  ViewUtils.formatLocalDate(registrationDate),
+                  latestObligationData,
+                  None
+                )
+              )
+            case Right(dataResponse) =>
+              auditAccountViewed(obligationData, Some(dataResponse))
+              Ok(
+                view(
+                  request.eclRegistrationReference,
+                  ViewUtils.formatLocalDate(registrationDate),
+                  latestObligationData,
+                  financialDataService.getLatestFinancialObligation(dataResponse)
+                )
+              )
+          }
         }
     }
   }
 
-  private def auditAccountViewed(obligationData: Option[ObligationData])(implicit request: AuthorisedRequest[_]): Unit =
+  private def auditAccountViewed(obligationData: Option[ObligationData], financialData: Option[FinancialDataResponse])
+                                (implicit request: AuthorisedRequest[_]): Unit =
     auditConnector.sendExtendedEvent(
       AccountViewedAuditEvent(
         internalId = request.internalId,
         eclReference = request.eclRegistrationReference,
-        obligationDetails = obligationData.map(_.obligations.flatMap(_.obligationDetails)).toSeq.flatten
+        obligationDetails = obligationData.map(_.obligations.flatMap(_.obligationDetails)).toSeq.flatten,
+        financialDetails = financialData match {
+          case Some(details) => mapAccountViewedAuditFinancialDetails(details)
+          case None => None
+        }
       ).extendedDataEvent
     )
 
@@ -87,4 +103,47 @@ class AccountController @Inject() (
           .sortBy(_.inboundCorrespondenceDueDate)
       )
       .headOption
+
+  private def mapAccountViewedAuditFinancialDetails(response: FinancialDataResponse): Option[AccountViewedAuditFinancialDetails] =
+    Some(
+      AccountViewedAuditFinancialDetails(
+        response.totalisation.flatMap(_.totalAccountBalance),
+        response.totalisation.flatMap(_.totalAccountOverdue),
+        response.documentDetails match {
+          case None => None
+          case Some(details) => Some(
+            details.map(detail => AccountViewedAuditDocumentDetails(
+              detail.chargeReferenceNumber,
+              detail.issueDate,
+              detail.interestPostedAmount,
+              detail.postingDate,
+              detail.penaltyTotals match {
+                case None => None
+                case Some(penaltyTotals) => Some(
+                  penaltyTotals.map(penaltyTotal =>
+                    AccountViewedAuditPenaltyTotals(
+                      penaltyType = penaltyTotal.penaltyType,
+                      penaltyStatus = penaltyTotal.penaltyStatus,
+                      penaltyAmount = penaltyTotal.penaltyAmount
+                    )
+                  )
+                )
+              },
+              detail.lineItemDetails match {
+                case None => None
+                case Some(lineItems) => Some(
+                  lineItems.map(lineItem => AccountViewedAuditLineItem(
+                    lineItem.chargeDescription,
+                    lineItem.periodFromDate,
+                    lineItem.periodToDate,
+                    lineItem.periodKey
+                  ))
+                )
+              }
+              )
+            )
+          )
+        }
+      )
+    )
 }
