@@ -204,8 +204,6 @@ trait EclTestData {
   }
   def alphaNumericString: String                                = Gen.alphaNumStr.sample.get
 
-  private def calculatePeriodKey(year: String): String = s"${year.takeRight(2)}XY"
-
   val testInternalId: String               = alphaNumericString
   val testEclRegistrationReference: String = alphaNumericString
 

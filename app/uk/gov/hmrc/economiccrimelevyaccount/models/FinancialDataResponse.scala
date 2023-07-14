@@ -59,13 +59,13 @@ object FinancialDataResponse {
 
   def findLatestFinancialObligation(financialData: FinancialDataResponse): Option[DocumentDetails] =
     financialData.documentDetails match {
-      case None        => None
       case Some(value) =>
         value
-          .filter(docDetails => extractValue(docDetails.documentType) == NewCharge)
+          .filter(docDetails => extractValue(docDetails.documentType) != ReversedCharge)
           .filter(!_.isCleared)
           .sortBy(_.postingDate)
           .headOption
+      case None => None
     }
 
   private def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
@@ -100,8 +100,8 @@ case class DocumentDetails(
   penaltyTotals: Option[Seq[PenaltyTotals]]
 ) {
   val isCleared: Boolean = documentOutstandingAmount match {
-    case None        => false
     case Some(value) => value <= 0
+    case None        => false
   }
 }
 object DocumentDetails {

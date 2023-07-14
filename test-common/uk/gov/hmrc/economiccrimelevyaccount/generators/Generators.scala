@@ -40,7 +40,4 @@ trait Generators {
 
   def genSameVale[A](value: A): Gen[A] =
     Gen.const(value)
-
-  def generateBigDecimal(): Gen[BigDecimal] =
-    Gen.chooseNum(0, Int.MaxValue).map(n => BigDecimal(n))
 }

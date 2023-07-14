@@ -56,7 +56,7 @@ class AccountController @Inject() (
           }
 
           financialDataService.retrieveFinancialData.map {
-            case Left(_)             =>
+            case Left(_) =>
               auditAccountViewed(obligationData, None)
               Ok(
                 view(
@@ -73,7 +73,10 @@ class AccountController @Inject() (
                   request.eclRegistrationReference,
                   ViewUtils.formatLocalDate(registrationDate),
                   latestObligationData,
-                  financialDataService.getLatestFinancialObligation(dataResponse)
+                  dataResponse.documentDetails match {
+                    case Some(_) => financialDataService.getLatestFinancialObligation(dataResponse)
+                    case None => None
+                  }
                 )
               )
           }
@@ -113,7 +116,6 @@ class AccountController @Inject() (
         response.totalisation.flatMap(_.totalAccountBalance),
         response.totalisation.flatMap(_.totalAccountOverdue),
         response.documentDetails match {
-          case None          => None
           case Some(details) =>
             Some(
               details.map(detail =>
@@ -123,7 +125,6 @@ class AccountController @Inject() (
                   detail.interestPostedAmount,
                   detail.postingDate,
                   detail.penaltyTotals match {
-                    case None                => None
                     case Some(penaltyTotals) =>
                       Some(
                         penaltyTotals.map(penaltyTotal =>
@@ -134,9 +135,9 @@ class AccountController @Inject() (
                           )
                         )
                       )
+                    case None => None
                   },
                   detail.lineItemDetails match {
-                    case None            => None
                     case Some(lineItems) =>
                       Some(
                         lineItems.map(lineItem =>
@@ -148,10 +149,12 @@ class AccountController @Inject() (
                           )
                         )
                       )
+                    case None => None
                   }
                 )
               )
             )
+          case None => None
         }
       )
     )
