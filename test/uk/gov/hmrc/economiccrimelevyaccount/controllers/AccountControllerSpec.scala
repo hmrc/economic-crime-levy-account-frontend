@@ -205,8 +205,8 @@ class AccountControllerSpec extends SpecBase {
         obligationData: ObligationDataWithObligation,
         validFinancialDataResponse: ValidFinancialDataResponse
       ) =>
-
-        val invalidFinancialDataResponse = validFinancialDataResponse.copy(financialDataResponse = FinancialDataResponse(None, None))
+        val invalidFinancialDataResponse =
+          validFinancialDataResponse.copy(financialDataResponse = FinancialDataResponse(None, None))
 
         when(
           mockEnrolmentStoreProxyService.getEclRegistrationDate(ArgumentMatchers.eq(eclRegistrationReference))(any())
@@ -224,7 +224,7 @@ class AccountControllerSpec extends SpecBase {
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
-        status(result) shouldBe OK
+        status(result)          shouldBe OK
         contentAsString(result) shouldBe view(
           eclRegistrationReference,
           ViewUtils.formatLocalDate(eclRegistrationDate)(messages),

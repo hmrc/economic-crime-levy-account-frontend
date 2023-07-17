@@ -56,7 +56,7 @@ class AccountController @Inject() (
           }
 
           financialDataService.retrieveFinancialData.map {
-            case Left(_) =>
+            case Left(_)             =>
               auditAccountViewed(obligationData, None)
               Ok(
                 view(
@@ -75,7 +75,7 @@ class AccountController @Inject() (
                   latestObligationData,
                   dataResponse.documentDetails match {
                     case Some(_) => financialDataService.getLatestFinancialObligation(dataResponse)
-                    case None => None
+                    case None    => None
                   }
                 )
               )
@@ -135,7 +135,7 @@ class AccountController @Inject() (
                           )
                         )
                       )
-                    case None => None
+                    case None                => None
                   },
                   detail.lineItemDetails match {
                     case Some(lineItems) =>
@@ -149,12 +149,12 @@ class AccountController @Inject() (
                           )
                         )
                       )
-                    case None => None
+                    case None            => None
                   }
                 )
               )
             )
-          case None => None
+          case None          => None
         }
       )
     )

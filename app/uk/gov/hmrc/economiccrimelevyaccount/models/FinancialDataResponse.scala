@@ -65,7 +65,7 @@ object FinancialDataResponse {
           .filter(!_.isCleared)
           .sortBy(_.postingDate)
           .headOption
-      case None => None
+      case None        => None
     }
 
   private def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
