@@ -19,7 +19,7 @@ package uk.gov.hmrc.economiccrimelevyaccount
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator.derivedArbitrary
 import org.scalacheck.{Arbitrary, Gen}
 import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments}
-import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries.{genSameVale, localDateGen}
+import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.EclEnrolment
 import uk.gov.hmrc.economiccrimelevyaccount.models._
 
@@ -125,43 +125,57 @@ trait EclTestData {
 
   implicit val arbValidFinancialDataResponse: Arbitrary[ValidFinancialDataResponse] = Arbitrary {
     for {
-      totalisation    <- Arbitrary.arbitrary[Totalisation]
-      chargeReference <- Arbitrary.arbitrary[String]
-      postingDateArb   =
-        Arbitrary(localDateGen(currentYear - 1, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY))
-      issueDateArb     =
-        Arbitrary(localDateGen(currentYear - 1, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY))
-      totalAmount      = Arbitrary(genSameVale(10_000))
-      clearedAmount    = Arbitrary(genSameVale(1_000))
-      documentDetails <- Arbitrary.arbitrary[DocumentDetails]
-      lineItemDetails <- Arbitrary.arbitrary[LineItemDetails]
-      itemFromDate     =
-        Arbitrary(localDateGen(currentYear - 1, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY))
-      itemToDate       = Arbitrary(localDateGen(currentYear, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY))
-      itemNetDueDate   = Arbitrary(localDateGen(currentYear, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY))
+      penaltyTotals          <- Arbitrary.arbitrary[PenaltyTotals]
+      chargeReference        <- Arbitrary.arbitrary[String]
+      periodKey              <- Arbitrary.arbitrary[String]
+      randomString           <- Arbitrary.arbitrary[String]
+      totalAmount            <- Arbitrary.arbitrary[Int]
+      clearedAmount          <- Arbitrary.arbitrary[Int]
+      arbTotalisationAmounts <- Arbitrary.arbitrary[Int]
+      documentDetails        <- Arbitrary.arbitrary[DocumentDetails]
+      lineItemDetails        <- Arbitrary.arbitrary[LineItemDetails]
 
     } yield ValidFinancialDataResponse(
       FinancialDataResponse(
-        totalisation = Some(totalisation),
+        totalisation = Some(
+          Totalisation(
+            totalAccountBalance = Some(BigDecimal(arbTotalisationAmounts)),
+            totalAccountOverdue = Some(BigDecimal(arbTotalisationAmounts.toString)),
+            totalOverdue = Some(BigDecimal(arbTotalisationAmounts.toString)),
+            totalNotYetDue = Some(BigDecimal(arbTotalisationAmounts.toString)),
+            totalBalance = Some(BigDecimal(arbTotalisationAmounts.toString)),
+            totalCredit = Some(BigDecimal(arbTotalisationAmounts.toString)),
+            totalCleared = Some(BigDecimal(arbTotalisationAmounts.toString))
+          )
+        ),
         documentDetails = Some(
           Seq(
             documentDetails.copy(
               documentType = Some(NewCharge),
               chargeReferenceNumber = Some(chargeReference),
-              postingDate = Some(postingDateArb.toString),
-              issueDate = Some(issueDateArb.toString),
               documentTotalAmount = Some(BigDecimal(totalAmount.toString)),
               documentClearedAmount = Some(BigDecimal(clearedAmount.toString)),
               documentOutstandingAmount = Some(BigDecimal(totalAmount.toString) - BigDecimal(clearedAmount.toString)),
+              interestPostedAmount = Some(BigDecimal(arbTotalisationAmounts.toString)),
+              interestAccruingAmount = Some(BigDecimal(arbTotalisationAmounts.toString)),
+              issueDate = Some(LocalDate.now.toString),
+              penaltyTotals = Some(
+                Seq(
+                  penaltyTotals.copy(
+                    penaltyAmount = Some(BigDecimal(arbTotalisationAmounts.toString)),
+                    penaltyStatus = Some(randomString)
+                  )
+                )
+              ),
               lineItemDetails = Some(
                 Seq(
                   lineItemDetails.copy(
                     chargeDescription = Some(chargeReference),
-                    periodFromDate = Some(itemFromDate.toString),
-                    periodToDate = Some(itemToDate.toString),
-                    periodKey = Some(calculatePeriodKey(postingDateArb.toString.takeRight(4))),
-                    netDueDate = Some(itemNetDueDate.toString),
-                    amount = Some(BigDecimal(clearedAmount.toString))
+                    amount = Some(BigDecimal(clearedAmount.toString)),
+                    clearingDate = Some(LocalDate.now.toString),
+                    periodFromDate = Some(LocalDate.now.toString),
+                    periodToDate = Some(LocalDate.now.toString),
+                    periodKey = Some(periodKey)
                   )
                 )
               )
@@ -171,10 +185,24 @@ trait EclTestData {
       )
     )
   }
+  private val genDate: Gen[LocalDate]                                               =
+    localDateGen(currentYear - 1, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY)
 
-  def alphaNumericString: String = Gen.alphaNumStr.sample.get
+  implicit val arbFinancialDetails: Arbitrary[FinancialDetails] = Arbitrary {
+    for {
+      fromDate  <- genDate
+      toDate    <- genDate
+      periodKey <- Arbitrary.arbitrary[String]
+      amount    <- Arbitrary.arbitrary[Int]
 
-  private def calculatePeriodKey(year: String): String = s"${year.takeRight(2)}XY"
+    } yield FinancialDetails(
+      amount = BigDecimal(amount),
+      fromDate = fromDate,
+      toDate = toDate,
+      periodKey = periodKey
+    )
+  }
+  def alphaNumericString: String                                = Gen.alphaNumStr.sample.get
 
   val testInternalId: String               = alphaNumericString
   val testEclRegistrationReference: String = alphaNumericString
