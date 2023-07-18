@@ -54,5 +54,5 @@ class FinancialDataService @Inject() (
     }
   }
 
-  private def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
+  def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
 }
