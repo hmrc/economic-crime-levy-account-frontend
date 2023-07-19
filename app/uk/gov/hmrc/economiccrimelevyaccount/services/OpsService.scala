@@ -18,29 +18,38 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.{FinancialDataConnector, OpsConnector}
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataErrorResponse, FinancialDataResponse, FinancialDetails, OpsJourneyRequest}
-
-import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.OpsConnector
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
+import uk.gov.hmrc.economiccrimelevyaccount.models.OpsJourneyRequest
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
+import javax.inject.Inject
+import scala.concurrent.{ExecutionContext, Future}
 
 class OpsService @Inject() (
-  opsConnector: OpsConnector
-)(implicit hc: HeaderCarrier, ec: ExecutionContext) {
-  def startOpsJourney(chargeReference: String, amount: BigDecimal, dueDate: Option[LocalDate] = None): Future[Result] =
+  opsConnector: OpsConnector,
+  appConfig: AppConfig
+)(implicit ec: ExecutionContext) {
+
+  def startOpsJourney(chargeReference: String, amount: BigDecimal, dueDate: Option[LocalDate] = None)(implicit
+    hc: HeaderCarrier
+  ): Future[Result] = {
+    val url = appConfig.host + routes.AccountController.onPageLoad().url
     opsConnector
       .createOpsJourney(
         OpsJourneyRequest(
           chargeReference,
           amount * 100,
-          routes.AccountController.onPageLoad().url,
-          routes.AccountController.onPageLoad().url,
+          url,
+          url,
           dueDate
         )
       )
-      .map(r => Redirect(r.nextUrl))
+      .map {
+        case Left(r) => Redirect(r.nextUrl)
+        case _       => Redirect(routes.AccountController.onPageLoad())
+      }
+  }
 }

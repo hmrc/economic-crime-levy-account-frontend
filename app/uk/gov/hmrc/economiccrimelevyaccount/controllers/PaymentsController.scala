@@ -33,18 +33,20 @@ class PaymentsController @Inject() (
   authorise: AuthorisedAction,
   financialDataService: FinancialDataService,
   opsService: OpsService
-)(implicit ec: ExecutionContext, hc: HeaderCarrier)
+)(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 
-  def onPageLoad: Action[AnyContent]                         = authorise.async { implicit request =>
+  def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
     getFinancialDetails.flatMap {
       case Some(value) => opsService.startOpsJourney(value.chargeReference, value.amount, value.dueDate)
-      case _           => Future.successful(Redirect(routes.NotableErrorController.notRegistered()))
+      case _           => Future.successful(Redirect(routes.AccountController.onPageLoad()))
     }
   }
 
-  private def getFinancialDetails: Future[Option[OpsData]] =
+  private def getFinancialDetails()(implicit
+    hc: HeaderCarrier
+  ): Future[Option[OpsData]] =
     financialDataService.retrieveFinancialData.map {
       case Left(_)         => None
       case Right(response) =>

@@ -16,4 +16,4 @@ GET        /your-ecl-returns                           uk.gov.hmrc.economiccrime
 GET        /economic-crime-levy-payment-history        uk.gov.hmrc.economiccrimelevyaccount.controllers.ViewYourPaymentsController.onPageLoad()
 GET        /assets/*file                               controllers.Assets.versioned(path = "/public", file: Asset)
 
-GET        /make-a-paument                             uk.gov.hmrc.economiccrimelevyaccount.controllers.PaymentsController.onPageLoad()
+GET        /make-a-payment                             uk.gov.hmrc.economiccrimelevyaccount.controllers.PaymentsController.onPageLoad()

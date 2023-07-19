@@ -18,7 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
 import com.google.inject.Singleton
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataErrorResponse, FinancialDataResponse, OpsJourneyRequest, OpsJourneyResponse}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
 
 import javax.inject.Inject
@@ -34,9 +34,27 @@ class OpsConnector @Inject() (
 
   def createOpsJourney(opsJourneyRequest: OpsJourneyRequest)(implicit
     hc: HeaderCarrier
-  ): Future[OpsJourneyResponse] =
-    httpClient.POST[OpsJourneyRequest, OpsJourneyResponse](
-      s"$opsServiceUrl",
-      opsJourneyRequest
-    )
+  ): Future[Either[OpsJourneyResponse, OpsJourneyError]] =
+    httpClient
+      .POST(
+        s"$opsServiceUrl",
+        opsJourneyRequest,
+        Seq(("x-session-id", opsJourneyRequest.chargeReference))
+      )
+      .map {
+        case response if response.status == 201 =>
+          response.json
+            .validate[OpsJourneyResponse]
+            .fold(
+              invalid => Right(OpsJourneyError(response.status, "Invalid Json")),
+              valid => Left(valid)
+            )
+        case response                           =>
+          Right(OpsJourneyError(response.status, response.body))
+      }
 }
+
+case class OpsJourneyError(
+  status: Int,
+  message: String
+)
