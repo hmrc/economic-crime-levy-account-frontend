@@ -20,6 +20,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.services.FinancialDataService
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Due, Overdue}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.PaymentsView
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.NoPaymentsView
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
