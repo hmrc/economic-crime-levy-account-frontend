@@ -43,6 +43,7 @@ class PaymentsController @Inject() (
       case _           => Future.successful(Redirect(routes.NotableErrorController.notRegistered()))
     }
   }
+
   private def getFinancialDetails: Future[Option[OpsData]] =
     financialDataService.retrieveFinancialData.map {
       case Left(_)         => None

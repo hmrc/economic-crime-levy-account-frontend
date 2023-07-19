@@ -33,7 +33,7 @@ class OpsConnector @Inject() (
   private val opsServiceUrl: String = s"${appConfig.opsServiceUrl}"
 
   def createOpsJourney(opsJourneyRequest: OpsJourneyRequest)(implicit
-                                                             hc: HeaderCarrier
+    hc: HeaderCarrier
   ): Future[OpsJourneyResponse] =
     httpClient.POST[OpsJourneyRequest, OpsJourneyResponse](
       s"$opsServiceUrl",
