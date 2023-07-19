@@ -30,7 +30,7 @@
 @generateTableOutstandingPayments = @{
     val outstandingPayments = financialViewDetails.outstandingPayments
             .filter(payment => payment.paymentStatus == Due || payment.paymentStatus == Overdue)
-
+  if(outstandingPayments.nonEmpty) {
     table(Table(
         rows = tableRowsOutstandingPayments(outstandingPayments),
         head = Some(Seq(
@@ -45,29 +45,31 @@
         captionClasses = "govuk-table__caption--m",
         classes = "govuk-table"
     ))
+  }
 }
 
 
 @generateTablePaymentHistory() = @{
     val paymentHistory = financialViewDetails.paymentHistory
             .filter(payment => payment.paymentStatus == Paid || payment.paymentStatus == PartiallyPaid)
-
-    table(Table(
-        rows = tableRowsPaymentHistory(paymentHistory),
-        head = Some(Seq(
-            HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.1")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-            HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.2")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-            HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.3")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-            HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.4")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-            HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.5")), classes = "govuk-table__header govuk-!-width-one-quarter")
-        )),
-        firstCellIsHeader = true,
-        caption = Some(messages("account.viewPayments.table.paymentsHistory.header.title")),
-        captionClasses = "govuk-table__caption--m",
-        classes = "govuk-table"
-    ))
-
+    if(paymentHistory.nonEmpty) {
+        table(Table(
+            rows = tableRowsPaymentHistory(paymentHistory),
+            head = Some(Seq(
+                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.1")), classes = "govuk-table__header govuk-!-width-one-quarter"),
+                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.2")), classes = "govuk-table__header govuk-!-width-one-quarter"),
+                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.3")), classes = "govuk-table__header govuk-!-width-one-quarter"),
+                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.4")), classes = "govuk-table__header govuk-!-width-one-quarter"),
+                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.5")), classes = "govuk-table__header govuk-!-width-one-quarter")
+            )),
+            firstCellIsHeader = true,
+            caption = Some(messages("account.viewPayments.table.paymentsHistory.header.title")),
+            captionClasses = "govuk-table__caption--m",
+            classes = "govuk-table"
+        ))
+    }
 }
+
 @tableRowsOutstandingPayments(rowData: Seq[OutstandingPayments]) = @{
     rowData.map(data => {
         val status = resolveStatus(data.paymentStatus)
@@ -114,15 +116,8 @@
 ) {
     <h1 class="govuk-heading-xl">@messages("account.viewPayments.heading")</h1>
 
+       @generateTableOutstandingPayments
+       @generateTablePaymentHistory
 
-   @{
-     if (financialViewDetails.outstandingPayments.nonEmpty){
-         generateTableOutstandingPayments
-     }
-
-     if (financialViewDetails.paymentHistory.nonEmpty){
-         generateTablePaymentHistory
-     }
-   }
 
 }

@@ -20,6 +20,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.services.FinancialDataService
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Due, Overdue}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.PaymentsView
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.NoPaymentsView
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -40,7 +41,14 @@ class ViewYourPaymentsController @Inject() (
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
     financialDataService.getFinancialDetails.map {
-      case Some(value) => Ok(view(value))
+      case Some(value) =>
+        {
+          val test  = value.outstandingPayments.filter(payment =>
+            payment.paymentStatus == Due || payment.paymentStatus == Overdue
+          )
+          val test2 = test.isEmpty
+        }
+        Ok(view(value))
       case None        => Ok(noPaymentsView())
     }
   }

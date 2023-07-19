@@ -82,7 +82,7 @@ class FinancialDataService @Inject() (
     }
 
     val paymentsHistory = documentDetails.flatMap { details =>
-      extractValue(details.lineItemDetails).map(item =>
+      extractValue(details.lineItemDetails).map { item =>
         PaymentHistory(
           paymentDate = getPaymentDate(item.clearingDate),
           chargeReference = extractValue(details.chargeReferenceNumber),
@@ -91,7 +91,7 @@ class FinancialDataService @Inject() (
           amount = extractValue(item.amount),
           paymentStatus = getPaymentStatus(details, "history")
         )
-      )
+      }
     }
 
     FinancialViewDetails(outstandingPayments = outstandingPayments, paymentHistory = paymentsHistory)
@@ -99,7 +99,9 @@ class FinancialDataService @Inject() (
 
   private def getPaymentDate(clearingDate: Option[String]): Option[LocalDate] =
     clearingDate match {
-      case Some(value) => Some(LocalDate.parse(value))
+      case Some(value) =>
+        if (!value.equals("") || value.nonEmpty) { Some(LocalDate.parse(value)) }
+        else { None }
       case None        => None
     }
 
@@ -109,7 +111,7 @@ class FinancialDataService @Inject() (
 
     if (extractValue(documentDetails.documentOutstandingAmount) == 0) {
       Paid
-    } else if (dueDate.isBefore(LocalDate.now())) {
+    } else if (dueDate.isBefore(LocalDate.now()) && paymentType.equalsIgnoreCase("outstanding")) {
       Overdue
     } else if (
       extractValue(documentDetails.documentOutstandingAmount) != 0 &&
