@@ -115,6 +115,14 @@
     <h1 class="govuk-heading-xl">@messages("account.viewPayments.heading")</h1>
 
 
-    @generateTableOutstandingPayments
-    @generateTablePaymentHistory
+   @{
+     if (financialViewDetails.outstandingPayments.nonEmpty){
+         generateTableOutstandingPayments
+     }
+
+     if (financialViewDetails.paymentHistory.nonEmpty){
+         generateTablePaymentHistory
+     }
+   }
+
 }
