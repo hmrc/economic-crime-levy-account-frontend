@@ -39,7 +39,7 @@ class PaymentsController @Inject() (
 
   def onPageLoad: Action[AnyContent]                         = authorise.async { implicit request =>
     getFinancialDetails.flatMap {
-      case Some(value) => opsService.get(value.chargeReference, value.amount, value.dueDate)
+      case Some(value) => opsService.startOpsJourney(value.chargeReference, value.amount, value.dueDate)
       case _           => Future.successful(Redirect(routes.NotableErrorController.notRegistered()))
     }
   }

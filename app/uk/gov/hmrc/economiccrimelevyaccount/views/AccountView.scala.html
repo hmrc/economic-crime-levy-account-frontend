@@ -18,6 +18,8 @@
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.CardAction
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 @import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationDetails
+@import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDetails
+
 
 @this(
         layout: templates.Layout,
@@ -72,6 +74,10 @@
     optOpenObligation.map(o => s"${appConfig.returnsUrl}/period/${o.periodKey}")
 }
 
+@makePaymentLink = @{
+    optFinancialDetails.map(o => "#")
+}
+
 @getViewReturnsLinkName = @{
     if(appConfig.privateBetaEnabled) {
         messages("account.viewReturns")
@@ -89,10 +95,10 @@
 }
 
 @paymentsActions = @{
+    makePaymentLink.map(CardAction("make-payment", _, messages("account.payments.makePayment"))).toSeq ++
     Seq(
-        CardAction("make-payment", "/make-a-payment", messages("account.payments.makePayment")),
         CardAction("how-to-make-payment", "https://www.gov.uk/guidance/pay-the-economic-crime-levy", messages("account.payments.howTo")),
-        CardAction("view-payment-history", "#", messages("account.payments.viewHistory"))
+        CardAction("view-payment-history", uk.gov.hmrc.economiccrimelevyaccount.controllers.routes.ViewYourPaymentsController.onPageLoad().url, messages("account.payments.viewHistory"))
     )
 }
 

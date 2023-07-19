@@ -31,9 +31,9 @@ import java.time.LocalDate
 class OpsService @Inject() (
   opsConnector: OpsConnector
 )(implicit hc: HeaderCarrier, ec: ExecutionContext) {
-  def get(chargeReference: String, amount: BigDecimal, dueDate: Option[LocalDate] = None): Future[Result] =
+  def startOpsJourney(chargeReference: String, amount: BigDecimal, dueDate: Option[LocalDate] = None): Future[Result] =
     opsConnector
-      .crezteOpsJourney(
+      .createOpsJourney(
         OpsJourneyRequest(
           chargeReference,
           amount * 100,
