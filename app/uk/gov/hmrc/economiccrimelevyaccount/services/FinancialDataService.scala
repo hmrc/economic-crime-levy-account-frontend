@@ -48,7 +48,8 @@ class FinancialDataService @Inject() (
             outstandingAmount,
             LocalDate.parse(extractValue(firstLineItemDetailsElement.periodFromDate)),
             LocalDate.parse(extractValue(firstLineItemDetailsElement.periodToDate)),
-            extractValue(firstLineItemDetailsElement.periodKey)
+            extractValue(firstLineItemDetailsElement.periodKey),
+            extractValue(value.chargeReferenceNumber)
           )
         )
     }

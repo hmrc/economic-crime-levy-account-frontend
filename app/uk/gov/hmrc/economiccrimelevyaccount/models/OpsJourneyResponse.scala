@@ -18,7 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.models
 
 import play.api.libs.json.{Json, OFormat}
 
-case class OpsJourneyResponse (
+case class OpsJourneyResponse(
   journeyId: String,
   nextUrl: String
 )

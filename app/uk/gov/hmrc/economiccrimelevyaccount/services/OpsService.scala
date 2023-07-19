@@ -28,15 +28,19 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
 
-class OpsService @Inject()(
+class OpsService @Inject() (
   opsConnector: OpsConnector
 )(implicit hc: HeaderCarrier, ec: ExecutionContext) {
   def get(chargeReference: String, amount: BigDecimal, dueDate: Option[LocalDate] = None): Future[Result] =
-    opsConnector.crezteOpsJourney(OpsJourneyRequest(
-      chargeReference,
-      amount * 100,
-      routes.AccountController.onPageLoad().url,
-      routes.AccountController.onPageLoad().url,
-      dueDate
-    )).map(r => Redirect(r.nextUrl))
+    opsConnector
+      .crezteOpsJourney(
+        OpsJourneyRequest(
+          chargeReference,
+          amount * 100,
+          routes.AccountController.onPageLoad().url,
+          routes.AccountController.onPageLoad().url,
+          dueDate
+        )
+      )
+      .map(r => Redirect(r.nextUrl))
 }

@@ -25,15 +25,15 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class OpsConnector @Inject()(
+class OpsConnector @Inject() (
   appConfig: AppConfig,
   httpClient: HttpClient
 )(implicit ec: ExecutionContext) {
 
   private val opsServiceUrl: String = s"${appConfig.opsServiceUrl}"
 
-  def crezteOpsJourney(opsJourneyRequest: OpsJourneyRequest)(
-    implicit hc: HeaderCarrier
+  def crezteOpsJourney(opsJourneyRequest: OpsJourneyRequest)(implicit
+    hc: HeaderCarrier
   ): Future[OpsJourneyResponse] =
     httpClient.POST[OpsJourneyRequest, OpsJourneyResponse](
       s"$opsServiceUrl",

@@ -55,5 +55,5 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
   val economicCrimeLevyAccountBaseUrl: String = servicesConfig.baseUrl("economic-crime-levy-account")
 
   val privateBetaEnabled: Boolean = configuration.get[Boolean]("features.privateBeta.enabled")
-  val opsServiceUrl: String = configuration.get[String]("service.ops.url")
+  val opsServiceUrl: String       = configuration.get[String]("service.ops.url")
 }
