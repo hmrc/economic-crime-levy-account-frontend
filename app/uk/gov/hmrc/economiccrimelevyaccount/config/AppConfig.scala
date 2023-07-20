@@ -55,5 +55,8 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
   val economicCrimeLevyAccountBaseUrl: String = servicesConfig.baseUrl("economic-crime-levy-account")
 
   val privateBetaEnabled: Boolean = configuration.get[Boolean]("features.privateBeta.enabled")
-  val opsServiceUrl: String       = configuration.get[String]("urls.pay-api")
+
+  val opsServiceUrl: String = servicesConfig.baseUrl("pay-api")
+
+  val opsStartJourneyUrl = opsServiceUrl + servicesConfig.getString("microservice.services.pay-api.endpoints.startJourney")
 }

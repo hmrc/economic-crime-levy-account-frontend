@@ -53,7 +53,8 @@ abstract class ISpecBase
   ) ++ setWireMockPort(
     "auth",
     "enrolment-store-proxy",
-    "economic-crime-levy-account"
+    "economic-crime-levy-account",
+    "pay-api"
   )
 
   override def fakeApplication(): Application =
