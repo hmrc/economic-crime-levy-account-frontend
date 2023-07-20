@@ -18,6 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
+import play.api.http.Status.CREATED
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.{OpsConnector, OpsJourneyError}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
@@ -29,6 +30,10 @@ class OpsServiceSpec extends SpecBase {
   val mockOpsConnector: OpsConnector = mock[OpsConnector]
   val service                        = new OpsService(mockOpsConnector, appConfig)
   val expectedUrl: String            = "http://www.bbc.co.uk"
+  val opsJourneyError                = OpsJourneyError(
+    CREATED,
+    "Invalid Json"
+  )
 
   "startOpsJourney" should {
     "redirect to returned URL if successful" in forAll { (chargeReference: String, amount: BigDecimal) =>
@@ -56,7 +61,7 @@ class OpsServiceSpec extends SpecBase {
 
       val result = await(service.startOpsJourney(chargeReference, amount, None))
 
-      result shouldBe Redirect(expectedUrl)
+      result shouldBe Left(opsJourneyResponse)
     }
   }
 
@@ -75,20 +80,10 @@ class OpsServiceSpec extends SpecBase {
       mockOpsConnector.createOpsJourney(
         ArgumentMatchers.eq(opsJourneyRequest)
       )(any())
-    )
-      .thenReturn(
-        Future.successful(
-          Right(
-            OpsJourneyError(
-              201,
-              "Invalid Json"
-            )
-          )
-        )
-      )
+    ).thenReturn(Future.successful(Right(opsJourneyError)))
 
     val result = await(service.startOpsJourney(chargeReference, amount, None))
 
-    result shouldBe Redirect(routes.AccountController.onPageLoad())
+    result shouldBe Right(opsJourneyError)
   }
 }

@@ -18,8 +18,10 @@ package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
+import play.api.http.Status.CREATED
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, FinancialDetails}
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.OpsJourneyError
+import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, FinancialDetails, OpsJourneyResponse}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{FinancialDataService, OpsService}
 
 import java.time.LocalDate
@@ -30,8 +32,12 @@ class PaymentsControllerSpec extends SpecBase {
   val mockOpsService: OpsService                     = mock[OpsService]
   val mockFinancialDataService: FinancialDataService = mock[FinancialDataService]
 
-  val redirect = Redirect("http://www.bbc.co.uk")
   val date     = LocalDate.now()
+  val expectedUrl: String            = "http://www.bbc.co.uk"
+  val opsJourneyError                = OpsJourneyError(
+    CREATED,
+    "Invalid Json"
+  )
 
   val controller = new PaymentsController(
     mcc,
@@ -46,6 +52,11 @@ class PaymentsControllerSpec extends SpecBase {
         chargeReference: String,
         amount: BigDecimal
       ) =>
+        val opsJourneyResponse = OpsJourneyResponse(
+          "",
+          expectedUrl
+        )
+
         val response = FinancialDataResponse(
           None,
           None
@@ -57,7 +68,7 @@ class PaymentsControllerSpec extends SpecBase {
             ArgumentMatchers.eq(amount)
           )(any())
         )
-          .thenReturn(Future.successful(redirect))
+          .thenReturn(Future.successful(Left(opsJourneyResponse)))
 
         when(mockFinancialDataService.retrieveFinancialData(any()))
           .thenReturn(Future.successful(Right(response)))
@@ -80,7 +91,7 @@ class PaymentsControllerSpec extends SpecBase {
 
         val result = await(controller.onPageLoad()(fakeRequest))
 
-        result shouldBe redirect
+        result shouldBe Redirect(expectedUrl)
     }
 
     "redirect to account page if no data" in {
@@ -99,7 +110,7 @@ class PaymentsControllerSpec extends SpecBase {
             ArgumentMatchers.eq(amount)
           )(any())
         )
-          .thenReturn(Future.successful(redirect))
+          .thenReturn(Future.successful(Right(opsJourneyError)))
 
         when(mockFinancialDataService.retrieveFinancialData(any()))
           .thenReturn(Future.successful(Right(response)))

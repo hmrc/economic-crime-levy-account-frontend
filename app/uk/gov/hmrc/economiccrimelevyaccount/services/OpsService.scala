@@ -19,9 +19,9 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 import play.api.mvc.Result
 import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.OpsConnector
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.{OpsConnector, OpsJourneyError}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
-import uk.gov.hmrc.economiccrimelevyaccount.models.OpsJourneyRequest
+import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
@@ -35,7 +35,7 @@ class OpsService @Inject() (
 
   def startOpsJourney(chargeReference: String, amount: BigDecimal, dueDate: Option[LocalDate] = None)(implicit
     hc: HeaderCarrier
-  ): Future[Result] = {
+  ): Future[Either[OpsJourneyResponse, OpsJourneyError]] = {
     val url = appConfig.host + routes.AccountController.onPageLoad().url
     opsConnector
       .createOpsJourney(
@@ -47,9 +47,5 @@ class OpsService @Inject() (
           dueDate
         )
       )
-      .map {
-        case Left(r) => Redirect(r.nextUrl)
-        case _       => Redirect(routes.AccountController.onPageLoad())
-      }
   }
 }

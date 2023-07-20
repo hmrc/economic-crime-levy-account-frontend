@@ -19,6 +19,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.connectors
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
+import play.api.http.Status.CREATED
 import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
@@ -66,7 +67,7 @@ class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
       ).thenReturn(
         Future.successful(
           HttpResponse(
-            201,
+            CREATED,
             Json.toJson[OpsJourneyResponse](opsJourneyResponse),
             Map()
           )
@@ -161,7 +162,7 @@ class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
     ).thenReturn(
       Future.successful(
         HttpResponse(
-          201,
+          CREATED,
           "{}",
           Map()
         )
@@ -170,7 +171,7 @@ class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
 
     val result = await(connector.createOpsJourney(opsJourneyRequest))
 
-    result shouldBe Right(OpsJourneyError(201, "Invalid Json"))
+    result shouldBe Right(OpsJourneyError(CREATED, "Invalid Json"))
 
     verify(mockHttpClient, times(1))
       .POST(

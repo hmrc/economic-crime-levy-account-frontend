@@ -17,6 +17,7 @@
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.i18n.I18nSupport
+import play.api.mvc.Results.Redirect
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.OpsData
@@ -39,7 +40,10 @@ class PaymentsController @Inject() (
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
     getFinancialDetails.flatMap {
-      case Some(value) => opsService.startOpsJourney(value.chargeReference, value.amount, value.dueDate)
+      case Some(value) => opsService.startOpsJourney(value.chargeReference, value.amount, value.dueDate)      .map {
+        case Left(r) => Redirect(r.nextUrl)
+        case _       => Redirect(routes.AccountController.onPageLoad())
+      }
       case _           => Future.successful(Redirect(routes.AccountController.onPageLoad()))
     }
   }

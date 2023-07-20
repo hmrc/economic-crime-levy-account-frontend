@@ -17,6 +17,7 @@
 package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
 import com.google.inject.Singleton
+import play.api.http.Status.CREATED
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
@@ -42,7 +43,7 @@ class OpsConnector @Inject() (
         Seq(("x-session-id", opsJourneyRequest.chargeReference))
       )
       .map {
-        case response if response.status == 201 =>
+        case response if response.status == CREATED =>
           response.json
             .validate[OpsJourneyResponse]
             .fold(
