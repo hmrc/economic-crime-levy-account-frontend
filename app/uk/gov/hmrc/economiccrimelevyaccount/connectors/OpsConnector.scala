@@ -19,7 +19,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.connectors
 import com.google.inject.Singleton
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -36,7 +36,7 @@ class OpsConnector @Inject() (
     hc: HeaderCarrier
   ): Future[Either[OpsJourneyResponse, OpsJourneyError]] =
     httpClient
-      .POST(
+      .POST[OpsJourneyRequest, HttpResponse](
         s"$opsServiceUrl",
         opsJourneyRequest,
         Seq(("x-session-id", opsJourneyRequest.chargeReference))
