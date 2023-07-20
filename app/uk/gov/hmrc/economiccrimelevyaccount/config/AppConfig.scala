@@ -58,5 +58,6 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
 
   val opsServiceUrl: String = servicesConfig.baseUrl("pay-api")
 
-  val opsStartJourneyUrl = opsServiceUrl + servicesConfig.getString("microservice.services.pay-api.endpoints.startJourney")
+  val opsStartJourneyUrl =
+    opsServiceUrl + servicesConfig.getString("microservice.services.pay-api.endpoints.startJourney")
 }

@@ -50,7 +50,7 @@ class OpsConnector @Inject() (
               invalid => Right(OpsJourneyError(response.status, "Invalid Json")),
               valid => Left(valid)
             )
-        case response                           =>
+        case response                               =>
           Right(OpsJourneyError(response.status, response.body))
       }
 }

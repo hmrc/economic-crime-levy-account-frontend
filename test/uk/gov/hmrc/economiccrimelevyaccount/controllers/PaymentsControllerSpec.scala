@@ -32,9 +32,9 @@ class PaymentsControllerSpec extends SpecBase {
   val mockOpsService: OpsService                     = mock[OpsService]
   val mockFinancialDataService: FinancialDataService = mock[FinancialDataService]
 
-  val date     = LocalDate.now()
-  val expectedUrl: String            = "http://www.bbc.co.uk"
-  val opsJourneyError                = OpsJourneyError(
+  val date                = LocalDate.now()
+  val expectedUrl: String = "http://www.bbc.co.uk"
+  val opsJourneyError     = OpsJourneyError(
     CREATED,
     "Invalid Json"
   )
