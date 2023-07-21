@@ -16,24 +16,10 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.models
 
-import play.api.libs.json.{Json, OFormat}
-
 import java.time.LocalDate
 
-case class FinancialDetails(
+case class OpsData(
+  chargeReference: String,
   amount: BigDecimal,
-  fromDate: LocalDate,
-  toDate: LocalDate,
-  periodKey: String,
-  chargeReference: String
-) {
-  private val dueMonth   = 9
-  private val dueDay     = 30
-  val dueDate: LocalDate = LocalDate.of(toDate.getYear, dueMonth, dueDay)
-  def isOverdue: Boolean = LocalDate.now().isAfter(dueDate)
-
-}
-
-object FinancialDetails {
-  implicit val format: OFormat[FinancialDetails] = Json.format[FinancialDetails]
-}
+  dueDate: Option[LocalDate]
+)

@@ -199,7 +199,8 @@ trait EclTestData {
       amount = BigDecimal(amount),
       fromDate = fromDate,
       toDate = toDate,
-      periodKey = periodKey
+      periodKey = periodKey,
+      chargeReference = ""
     )
   }
   def alphaNumericString: String                                = Gen.alphaNumStr.sample.get

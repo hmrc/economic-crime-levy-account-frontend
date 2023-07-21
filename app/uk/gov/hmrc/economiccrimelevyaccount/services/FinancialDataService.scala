@@ -54,7 +54,8 @@ class FinancialDataService @Inject() (
             outstandingAmount,
             LocalDate.parse(extractValue(firstLineItemDetailsElement.periodFromDate)),
             LocalDate.parse(extractValue(firstLineItemDetailsElement.periodToDate)),
-            extractValue(firstLineItemDetailsElement.periodKey)
+            extractValue(firstLineItemDetailsElement.periodKey),
+            extractValue(value.chargeReferenceNumber)
           )
         )
     }
@@ -65,6 +66,7 @@ class FinancialDataService @Inject() (
       case Left(_)         => None
       case Right(response) => Some(prepareFinancialDetails(response))
     }
+
   private def prepareFinancialDetails(response: FinancialDataResponse): FinancialViewDetails = {
     val documentDetails = extractValue(response.documentDetails)
 
@@ -126,5 +128,5 @@ class FinancialDataService @Inject() (
   private def calculateDueDate(toDate: String): LocalDate                     =
     LocalDate.of(toDate.take(numOfCharsForYear).toInt, dueMonth, dueDay)
 
-  private def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
+  def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
 }

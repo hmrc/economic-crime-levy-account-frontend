@@ -20,20 +20,14 @@ import play.api.libs.json.{Json, OFormat}
 
 import java.time.LocalDate
 
-case class FinancialDetails(
-  amount: BigDecimal,
-  fromDate: LocalDate,
-  toDate: LocalDate,
-  periodKey: String,
-  chargeReference: String
-) {
-  private val dueMonth   = 9
-  private val dueDay     = 30
-  val dueDate: LocalDate = LocalDate.of(toDate.getYear, dueMonth, dueDay)
-  def isOverdue: Boolean = LocalDate.now().isAfter(dueDate)
+case class OpsJourneyRequest(
+  chargeReference: String,
+  amountInPence: BigDecimal,
+  returnUrl: String,
+  backUrl: String,
+  dueDate: Option[LocalDate]
+)
 
-}
-
-object FinancialDetails {
-  implicit val format: OFormat[FinancialDetails] = Json.format[FinancialDetails]
+object OpsJourneyRequest {
+  implicit val format: OFormat[OpsJourneyRequest] = Json.format[OpsJourneyRequest]
 }

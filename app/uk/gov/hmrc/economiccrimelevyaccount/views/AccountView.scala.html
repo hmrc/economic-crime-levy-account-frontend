@@ -50,6 +50,7 @@
         case None => Html(messages("account.noneDue.return.subHeading"))
     }
 }
+
 @paymentsSubHeading = @{
     optFinancialDetails match {
         case Some(financialData) =>
@@ -70,13 +71,15 @@
         case None => Html(messages("account.noneDue.payments.subHeading"))
     }
 }
+
 @submitReturnLink = @{
     optOpenObligation.map(o => s"${appConfig.returnsUrl}/period/${o.periodKey}")
 }
 
 @makePaymentLink = @{
-    optFinancialDetails.map(o => "#")
+    optFinancialDetails.map(o => "/economic-crime-levy-account/make-a-payment")
 }
+
 @getViewReturnsLinkName = @{
     if(appConfig.privateBetaEnabled) {
         messages("account.viewReturns")
