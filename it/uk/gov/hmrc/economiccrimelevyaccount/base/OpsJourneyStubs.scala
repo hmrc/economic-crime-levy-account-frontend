@@ -7,7 +7,9 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.base.WireMockHelper._
 import uk.gov.hmrc.economiccrimelevyaccount.models.{ObligationData, OpsJourneyResponse}
 
-trait OpsJourneyStubs { self: WireMockStubs =>
+import java.time.LocalDate
+
+trait OpsJourneyStubs { self: WireMockStubs with OpsTestData =>
 
   def stubStartJourney(url: String): StubMapping =
     stub(
@@ -20,4 +22,11 @@ trait OpsJourneyStubs { self: WireMockStubs =>
         )).toString())
     )
 
+  def stubGetPayments(chargeReference: String, date: LocalDate): StubMapping =
+    stub(
+      get(urlEqualTo(s"/pay-api/v2/payment/search/$chargeReference?searchScope=economic-crime-levy")),
+      aResponse()
+        .withStatus(OK)
+        .withBody(Json.toJson(paymentBlock(chargeReference, date)).toString())
+    )
 }

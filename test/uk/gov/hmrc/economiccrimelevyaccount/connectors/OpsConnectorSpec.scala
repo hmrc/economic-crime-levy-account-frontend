@@ -25,6 +25,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.base.{OpsTestData, SpecBase}
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse, PaymentBlock}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse}
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class OpsConnectorSpec extends SpecBase with OpsTestData {
@@ -190,13 +191,7 @@ class OpsConnectorSpec extends SpecBase with OpsTestData {
 
     "getPayments" should {
 
-      "return a list of payments successfully" in forAll { (chargeReference: String) =>
-        val paymentBlock = PaymentBlock(
-          chargeReference,
-          "",
-          payments()
-        )
-
+      "return a list of payments successfully" in forAll { (chargeReference: String, date: LocalDate) =>
         when(
           mockHttpClient.GET[HttpResponse](
             any(),
@@ -211,7 +206,7 @@ class OpsConnectorSpec extends SpecBase with OpsTestData {
           Future.successful(
             HttpResponse(
               OK,
-              Json.toJson[PaymentBlock](paymentBlock),
+              Json.toJson[PaymentBlock](paymentBlock(chargeReference, date)),
               Map()
             )
           )
@@ -219,7 +214,7 @@ class OpsConnectorSpec extends SpecBase with OpsTestData {
 
         val result = await(connector.getPayments(chargeReference))
 
-        result shouldBe Left(paymentBlock.payments)
+        result shouldBe Left(payments(date))
 
         verify(mockHttpClient, times(1))
           .GET(

@@ -16,14 +16,20 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.base
 
-import uk.gov.hmrc.economiccrimelevyaccount.models.Payment
 import uk.gov.hmrc.economiccrimelevyaccount.models.Payment.{FAILED, SUCCESSFUL}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{Payment, PaymentBlock}
 
-import java.time.LocalDateTime
+import java.time.LocalDate
 
 trait OpsTestData {
-  def payments() = {
-    val date = LocalDateTime.now()
+  def paymentBlock(chargeReference: String, date: LocalDate) =
+    PaymentBlock(
+      chargeReference,
+      "",
+      payments(date)
+    )
+
+  def payments(date: LocalDate) = {
     Seq(
       payment(100, SUCCESSFUL, date),
       payment( 50, SUCCESSFUL, date),
@@ -31,6 +37,6 @@ trait OpsTestData {
     )
   }
 
-  private def payment(amount: BigDecimal, status: String, date: LocalDateTime) =
-    Payment("", "", status, amount * 100, 0, "", "", date, None)
+  private def payment(amount: BigDecimal, status: String, date: LocalDate) =
+    Payment("", "", status, amount * 100, 0, "", "", date.atStartOfDay(), None)
 }

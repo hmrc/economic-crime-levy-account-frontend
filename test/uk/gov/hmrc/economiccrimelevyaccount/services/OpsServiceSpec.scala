@@ -24,6 +24,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.connectors.{OpsApiError, OpsConnecto
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class OpsServiceSpec extends SpecBase with OpsTestData {
@@ -88,13 +89,13 @@ class OpsServiceSpec extends SpecBase with OpsTestData {
   }
 
   "getTotalPayed" should {
-    "return sum of successful payments if successful" in forAll { (chargeReference: String) =>
+    "return sum of successful payments if successful" in forAll { (chargeReference: String, date: LocalDate) =>
       when(
         mockOpsConnector.getPayments(
           ArgumentMatchers.eq(chargeReference)
         )(any())
       )
-        .thenReturn(Future.successful(Left(payments())))
+        .thenReturn(Future.successful(Left(payments(date))))
 
       val result = await(service.getTotalPayed(chargeReference))
 
