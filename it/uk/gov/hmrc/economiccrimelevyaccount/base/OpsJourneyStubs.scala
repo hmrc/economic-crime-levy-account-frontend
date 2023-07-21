@@ -5,12 +5,11 @@ import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import play.api.http.Status.{CREATED, OK}
 import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.base.WireMockHelper._
-import uk.gov.hmrc.economiccrimelevyaccount.models.{ObligationData, OpsJourneyResponse}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{ObligationData, OpsJourneyResponse, PaymentBlock}
 
 import java.time.LocalDate
 
-trait OpsJourneyStubs { self: WireMockStubs with OpsTestData =>
-
+trait OpsJourneyStubs { self: WireMockStubs =>
   def stubStartJourney(url: String): StubMapping =
     stub(
       post(urlEqualTo("/pay-api/economic-crime-levy/journey/start")),
@@ -22,11 +21,11 @@ trait OpsJourneyStubs { self: WireMockStubs with OpsTestData =>
         )).toString())
     )
 
-  def stubGetPayments(chargeReference: String, date: LocalDate): StubMapping =
+  def stubGetPayments(paymentBlock: PaymentBlock): StubMapping =
     stub(
-      get(urlEqualTo(s"/pay-api/v2/payment/search/$chargeReference?searchScope=economic-crime-levy")),
+      get(urlEqualTo(s"/pay-api/v2/payment/search/${paymentBlock.searchTag}?searchScope=economic-crime-levy")),
       aResponse()
         .withStatus(OK)
-        .withBody(Json.toJson(paymentBlock(chargeReference, date)).toString())
+        .withBody(Json.toJson(paymentBlock).toString())
     )
 }

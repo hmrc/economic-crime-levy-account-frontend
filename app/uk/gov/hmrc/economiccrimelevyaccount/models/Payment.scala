@@ -20,7 +20,7 @@ import play.api.libs.json.{Json, OFormat}
 
 import java.time.LocalDateTime
 
-case class PaymentBlock (
+case class PaymentBlock(
   searchTag: String,
   searchScope: String,
   payments: Seq[Payment]
@@ -30,7 +30,7 @@ object PaymentBlock {
   implicit val format: OFormat[PaymentBlock] = Json.format[PaymentBlock]
 }
 
-case class Payment (
+case class Payment(
   paymentId: String,
   taxType: String,
   status: String,

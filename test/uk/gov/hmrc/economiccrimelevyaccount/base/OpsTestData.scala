@@ -29,13 +29,12 @@ trait OpsTestData {
       payments(date)
     )
 
-  def payments(date: LocalDate) = {
+  def payments(date: LocalDate) =
     Seq(
       payment(100, SUCCESSFUL, date),
-      payment( 50, SUCCESSFUL, date),
-      payment(100, FAILED, date),
+      payment(50, SUCCESSFUL, date),
+      payment(100, FAILED, date)
     )
-  }
 
   private def payment(amount: BigDecimal, status: String, date: LocalDate) =
     Payment("", "", status, amount * 100, 0, "", "", date.atStartOfDay(), None)

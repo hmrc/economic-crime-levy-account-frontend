@@ -50,13 +50,13 @@ class OpsService @Inject() (
 
   def getTotalPayed(chargeReference: String)(implicit
     hc: HeaderCarrier
-  ): Future[BigDecimal] = {
+  ): Future[BigDecimal] =
     opsConnector.getPayments(chargeReference).map {
-      case Left(payments) => payments
-        .filter(_.status == SUCCESSFUL)
-        .map(_.amountInPence / 100)
-        .sum
-      case _ => 0
+      case Left(payments) =>
+        payments
+          .filter(_.status == SUCCESSFUL)
+          .map(_.amountInPence / 100)
+          .sum
+      case _              => 0
     }
-  }
 }

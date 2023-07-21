@@ -31,7 +31,7 @@ class OpsServiceSpec extends SpecBase with OpsTestData {
   val mockOpsConnector: OpsConnector = mock[OpsConnector]
   val service                        = new OpsService(mockOpsConnector, appConfig)
   val expectedUrl: String            = "http://www.bbc.co.uk"
-  val opsApiError                = OpsApiError(
+  val opsApiError                    = OpsApiError(
     CREATED,
     "Invalid Json"
   )

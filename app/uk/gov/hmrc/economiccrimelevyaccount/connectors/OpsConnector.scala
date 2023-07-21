@@ -31,7 +31,7 @@ class OpsConnector @Inject() (
   httpClient: HttpClient
 )(implicit ec: ExecutionContext) {
 
-  private val opsServiceUrl: String = s"${appConfig.opsStartJourneyUrl}"
+  private val opsServiceUrl: String  = s"${appConfig.opsStartJourneyUrl}"
   private val getPaymentsUrl: String = s"${appConfig.getPaymentsUrl}"
 
   def createOpsJourney(opsJourneyRequest: OpsJourneyRequest)(implicit
@@ -70,7 +70,7 @@ class OpsConnector @Inject() (
               invalid => Right(OpsApiError(response.status, "Invalid Json")),
               valid => Left(valid.payments)
             )
-        case response                               =>
+        case response                          =>
           Right(OpsApiError(response.status, response.body))
       }
 }
