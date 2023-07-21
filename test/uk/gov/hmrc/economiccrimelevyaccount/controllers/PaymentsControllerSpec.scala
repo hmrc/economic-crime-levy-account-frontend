@@ -20,7 +20,7 @@ import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import play.api.http.Status.CREATED
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.OpsJourneyError
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.OpsApiError
 import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, FinancialDetails, OpsJourneyResponse}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{FinancialDataService, OpsService}
 
@@ -34,7 +34,7 @@ class PaymentsControllerSpec extends SpecBase {
 
   val date                = LocalDate.now()
   val expectedUrl: String = "http://www.bbc.co.uk"
-  val opsJourneyError     = OpsJourneyError(
+  val opsJourneyError     = OpsApiError(
     CREATED,
     "Invalid Json"
   )
