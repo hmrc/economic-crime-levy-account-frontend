@@ -77,17 +77,14 @@ class PaymentsControllerSpec extends SpecBase {
           mockFinancialDataService.getLatestFinancialObligation(
             ArgumentMatchers.eq(response)
           )
-        ).thenReturn(
-          Some(
-            FinancialDetails(
-              amount,
-              date,
-              date,
-              "",
-              chargeReference
-            )
-          )
-        )
+        ).thenReturn(Future.successful(Some(FinancialDetails(
+          amount,
+          0,
+          date,
+          date,
+          "",
+          chargeReference
+        ))))
 
         val result = await(controller.onPageLoad()(fakeRequest))
 
@@ -119,7 +116,7 @@ class PaymentsControllerSpec extends SpecBase {
           mockFinancialDataService.getLatestFinancialObligation(
             ArgumentMatchers.eq(response)
           )
-        ).thenReturn(None)
+        ).thenReturn(Future.successful(None))
 
         val result = await(controller.onPageLoad()(fakeRequest))
 

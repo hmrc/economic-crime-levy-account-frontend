@@ -72,7 +72,7 @@ class AccountControllerSpec extends SpecBase {
           .thenReturn(Future.successful(AuditResult.Success))
 
         when(mockFinancialDataService.getLatestFinancialObligation(any()))
-          .thenReturn(Some(validFinancialDetails))
+          .thenReturn(Future.successful(Some(validFinancialDetails)))
 
         when(mockFinancialDataService.retrieveFinancialData(any()))
           .thenReturn(Future.successful(Right(validFinancialDataResponse.financialDataResponse)))
@@ -108,7 +108,7 @@ class AccountControllerSpec extends SpecBase {
           .thenReturn(Future.successful(AuditResult.Success))
 
         when(mockFinancialDataService.getLatestFinancialObligation(any()))
-          .thenReturn(Some(validFinancialDetails))
+          .thenReturn(Future.successful(Some(validFinancialDetails)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
@@ -145,7 +145,7 @@ class AccountControllerSpec extends SpecBase {
           .thenReturn(Future.successful(AuditResult.Success))
 
         when(mockFinancialDataService.getLatestFinancialObligation(any()))
-          .thenReturn(Some(validFinancialDetails))
+          .thenReturn(Future.successful(Some(validFinancialDetails)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
@@ -182,7 +182,7 @@ class AccountControllerSpec extends SpecBase {
           .thenReturn(Future.successful(AuditResult.Success))
 
         when(mockFinancialDataService.getLatestFinancialObligation(any()))
-          .thenReturn(Some(validFinancialDetails))
+          .thenReturn(Future.successful(Some(validFinancialDetails)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 

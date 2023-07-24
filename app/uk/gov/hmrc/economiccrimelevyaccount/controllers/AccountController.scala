@@ -58,27 +58,25 @@ class AccountController @Inject() (
           financialDataService.retrieveFinancialData.map {
             case Left(_)             =>
               auditAccountViewed(obligationData, None)
-              Ok(
-                view(
-                  request.eclRegistrationReference,
-                  ViewUtils.formatLocalDate(registrationDate),
-                  latestObligationData,
-                  None
-                )
-              )
+              Ok(view(
+                request.eclRegistrationReference,
+                ViewUtils.formatLocalDate(registrationDate),
+                latestObligationData,
+                None
+              ))
             case Right(dataResponse) =>
               auditAccountViewed(obligationData, Some(dataResponse))
-              Ok(
-                view(
+              financialDataService.getLatestFinancialObligation(dataResponse).flatMap {details =>
+                Ok(view(
                   request.eclRegistrationReference,
                   ViewUtils.formatLocalDate(registrationDate),
                   latestObligationData,
                   dataResponse.documentDetails match {
-                    case Some(_) => financialDataService.getLatestFinancialObligation(dataResponse)
-                    case None    => None
+                    case Some(_) => details
+                    case None => None
                   }
-                )
-              )
+                ))
+              }
           }
         }
     }

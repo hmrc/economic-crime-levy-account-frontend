@@ -25,10 +25,13 @@ import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
 import javax.inject.Inject
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.util.{Failure, Success}
 
 class FinancialDataService @Inject() (
-  financialDataConnector: FinancialDataConnector
+  financialDataConnector: FinancialDataConnector,
+  opsService: OpsService
 )(implicit ec: ExecutionContext) {
 
   private val dueMonth          = 9
@@ -39,25 +42,28 @@ class FinancialDataService @Inject() (
     hc: HeaderCarrier
   ): Future[Either[FinancialDataErrorResponse, FinancialDataResponse]] = financialDataConnector.getFinancialData()
 
-  def getLatestFinancialObligation(financialData: FinancialDataResponse): Option[FinancialDetails] = {
+  def getLatestFinancialObligation(financialData: FinancialDataResponse)(implicit
+    hc: HeaderCarrier
+  ): Future[Option[FinancialDetails]] = {
     val latestObligationDetails = findLatestFinancialObligation(financialData)
 
     latestObligationDetails match {
-      case None        => None
+      case None        => Future.successful(None)
       case Some(value) =>
         val outstandingAmount           = extractValue(value.documentOutstandingAmount)
         val lineItemDetails             = extractValue(value.lineItemDetails)
         val firstLineItemDetailsElement = lineItemDetails.head
+        val chargeReference             = extractValue(value.chargeReferenceNumber)
 
-        Some(
-          FinancialDetails(
+        opsService.getTotalPaid(chargeReference).map(payedAmount =>
+          Some(FinancialDetails(
             outstandingAmount,
+            payedAmount,
             LocalDate.parse(extractValue(firstLineItemDetailsElement.periodFromDate)),
             LocalDate.parse(extractValue(firstLineItemDetailsElement.periodToDate)),
             extractValue(firstLineItemDetailsElement.periodKey),
-            extractValue(value.chargeReferenceNumber)
-          )
-        )
+            chargeReference
+          )))
     }
   }
 

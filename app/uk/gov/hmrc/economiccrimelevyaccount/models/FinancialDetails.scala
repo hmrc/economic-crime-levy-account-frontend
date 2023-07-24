@@ -22,6 +22,7 @@ import java.time.LocalDate
 
 case class FinancialDetails(
   amount: BigDecimal,
+  paidAmount: BigDecimal,
   fromDate: LocalDate,
   toDate: LocalDate,
   periodKey: String,

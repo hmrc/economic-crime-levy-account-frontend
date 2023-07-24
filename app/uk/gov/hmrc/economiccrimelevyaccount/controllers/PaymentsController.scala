@@ -52,18 +52,15 @@ class PaymentsController @Inject() (
   private def getFinancialDetails()(implicit
     hc: HeaderCarrier
   ): Future[Option[OpsData]] =
-    financialDataService.retrieveFinancialData.map {
-      case Left(_)         => None
+    financialDataService.retrieveFinancialData.flatMap {
+      case Left(_)         => Future.successful(None)
       case Right(response) =>
-        financialDataService.getLatestFinancialObligation(response) match {
-          case Some(value) =>
-            Some(
-              OpsData(
-                value.chargeReference,
-                value.amount,
-                Some(value.dueDate)
-              )
-            )
+        financialDataService.getLatestFinancialObligation(response).map {
+          case Some(value) => Some(OpsData(
+            value.chargeReference,
+            value.amount - value.paidAmount,
+            Some(value.dueDate)
+          ))
           case None        => None
         }
     }
