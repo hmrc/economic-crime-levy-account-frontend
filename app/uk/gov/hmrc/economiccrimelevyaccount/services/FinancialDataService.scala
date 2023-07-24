@@ -75,7 +75,7 @@ class FinancialDataService @Inject() (
 
   private def prepareFinancialDetails(response: FinancialDataResponse)(implicit
     hc: HeaderCarrier
-  ): FinancialViewDetails = {
+  ): Future[FinancialViewDetails] = {
     val documentDetails = extractValue(response.documentDetails)
 
     val outstandingPayments = documentDetails.map { details =>
@@ -104,7 +104,12 @@ class FinancialDataService @Inject() (
       }
     }
 
-    FinancialViewDetails(outstandingPayments = outstandingPayments, paymentHistory = paymentsHistory)
+    Future.sequence(outstandingPayments).map { details =>
+      FinancialViewDetails(
+        outstandingPayments = details,
+        paymentHistory = paymentsHistory
+      )
+    }
   }
 
   private def getPaymentDate(clearingDate: Option[String]): Option[LocalDate] =
