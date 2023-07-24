@@ -74,7 +74,7 @@ class OpsConnectorSpec extends SpecBase with OpsTestData {
 
       val result = await(connector.createOpsJourney(opsJourneyRequest))
 
-      result shouldBe Left(opsJourneyResponse)
+      result shouldBe Right(opsJourneyResponse)
 
       verify(mockHttpClient, times(1))
         .POST(
@@ -123,7 +123,7 @@ class OpsConnectorSpec extends SpecBase with OpsTestData {
 
       val result = await(connector.createOpsJourney(opsJourneyRequest))
 
-      result shouldBe Right(OpsApiError(INTERNAL_SERVER_ERROR, ""))
+      result shouldBe Left(OpsApiError(INTERNAL_SERVER_ERROR, ""))
 
       verify(mockHttpClient, times(1))
         .POST(
@@ -172,7 +172,7 @@ class OpsConnectorSpec extends SpecBase with OpsTestData {
 
       val result = await(connector.createOpsJourney(opsJourneyRequest))
 
-      result shouldBe Right(OpsApiError(CREATED, "Invalid Json"))
+      result shouldBe Left(OpsApiError(CREATED, "Invalid Json"))
 
       verify(mockHttpClient, times(1))
         .POST(
@@ -214,7 +214,7 @@ class OpsConnectorSpec extends SpecBase with OpsTestData {
 
         val result = await(connector.getPayments(chargeReference))
 
-        result shouldBe Left(payments(date))
+        result shouldBe Right(payments(date))
 
         verify(mockHttpClient, times(1))
           .GET(
@@ -253,7 +253,7 @@ class OpsConnectorSpec extends SpecBase with OpsTestData {
 
         val result = await(connector.getPayments(chargeReference))
 
-        result shouldBe Right(OpsApiError(INTERNAL_SERVER_ERROR, ""))
+        result shouldBe Left(OpsApiError(INTERNAL_SERVER_ERROR, ""))
 
         verify(mockHttpClient, times(1))
           .GET(
@@ -293,7 +293,7 @@ class OpsConnectorSpec extends SpecBase with OpsTestData {
 
       val result = await(connector.getPayments(chargeReference))
 
-      result shouldBe Right(OpsApiError(OK, "Invalid Json"))
+      result shouldBe Left(OpsApiError(OK, "Invalid Json"))
 
       verify(mockHttpClient, times(1))
         .GET(

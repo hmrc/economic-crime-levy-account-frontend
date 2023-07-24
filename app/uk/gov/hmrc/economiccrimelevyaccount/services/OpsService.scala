@@ -34,7 +34,7 @@ class OpsService @Inject() (
 
   def startOpsJourney(chargeReference: String, amount: BigDecimal, dueDate: Option[LocalDate] = None)(implicit
     hc: HeaderCarrier
-  ): Future[Either[OpsJourneyResponse, OpsApiError]] = {
+  ): Future[Either[OpsApiError, OpsJourneyResponse]] = {
     val url = appConfig.host + routes.AccountController.onPageLoad().url
     opsConnector
       .createOpsJourney(
@@ -48,15 +48,15 @@ class OpsService @Inject() (
       )
   }
 
-  def getTotalPayed(chargeReference: String)(implicit
+  def getTotalPaid(chargeReference: String)(implicit
     hc: HeaderCarrier
   ): Future[BigDecimal] =
     opsConnector.getPayments(chargeReference).map {
-      case Left(payments) =>
+      case Right(payments) =>
         payments
           .filter(_.status == SUCCESSFUL)
           .map(_.amountInPence / 100)
           .sum
-      case _              => 0
+      case Left(_)         => 0
     }
 }

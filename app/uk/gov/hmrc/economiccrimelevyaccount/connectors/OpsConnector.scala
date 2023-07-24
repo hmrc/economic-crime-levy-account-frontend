@@ -36,7 +36,7 @@ class OpsConnector @Inject() (
 
   def createOpsJourney(opsJourneyRequest: OpsJourneyRequest)(implicit
     hc: HeaderCarrier
-  ): Future[Either[OpsJourneyResponse, OpsApiError]] =
+  ): Future[Either[OpsApiError, OpsJourneyResponse]] =
     httpClient
       .POST[OpsJourneyRequest, HttpResponse](
         s"$opsServiceUrl",
@@ -48,16 +48,16 @@ class OpsConnector @Inject() (
           response.json
             .validate[OpsJourneyResponse]
             .fold(
-              invalid => Right(OpsApiError(response.status, "Invalid Json")),
-              valid => Left(valid)
+              invalid => Left(OpsApiError(response.status, "Invalid Json")),
+              valid => Right(valid)
             )
         case response                               =>
-          Right(OpsApiError(response.status, response.body))
+          Left(OpsApiError(response.status, response.body))
       }
 
   def getPayments(chargeReference: String)(implicit
     hc: HeaderCarrier
-  ): Future[Either[Seq[Payment], OpsApiError]] =
+  ): Future[Either[OpsApiError, Seq[Payment]]] =
     httpClient
       .GET[HttpResponse](
         s"$getPaymentsUrl".replace("{chargeReference}", chargeReference)
@@ -67,11 +67,11 @@ class OpsConnector @Inject() (
           response.json
             .validate[PaymentBlock]
             .fold(
-              invalid => Right(OpsApiError(response.status, "Invalid Json")),
-              valid => Left(valid.payments)
+              invalid => Left(OpsApiError(response.status, "Invalid Json")),
+              valid => Right(valid.payments)
             )
         case response                          =>
-          Right(OpsApiError(response.status, response.body))
+          Left(OpsApiError(response.status, response.body))
       }
 }
 

@@ -42,10 +42,10 @@ class PaymentsController @Inject() (
     getFinancialDetails.flatMap {
       case Some(value) =>
         opsService.startOpsJourney(value.chargeReference, value.amount, value.dueDate).map {
-          case Left(r) => Redirect(r.nextUrl)
-          case _       => Redirect(routes.AccountController.onPageLoad())
+          case Right(r) => Redirect(r.nextUrl)
+          case Left(_)  => Redirect(routes.AccountController.onPageLoad())
         }
-      case _           => Future.successful(Redirect(routes.AccountController.onPageLoad()))
+      case None        => Future.successful(Redirect(routes.AccountController.onPageLoad()))
     }
   }
 

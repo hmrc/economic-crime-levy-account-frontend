@@ -68,7 +68,7 @@ class PaymentsControllerSpec extends SpecBase {
             ArgumentMatchers.eq(amount)
           )(any())
         )
-          .thenReturn(Future.successful(Left(opsJourneyResponse)))
+          .thenReturn(Future.successful(Right(opsJourneyResponse)))
 
         when(mockFinancialDataService.retrieveFinancialData(any()))
           .thenReturn(Future.successful(Right(response)))
@@ -110,7 +110,7 @@ class PaymentsControllerSpec extends SpecBase {
             ArgumentMatchers.eq(amount)
           )(any())
         )
-          .thenReturn(Future.successful(Right(opsJourneyError)))
+          .thenReturn(Future.successful(Left(opsJourneyError)))
 
         when(mockFinancialDataService.retrieveFinancialData(any()))
           .thenReturn(Future.successful(Right(response)))

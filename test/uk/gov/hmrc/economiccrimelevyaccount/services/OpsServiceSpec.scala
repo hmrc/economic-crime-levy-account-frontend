@@ -58,11 +58,11 @@ class OpsServiceSpec extends SpecBase with OpsTestData {
           ArgumentMatchers.eq(opsJourneyRequest)
         )(any())
       )
-        .thenReturn(Future.successful(Left(opsJourneyResponse)))
+        .thenReturn(Future.successful(Right(opsJourneyResponse)))
 
       val result = await(service.startOpsJourney(chargeReference, amount, None))
 
-      result shouldBe Left(opsJourneyResponse)
+      result shouldBe Right(opsJourneyResponse)
     }
   }
 
@@ -81,23 +81,23 @@ class OpsServiceSpec extends SpecBase with OpsTestData {
       mockOpsConnector.createOpsJourney(
         ArgumentMatchers.eq(opsJourneyRequest)
       )(any())
-    ).thenReturn(Future.successful(Right(opsApiError)))
+    ).thenReturn(Future.successful(Left(opsApiError)))
 
     val result = await(service.startOpsJourney(chargeReference, amount, None))
 
-    result shouldBe Right(opsApiError)
+    result shouldBe Left(opsApiError)
   }
 
-  "getTotalPayed" should {
+  "getTotalPaid" should {
     "return sum of successful payments if successful" in forAll { (chargeReference: String, date: LocalDate) =>
       when(
         mockOpsConnector.getPayments(
           ArgumentMatchers.eq(chargeReference)
         )(any())
       )
-        .thenReturn(Future.successful(Left(payments(date))))
+        .thenReturn(Future.successful(Right(payments(date))))
 
-      val result = await(service.getTotalPayed(chargeReference))
+      val result = await(service.getTotalPaid(chargeReference))
 
       result shouldBe 150
     }
@@ -108,9 +108,9 @@ class OpsServiceSpec extends SpecBase with OpsTestData {
       mockOpsConnector.getPayments(
         ArgumentMatchers.eq(chargeReference)
       )(any())
-    ).thenReturn(Future.successful(Right(opsApiError)))
+    ).thenReturn(Future.successful(Left(opsApiError)))
 
-    val result = await(service.getTotalPayed(chargeReference))
+    val result = await(service.getTotalPaid(chargeReference))
 
     result shouldBe 0
   }
