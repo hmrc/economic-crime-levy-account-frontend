@@ -47,6 +47,7 @@ case class AccountViewedAuditDocumentDetails(
   chargeReferenceNumber: Option[String],
   issueDate: Option[String],
   interestPostedAmount: Option[BigDecimal],
+  paidAmount: Option[BigDecimal],
   postingDate: Option[String],
   penaltyTotals: Option[Seq[AccountViewedAuditPenaltyTotals]],
   lineItems: Option[Seq[AccountViewedAuditLineItem]]

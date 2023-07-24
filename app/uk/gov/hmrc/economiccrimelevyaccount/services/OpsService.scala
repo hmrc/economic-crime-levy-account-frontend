@@ -48,15 +48,28 @@ class OpsService @Inject() (
       )
   }
 
-  def getTotalPaid(chargeReference: String)(implicit
+  def getPayments(chargeReference: String)(implicit
     hc: HeaderCarrier
-  ): Future[BigDecimal] =
+  ): Future[Seq[Payment]] =
     opsConnector.getPayments(chargeReference).map {
-      case Right(payments) =>
-        payments
-          .filter(_.status == SUCCESSFUL)
-          .map(_.amountInPence / 100)
-          .sum
-      case Left(_)         => 0
+      case Left(_) => Seq()
+      case Right(payments) => payments
     }
+
+  def getTotalPaid(argument: Either[String, Seq[Payment]])(implicit
+    hc: HeaderCarrier
+  ): Future[BigDecimal] = {
+    def sum(payments: Seq[Payment]): BigDecimal =
+      payments
+        .filter(_.status == SUCCESSFUL)
+        .map(_.amountInPence / 100)
+        .sum
+
+    argument match {
+      case Left(chargeReference) =>
+        getPayments(chargeReference).map { payments => sum(payments) }
+      case Right(payments)       =>
+        Future.successful(sum(payments))
+    }
+  }
 }

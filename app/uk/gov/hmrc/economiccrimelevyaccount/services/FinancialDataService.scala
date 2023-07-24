@@ -55,7 +55,7 @@ class FinancialDataService @Inject() (
         val firstLineItemDetailsElement = lineItemDetails.head
         val chargeReference             = extractValue(value.chargeReferenceNumber)
 
-        opsService.getTotalPaid(chargeReference).map(payedAmount =>
+        opsService.getTotalPaid(Left(chargeReference)).map(payedAmount =>
           Some(FinancialDetails(
             outstandingAmount,
             payedAmount,
@@ -73,20 +73,22 @@ class FinancialDataService @Inject() (
       case Right(response) => Some(prepareFinancialDetails(response))
     }
 
-  private def prepareFinancialDetails(response: FinancialDataResponse): FinancialViewDetails = {
+  private def prepareFinancialDetails(response: FinancialDataResponse)(implicit
+    hc: HeaderCarrier
+  ): FinancialViewDetails = {
     val documentDetails = extractValue(response.documentDetails)
 
     val outstandingPayments = documentDetails.map { details =>
+      val chargeReference = extractValue(details.chargeReferenceNumber)
+      opsService.getTotalPaid(Left(chargeReference)).map(paidAmount =>
       OutstandingPayments(
         paymentDueDate = calculateDueDate(extractValue(extractValue(details.lineItemDetails).head.periodToDate)),
-        chargeReference = extractValue(details.chargeReferenceNumber),
-        fyFrom =
-          LocalDate.parse(extractValue(details.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head),
+        chargeReference = chargeReference,
+        fyFrom = LocalDate.parse(extractValue(details.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head),
         fyTo = LocalDate.parse(extractValue(details.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head),
-        amount = extractValue(details.documentOutstandingAmount),
+        amount = extractValue(details.documentOutstandingAmount) - paidAmount,
         paymentStatus = getPaymentStatus(details, "outstanding")
-      )
-
+      ))
     }
 
     val paymentsHistory = documentDetails.flatMap { details =>

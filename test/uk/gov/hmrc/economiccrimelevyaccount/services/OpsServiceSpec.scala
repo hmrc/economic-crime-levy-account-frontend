@@ -97,7 +97,7 @@ class OpsServiceSpec extends SpecBase with OpsTestData {
       )
         .thenReturn(Future.successful(Right(payments(date))))
 
-      val result = await(service.getTotalPaid(chargeReference))
+      val result = await(service.getTotalPaid(Left(chargeReference)))
 
       result shouldBe 150
     }
@@ -110,7 +110,7 @@ class OpsServiceSpec extends SpecBase with OpsTestData {
       )(any())
     ).thenReturn(Future.successful(Left(opsApiError)))
 
-    val result = await(service.getTotalPaid(chargeReference))
+    val result = await(service.getTotalPaid(Left(chargeReference)))
 
     result shouldBe 0
   }
