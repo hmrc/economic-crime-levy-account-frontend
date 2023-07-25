@@ -25,7 +25,7 @@ trait OpsTestData {
   def paymentBlock(chargeReference: String, date: LocalDate) =
     PaymentBlock(
       chargeReference,
-      "",
+      Seq.empty,
       payments(date)
     )
 
@@ -37,5 +37,13 @@ trait OpsTestData {
     )
 
   private def payment(amount: BigDecimal, status: String, date: LocalDate) =
-    Payment("", "", status, amount * 100, 0, "", "", date.atStartOfDay(), None)
+    Payment(
+      id = "",
+      taxType = "",
+      status = status,
+      amountInPence = amount * 100,
+      reference = "",
+      transactionReference = "",
+      createdOn = date.atStartOfDay()
+    )
 }

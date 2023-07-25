@@ -28,17 +28,15 @@ trait OpsJourneyStubs { self: WireMockStubs =>
         .withStatus(OK)
         .withBody(Json.toJson(PaymentBlock(
           searchTag = chargeReference,
-          searchScope = "",
+          warnings = Seq.empty,
           payments = Seq(Payment(
-            paymentId = "testPaymentId",
+            id = "testPaymentId",
             taxType = "testTaxType",
             status = "Successful",
             amountInPence = BigDecimal(1000),
-            commissionInPence = BigDecimal(0),
             reference = "testReference",
             transactionReference = "testTrxReference",
             createdOn = LocalDateTime.now(),
-            warning = None
           ))
         )).toString())
     )

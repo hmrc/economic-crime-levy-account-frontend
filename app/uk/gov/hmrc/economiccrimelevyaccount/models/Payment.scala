@@ -22,7 +22,7 @@ import java.time.LocalDateTime
 
 case class PaymentBlock(
   searchTag: String,
-  searchScope: String,
+  warnings: Seq[String],
   payments: Seq[Payment]
 )
 
@@ -31,15 +31,13 @@ object PaymentBlock {
 }
 
 case class Payment(
-  paymentId: String,
+  id: String,
   taxType: String,
   status: String,
   amountInPence: BigDecimal,
-  commissionInPence: BigDecimal,
   reference: String,
   transactionReference: String,
-  createdOn: LocalDateTime,
-  warning: Option[String]
+  createdOn: LocalDateTime
 )
 
 object Payment {
