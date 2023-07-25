@@ -67,8 +67,8 @@ class OpsServiceSpec extends SpecBase with OpsTestData {
     }
   }
 
-  "return error if error when creating journey" in forAll { (chargeReference: String, amount: BigDecimal) =>
-    val url = appConfig.host + routes.AccountController.onPageLoad().url
+  "redirect to account page if error" in forAll { (chargeReference: String, amount: BigDecimal) =>
+    val url = appConfig.dashboardUrl
 
     val opsJourneyRequest = OpsJourneyRequest(
       chargeReference,
