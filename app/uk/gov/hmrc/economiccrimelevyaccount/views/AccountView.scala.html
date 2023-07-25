@@ -58,7 +58,7 @@
                 Html(messages("account.overdue.payments.subHeading.1",
                     ViewUtils.formatLocalDate(financialData.fromDate).takeRight(4),
                     ViewUtils.formatLocalDate(financialData.toDate).takeRight(4),
-                    ViewUtils.formatMoney(financialData.amount)
+                    ViewUtils.formatMoney(financialData.amount - financialData.paidAmount)
                 ))
             } else {
                 Html(messages("account.due.payments.subHeading",

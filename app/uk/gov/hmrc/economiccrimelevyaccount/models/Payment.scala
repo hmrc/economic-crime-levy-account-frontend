@@ -18,23 +18,32 @@ package uk.gov.hmrc.economiccrimelevyaccount.models
 
 import play.api.libs.json.{Json, OFormat}
 
-import java.time.LocalDate
+import java.time.LocalDateTime
 
-case class FinancialDetails(
-  amount: BigDecimal,
-  paidAmount: BigDecimal,
-  fromDate: LocalDate,
-  toDate: LocalDate,
-  periodKey: String,
-  chargeReference: String
-) {
-  private val dueMonth   = 9
-  private val dueDay     = 30
-  val dueDate: LocalDate = LocalDate.of(toDate.getYear, dueMonth, dueDay)
-  def isOverdue: Boolean = LocalDate.now().isAfter(dueDate)
+case class PaymentBlock(
+  searchTag: String,
+  warnings: Seq[String],
+  payments: Seq[Payment]
+)
 
+object PaymentBlock {
+  implicit val format: OFormat[PaymentBlock] = Json.format[PaymentBlock]
 }
 
-object FinancialDetails {
-  implicit val format: OFormat[FinancialDetails] = Json.format[FinancialDetails]
+case class Payment(
+  id: String,
+  taxType: String,
+  status: String,
+  amountInPence: BigDecimal,
+  reference: String,
+  transactionReference: String,
+  createdOn: LocalDateTime
+)
+
+object Payment {
+  implicit val format: OFormat[Payment] = Json.format[Payment]
+
+  val SUCCESSFUL = "Successful"
+  val FAILED     = "Failed"
+  val CANCELLED  = "Cancelled"
 }

@@ -30,7 +30,7 @@ import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AccountController @Inject() (
@@ -55,37 +55,45 @@ class AccountController @Inject() (
             case None    => None
           }
 
-          financialDataService.retrieveFinancialData.map {
+          financialDataService.retrieveFinancialData.flatMap {
             case Left(_)             =>
               auditAccountViewed(obligationData, None)
-              Ok(
-                view(
-                  request.eclRegistrationReference,
-                  ViewUtils.formatLocalDate(registrationDate),
-                  latestObligationData,
-                  None
+              Future.successful(
+                Ok(
+                  view(
+                    request.eclRegistrationReference,
+                    ViewUtils.formatLocalDate(registrationDate),
+                    latestObligationData,
+                    None
+                  )
                 )
               )
             case Right(dataResponse) =>
-              auditAccountViewed(obligationData, Some(dataResponse))
-              Ok(
-                view(
-                  request.eclRegistrationReference,
-                  ViewUtils.formatLocalDate(registrationDate),
-                  latestObligationData,
-                  dataResponse.documentDetails match {
-                    case Some(_) => financialDataService.getLatestFinancialObligation(dataResponse)
-                    case None    => None
-                  }
+              financialDataService.getLatestFinancialObligation(dataResponse).map { details =>
+                auditAccountViewed(obligationData, Some(dataResponse), details.map(_.paidAmount))
+                Ok(
+                  view(
+                    request.eclRegistrationReference,
+                    ViewUtils.formatLocalDate(registrationDate),
+                    latestObligationData,
+                    dataResponse.documentDetails match {
+                      case Some(_) => details
+                      case None    => None
+                    }
+                  )
                 )
-              )
+              }
           }
         }
     }
   }
 
-  private def auditAccountViewed(obligationData: Option[ObligationData], financialData: Option[FinancialDataResponse])(
-    implicit request: AuthorisedRequest[_]
+  private def auditAccountViewed(
+    obligationData: Option[ObligationData],
+    financialData: Option[FinancialDataResponse],
+    paidAmount: Option[BigDecimal] = None
+  )(implicit
+    request: AuthorisedRequest[_]
   ): Unit =
     auditConnector.sendExtendedEvent(
       AccountViewedAuditEvent(
@@ -93,7 +101,7 @@ class AccountController @Inject() (
         eclReference = request.eclRegistrationReference,
         obligationDetails = obligationData.map(_.obligations.flatMap(_.obligationDetails)).toSeq.flatten,
         financialDetails = financialData match {
-          case Some(details) => mapAccountViewedAuditFinancialDetails(details)
+          case Some(details) => mapAccountViewedAuditFinancialDetails(details, paidAmount)
           case None          => None
         }
       ).extendedDataEvent
@@ -109,7 +117,8 @@ class AccountController @Inject() (
       .headOption
 
   private def mapAccountViewedAuditFinancialDetails(
-    response: FinancialDataResponse
+    response: FinancialDataResponse,
+    paidAmount: Option[BigDecimal]
   ): Option[AccountViewedAuditFinancialDetails] =
     Some(
       AccountViewedAuditFinancialDetails(
@@ -123,6 +132,7 @@ class AccountController @Inject() (
                   detail.chargeReferenceNumber,
                   detail.issueDate,
                   detail.interestPostedAmount,
+                  paidAmount,
                   detail.postingDate,
                   detail.penaltyTotals match {
                     case Some(penaltyTotals) =>

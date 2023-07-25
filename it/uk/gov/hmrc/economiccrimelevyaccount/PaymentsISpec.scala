@@ -24,19 +24,23 @@ import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationData
 
-class PaymentsISpec extends ISpecBase with AuthorisedBehaviour {
+import java.time.LocalDate
+
+class PaymentsISpec extends ISpecBase with AuthorisedBehaviour with OpsTestData {
   val expectedUrl = "http://bc.co.uk"
 
   s"GET ${routes.PaymentsController.onPageLoad().url}" should {
     behave like authorisedActionRoute(routes.AccountController.onPageLoad())
 
-    "respond with 200 status and the start HTML view" in {
+    "respond with 303 status and the expected HTML view" in {
       stubAuthorised()
 
       val obligationData = random[ObligationData]
+      val chargeReference = random[String]
 
       stubGetObligations(obligationData)
-      stubFinancialData
+      stubFinancialData(chargeReference)
+      stubGetPayments(chargeReference)
       stubStartJourney(expectedUrl)
 
       val result = callRoute(FakeRequest(routes.PaymentsController.onPageLoad()))
