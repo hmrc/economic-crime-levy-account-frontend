@@ -18,6 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.FinancialDataConnector
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse.findLatestFinancialObligation
+import uk.gov.hmrc.economiccrimelevyaccount.models.Payment.SUCCESSFUL
 import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialDataErrorResponse, FinancialDataResponse, FinancialDetails, NewCharge}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
@@ -114,13 +115,33 @@ class FinancialDataService @Inject() (
       }
     }
 
-    Future.sequence(outstandingPayments).map { details =>
-      Some(
-        FinancialViewDetails(
-          outstandingPayments = details,
-          paymentHistory = paymentsHistory
+    val opsPaymentHistory = documentDetails.map { details =>
+      opsService
+        .getPayments(extractValue(details.chargeReferenceNumber))
+        .map(opsPayments => opsPayments.filter(_.status == SUCCESSFUL))
+        .map(successfulPayments =>
+          successfulPayments.map(payment =>
+            PaymentHistory(
+              paymentDate = Some(payment.createdOn.toLocalDate),
+              chargeReference = extractValue(details.chargeReferenceNumber),
+              fyFrom = LocalDate.parse(extractValue(extractValue(details.lineItemDetails).head.periodFromDate)),
+              fyTo = LocalDate.parse(extractValue(extractValue(details.lineItemDetails).head.periodToDate)),
+              amount = payment.amountInPence / 100,
+              paymentStatus = getPaymentStatus(details, "history")
+            )
+          )
         )
-      )
+    }
+
+    Future.sequence(outstandingPayments).flatMap { details =>
+      Future.sequence(opsPaymentHistory).map { opsHistory =>
+        Some(
+          FinancialViewDetails(
+            outstandingPayments = details,
+            paymentHistory = paymentsHistory ++ opsHistory.flatten
+          )
+        )
+      }
     }
   }
 

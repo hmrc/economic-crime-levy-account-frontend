@@ -39,7 +39,7 @@ class PaymentsISpec extends ISpecBase with AuthorisedBehaviour with OpsTestData 
 
       stubGetObligations(obligationData)
       stubFinancialData
-      stubGetPayments(paymentBlock(random[String], random[LocalDate]))
+      stubGetPayments
       stubStartJourney(expectedUrl)
 
       val result = callRoute(FakeRequest(routes.PaymentsController.onPageLoad()))
