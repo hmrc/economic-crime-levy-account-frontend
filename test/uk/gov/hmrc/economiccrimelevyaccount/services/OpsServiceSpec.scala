@@ -42,7 +42,7 @@ class OpsServiceSpec extends SpecBase {
         expectedUrl
       )
 
-      val url = appConfig.host + routes.AccountController.onPageLoad().url
+      val url = appConfig.dashboardUrl
 
       val opsJourneyRequest = OpsJourneyRequest(
         chargeReference,
@@ -66,7 +66,7 @@ class OpsServiceSpec extends SpecBase {
   }
 
   "redirect to account page if error" in forAll { (chargeReference: String, amount: BigDecimal) =>
-    val url = appConfig.host + routes.AccountController.onPageLoad().url
+    val url = appConfig.dashboardUrl
 
     val opsJourneyRequest = OpsJourneyRequest(
       chargeReference,

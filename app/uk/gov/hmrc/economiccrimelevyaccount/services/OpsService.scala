@@ -36,7 +36,7 @@ class OpsService @Inject() (
   def startOpsJourney(chargeReference: String, amount: BigDecimal, dueDate: Option[LocalDate] = None)(implicit
     hc: HeaderCarrier
   ): Future[Either[OpsJourneyResponse, OpsJourneyError]] = {
-    val url = appConfig.host + routes.AccountController.onPageLoad().url
+    val url = appConfig.dashboardUrl
     opsConnector
       .createOpsJourney(
         OpsJourneyRequest(

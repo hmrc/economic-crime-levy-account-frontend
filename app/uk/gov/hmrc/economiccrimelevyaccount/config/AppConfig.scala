@@ -60,4 +60,6 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
 
   val opsStartJourneyUrl =
     opsServiceUrl + servicesConfig.getString("microservice.services.pay-api.endpoints.startJourney")
+
+  val dashboardUrl = servicesConfig.getString("urls.dashboard")
 }
