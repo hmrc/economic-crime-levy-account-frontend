@@ -21,20 +21,25 @@ trait OpsJourneyStubs { self: WireMockStubs =>
         )).toString())
     )
 
-  def stubGetPayments: StubMapping =
+  def stubGetPayments(chargeReference: String): StubMapping =
     stub(
-      get(urlEqualTo(s"/pay-api/v2/payment/search/testReference")),
+      get(urlEqualTo(s"/pay-api/v2/payment/search/$chargeReference")),
       aResponse()
         .withStatus(OK)
-        .withBody(Json.toJson(Payment(
-          paymentId = "testPaymentId",
-          taxType = "testTaxType",
-          status = "Successful",
-          amountInPence = BigDecimal(1000),
-          commissionInPence = BigDecimal(0),
-          reference = "testReference",
-          transactionReference = "testTrxReference",
-          createdOn = LocalDateTime.now(),
-          warning = None)).toString())
+        .withBody(Json.toJson(PaymentBlock(
+          searchTag = chargeReference,
+          searchScope = "",
+          payments = Seq(Payment(
+            paymentId = "testPaymentId",
+            taxType = "testTaxType",
+            status = "Successful",
+            amountInPence = BigDecimal(1000),
+            commissionInPence = BigDecimal(0),
+            reference = "testReference",
+            transactionReference = "testTrxReference",
+            createdOn = LocalDateTime.now(),
+            warning = None
+          ))
+        )).toString())
     )
 }
