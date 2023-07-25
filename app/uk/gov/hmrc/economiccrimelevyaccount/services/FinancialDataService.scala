@@ -28,6 +28,7 @@ import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.duration.Duration
 import scala.concurrent.{Await, ExecutionContext, Future}
+import scala.math.BigDecimal
 import scala.util.{Failure, Success}
 
 class FinancialDataService @Inject() (
@@ -97,7 +98,15 @@ class FinancialDataService @Inject() (
             fyTo =
               LocalDate.parse(extractValue(details.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head),
             amount = extractValue(details.documentOutstandingAmount) - paidAmount,
-            paymentStatus = getPaymentStatus(details, "outstanding")
+            paymentStatus = getPaymentStatus(
+              outstandingAmount = extractValue(details.documentOutstandingAmount) - paidAmount,
+              clearedAmount = details.documentClearedAmount match {
+                case Some(value) => Some(value + paidAmount)
+                case None        => None
+              },
+              "outstanding",
+              extractValue(extractValue(details.lineItemDetails).head.periodToDate)
+            )
           )
         )
     }
@@ -110,7 +119,15 @@ class FinancialDataService @Inject() (
           fyFrom = LocalDate.parse(extractValue(item.periodFromDate)),
           fyTo = LocalDate.parse(extractValue(item.periodToDate)),
           amount = extractValue(item.amount),
-          paymentStatus = getPaymentStatus(details, "history")
+          paymentStatus = getPaymentStatus(
+            outstandingAmount = extractValue(details.documentOutstandingAmount),
+            clearedAmount = details.documentClearedAmount match {
+              case Some(value) => Some(value)
+              case None        => None
+            },
+            "history",
+            extractValue(extractValue(details.lineItemDetails).head.periodToDate)
+          )
         )
       }
     }
@@ -127,7 +144,15 @@ class FinancialDataService @Inject() (
               fyFrom = LocalDate.parse(extractValue(extractValue(details.lineItemDetails).head.periodFromDate)),
               fyTo = LocalDate.parse(extractValue(extractValue(details.lineItemDetails).head.periodToDate)),
               amount = payment.amountInPence / 100,
-              paymentStatus = getPaymentStatus(details, "history")
+              paymentStatus = getPaymentStatus(
+                outstandingAmount = extractValue(details.documentOutstandingAmount),
+                clearedAmount = details.documentClearedAmount match {
+                  case Some(value) => Some(value)
+                  case None        => None
+                },
+                "history",
+                extractValue(extractValue(details.lineItemDetails).head.periodToDate)
+              )
             )
           )
         )
@@ -153,17 +178,22 @@ class FinancialDataService @Inject() (
       case None        => None
     }
 
-  private def getPaymentStatus(documentDetails: DocumentDetails, paymentType: String): PaymentStatus = {
-    val toDate: String     = extractValue(extractValue(documentDetails.lineItemDetails).head.periodToDate)
+  private def getPaymentStatus(
+    outstandingAmount: BigDecimal,
+    clearedAmount: Option[BigDecimal],
+    paymentType: String,
+    periodDate: String
+  ): PaymentStatus = {
+    val toDate: String     = periodDate
     val dueDate: LocalDate = calculateDueDate(toDate)
 
-    if (extractValue(documentDetails.documentOutstandingAmount) == 0) {
+    if (outstandingAmount == 0) {
       Paid
     } else if (dueDate.isBefore(LocalDate.now()) && paymentType.equalsIgnoreCase("outstanding")) {
       Overdue
     } else if (
-      extractValue(documentDetails.documentOutstandingAmount) != 0 &&
-      documentDetails.documentClearedAmount.getOrElse(0) != 0 &&
+      outstandingAmount != 0 &&
+      clearedAmount.getOrElse(1) != 0 &&
       paymentType.equalsIgnoreCase("history")
     ) {
       PartiallyPaid
