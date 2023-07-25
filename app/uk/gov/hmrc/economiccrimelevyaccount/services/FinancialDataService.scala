@@ -163,7 +163,7 @@ class FinancialDataService @Inject() (
       Overdue
     } else if (
       extractValue(documentDetails.documentOutstandingAmount) != 0 &&
-      documentDetails.documentClearedAmount.getOrElse(0) != 0 &&
+      documentDetails.documentClearedAmount.getOrElse(1) != 0 &&
       paymentType.equalsIgnoreCase("history")
     ) {
       PartiallyPaid
