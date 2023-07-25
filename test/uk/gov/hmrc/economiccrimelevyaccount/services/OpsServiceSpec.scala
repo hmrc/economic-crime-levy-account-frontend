@@ -19,7 +19,8 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import play.api.http.Status.CREATED
-import uk.gov.hmrc.economiccrimelevyaccount.base.{OpsTestData, SpecBase}
+import uk.gov.hmrc.economiccrimelevyaccount.OpsTestData
+import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.{OpsApiError, OpsConnector}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
@@ -100,6 +101,14 @@ class OpsServiceSpec extends SpecBase with OpsTestData {
       val result = await(service.getTotalPaid(Left(chargeReference)))
 
       result shouldBe 150
+
+      val result2 = await(
+        service.getTotalPaid(
+          Right(Future.successful(payments(LocalDate.now())))
+        )
+      )
+
+      result2 shouldBe result
     }
   }
 

@@ -59,7 +59,11 @@ class AccountControllerSpec extends SpecBase {
         financialDetails: FinancialDetails,
         validFinancialDataResponse: ValidFinancialDataResponse
       ) =>
-        val validFinancialDetails = financialDetails.copy(amount = BigDecimal("10000"))
+        val validFinancialDetails = financialDetails.copy(
+          amount = BigDecimal("10000"),
+          paidAmount = BigDecimal("0")
+        )
+
         when(
           mockEnrolmentStoreProxyService.getEclRegistrationDate(ArgumentMatchers.eq(eclRegistrationReference))(any())
         )
@@ -71,7 +75,7 @@ class AccountControllerSpec extends SpecBase {
         when(mockAuditConnector.sendExtendedEvent(any())(any(), any()))
           .thenReturn(Future.successful(AuditResult.Success))
 
-        when(mockFinancialDataService.getLatestFinancialObligation(any()))
+        when(mockFinancialDataService.getLatestFinancialObligation(any())(any()))
           .thenReturn(Future.successful(Some(validFinancialDetails)))
 
         when(mockFinancialDataService.retrieveFinancialData(any()))
@@ -94,7 +98,10 @@ class AccountControllerSpec extends SpecBase {
 
     "return OK and correct view when ObligationData is not present" in forAll {
       (eclRegistrationDate: LocalDate, financialDetails: FinancialDetails) =>
-        val validFinancialDetails = financialDetails.copy(amount = BigDecimal("10000"))
+        val validFinancialDetails = financialDetails.copy(
+          amount = BigDecimal("10000"),
+          paidAmount = BigDecimal("0")
+        )
 
         when(
           mockEnrolmentStoreProxyService.getEclRegistrationDate(ArgumentMatchers.eq(eclRegistrationReference))(any())
@@ -107,7 +114,7 @@ class AccountControllerSpec extends SpecBase {
         when(mockAuditConnector.sendExtendedEvent(any())(any(), any()))
           .thenReturn(Future.successful(AuditResult.Success))
 
-        when(mockFinancialDataService.getLatestFinancialObligation(any()))
+        when(mockFinancialDataService.getLatestFinancialObligation(any())(any()))
           .thenReturn(Future.successful(Some(validFinancialDetails)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
@@ -131,7 +138,10 @@ class AccountControllerSpec extends SpecBase {
         overdueObligationData: ObligationDataWithOverdueObligation,
         financialDetails: FinancialDetails
       ) =>
-        val validFinancialDetails = financialDetails.copy(amount = BigDecimal("10000"))
+        val validFinancialDetails = financialDetails.copy(
+          amount = BigDecimal("10000"),
+          paidAmount = BigDecimal("0")
+        )
 
         when(
           mockEnrolmentStoreProxyService.getEclRegistrationDate(ArgumentMatchers.eq(eclRegistrationReference))(any())
@@ -144,7 +154,7 @@ class AccountControllerSpec extends SpecBase {
         when(mockAuditConnector.sendExtendedEvent(any())(any(), any()))
           .thenReturn(Future.successful(AuditResult.Success))
 
-        when(mockFinancialDataService.getLatestFinancialObligation(any()))
+        when(mockFinancialDataService.getLatestFinancialObligation(any())(any()))
           .thenReturn(Future.successful(Some(validFinancialDetails)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
@@ -168,7 +178,10 @@ class AccountControllerSpec extends SpecBase {
         submittedObligationData: ObligationDataWithSubmittedObligation,
         financialDetails: FinancialDetails
       ) =>
-        val validFinancialDetails = financialDetails.copy(amount = BigDecimal("10000"))
+        val validFinancialDetails = financialDetails.copy(
+          amount = BigDecimal("10000"),
+          paidAmount = BigDecimal("0")
+        )
 
         when(
           mockEnrolmentStoreProxyService.getEclRegistrationDate(ArgumentMatchers.eq(eclRegistrationReference))(any())
@@ -181,7 +194,7 @@ class AccountControllerSpec extends SpecBase {
         when(mockAuditConnector.sendExtendedEvent(any())(any(), any()))
           .thenReturn(Future.successful(AuditResult.Success))
 
-        when(mockFinancialDataService.getLatestFinancialObligation(any()))
+        when(mockFinancialDataService.getLatestFinancialObligation(any())(any()))
           .thenReturn(Future.successful(Some(validFinancialDetails)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)

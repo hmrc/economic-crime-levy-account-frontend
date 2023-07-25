@@ -23,7 +23,7 @@ trait OpsJourneyStubs { self: WireMockStubs =>
 
   def stubGetPayments(paymentBlock: PaymentBlock): StubMapping =
     stub(
-      get(urlEqualTo(s"/pay-api/v2/payment/search/${paymentBlock.searchTag}?searchScope=economic-crime-levy")),
+      get(urlEqualTo(s"/pay-api/v2/payment/search/${paymentBlock.searchTag}")),
       aResponse()
         .withStatus(OK)
         .withBody(Json.toJson(paymentBlock).toString())

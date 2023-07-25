@@ -56,11 +56,14 @@ class PaymentsController @Inject() (
       case Left(_)         => Future.successful(None)
       case Right(response) =>
         financialDataService.getLatestFinancialObligation(response).map {
-          case Some(value) => Some(OpsData(
-            value.chargeReference,
-            value.amount - value.paidAmount,
-            Some(value.dueDate)
-          ))
+          case Some(value) =>
+            Some(
+              OpsData(
+                value.chargeReference,
+                value.amount - value.paidAmount,
+                Some(value.dueDate)
+              )
+            )
           case None        => None
         }
     }

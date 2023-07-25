@@ -58,32 +58,42 @@ class AccountController @Inject() (
           financialDataService.retrieveFinancialData.flatMap {
             case Left(_)             =>
               auditAccountViewed(obligationData, None)
-              Future.successful(Ok(view(
-                request.eclRegistrationReference,
-                ViewUtils.formatLocalDate(registrationDate),
-                latestObligationData,
-                None
-              )))
+              Future.successful(
+                Ok(
+                  view(
+                    request.eclRegistrationReference,
+                    ViewUtils.formatLocalDate(registrationDate),
+                    latestObligationData,
+                    None
+                  )
+                )
+              )
             case Right(dataResponse) =>
-              financialDataService.getLatestFinancialObligation(dataResponse).map {details =>
+              financialDataService.getLatestFinancialObligation(dataResponse).map { details =>
                 auditAccountViewed(obligationData, Some(dataResponse), details.map(_.paidAmount))
-                Ok(view(
-                  request.eclRegistrationReference,
-                  ViewUtils.formatLocalDate(registrationDate),
-                  latestObligationData,
-                  dataResponse.documentDetails match {
-                    case Some(_) => details
-                    case None => None
-                  }
-                ))
+                Ok(
+                  view(
+                    request.eclRegistrationReference,
+                    ViewUtils.formatLocalDate(registrationDate),
+                    latestObligationData,
+                    dataResponse.documentDetails match {
+                      case Some(_) => details
+                      case None    => None
+                    }
+                  )
+                )
               }
           }
         }
     }
   }
 
-  private def auditAccountViewed(obligationData: Option[ObligationData], financialData: Option[FinancialDataResponse], paidAmount: Option[BigDecimal] = None)(
-    implicit request: AuthorisedRequest[_]
+  private def auditAccountViewed(
+    obligationData: Option[ObligationData],
+    financialData: Option[FinancialDataResponse],
+    paidAmount: Option[BigDecimal] = None
+  )(implicit
+    request: AuthorisedRequest[_]
   ): Unit =
     auditConnector.sendExtendedEvent(
       AccountViewedAuditEvent(

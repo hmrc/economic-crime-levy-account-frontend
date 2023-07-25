@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.economiccrimelevyaccount.base
+package uk.gov.hmrc.economiccrimelevyaccount
 
 import uk.gov.hmrc.economiccrimelevyaccount.models.Payment.{FAILED, SUCCESSFUL}
 import uk.gov.hmrc.economiccrimelevyaccount.models.{Payment, PaymentBlock}

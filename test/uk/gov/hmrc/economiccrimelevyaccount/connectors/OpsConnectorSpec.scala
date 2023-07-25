@@ -21,7 +21,8 @@ import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
 import play.api.http.Status.{CREATED, INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json.Json
-import uk.gov.hmrc.economiccrimelevyaccount.base.{OpsTestData, SpecBase}
+import uk.gov.hmrc.economiccrimelevyaccount.OpsTestData
+import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse, PaymentBlock}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse}
 
