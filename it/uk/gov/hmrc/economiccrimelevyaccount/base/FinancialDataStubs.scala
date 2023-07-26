@@ -1,6 +1,5 @@
 package uk.gov.hmrc.economiccrimelevyaccount.base
 
-import com.danielasfregola.randomdatagenerator.RandomDataGenerator.random
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import play.api.http.Status.OK
@@ -11,7 +10,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.models._
 trait FinancialDataStubs {
   self: WireMockStubs =>
 
-  def stubFinancialData(chargeReference: String): StubMapping =
+  def stubFinancialData: StubMapping =
     stub(
       get(urlEqualTo("/economic-crime-levy-account/financial-data")),
       aResponse()
@@ -19,7 +18,7 @@ trait FinancialDataStubs {
         .withBody(Json.toJson(
           FinancialDataResponse(None, Some(Seq(DocumentDetails(
             documentType = Some(NewCharge),
-            chargeReferenceNumber = Some(chargeReference),
+            chargeReferenceNumber = Some("XMECL0000000006"),
             postingDate = Some("2022-03-31"),
             issueDate = Some("2022-03-31"),
             documentTotalAmount = Some(BigDecimal("10000")),

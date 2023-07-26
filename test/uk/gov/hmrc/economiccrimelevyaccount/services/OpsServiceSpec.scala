@@ -19,32 +19,30 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import play.api.http.Status.CREATED
-import uk.gov.hmrc.economiccrimelevyaccount.OpsTestData
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.{OpsApiError, OpsConnector}
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.{OpsConnector, OpsJourneyError}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
 
-import java.time.LocalDate
 import scala.concurrent.Future
 
-class OpsServiceSpec extends SpecBase with OpsTestData {
+class OpsServiceSpec extends SpecBase {
   val mockOpsConnector: OpsConnector = mock[OpsConnector]
   val service                        = new OpsService(mockOpsConnector, appConfig)
   val expectedUrl: String            = "http://www.bbc.co.uk"
-  val opsApiError                    = OpsApiError(
+  val opsJourneyError                = OpsJourneyError(
     CREATED,
     "Invalid Json"
   )
 
   "startOpsJourney" should {
-    "return journey info if successful" in forAll { (chargeReference: String, amount: BigDecimal) =>
+    "redirect to returned URL if successful" in forAll { (chargeReference: String, amount: BigDecimal) =>
       val opsJourneyResponse = OpsJourneyResponse(
         "",
         expectedUrl
       )
 
-      val url = appConfig.host + routes.AccountController.onPageLoad().url
+      val url = appConfig.dashboardUrl
 
       val opsJourneyRequest = OpsJourneyRequest(
         chargeReference,
@@ -59,11 +57,11 @@ class OpsServiceSpec extends SpecBase with OpsTestData {
           ArgumentMatchers.eq(opsJourneyRequest)
         )(any())
       )
-        .thenReturn(Future.successful(Right(opsJourneyResponse)))
+        .thenReturn(Future.successful(Left(opsJourneyResponse)))
 
       val result = await(service.startOpsJourney(chargeReference, amount, None))
 
-      result shouldBe Right(opsJourneyResponse)
+      result shouldBe Left(opsJourneyResponse)
     }
   }
 
@@ -82,45 +80,10 @@ class OpsServiceSpec extends SpecBase with OpsTestData {
       mockOpsConnector.createOpsJourney(
         ArgumentMatchers.eq(opsJourneyRequest)
       )(any())
-    ).thenReturn(Future.successful(Left(opsApiError)))
+    ).thenReturn(Future.successful(Right(opsJourneyError)))
 
     val result = await(service.startOpsJourney(chargeReference, amount, None))
 
-    result shouldBe Left(opsApiError)
-  }
-
-  "getTotalPaid" should {
-    "return sum of successful payments if successful" in forAll { (chargeReference: String, date: LocalDate) =>
-      when(
-        mockOpsConnector.getPayments(
-          ArgumentMatchers.eq(chargeReference)
-        )(any())
-      )
-        .thenReturn(Future.successful(Right(payments(date))))
-
-      val result = await(service.getTotalPaid(Left(chargeReference)))
-
-      result shouldBe 150
-
-      val result2 = await(
-        service.getTotalPaid(
-          Right(Future.successful(payments(LocalDate.now())))
-        )
-      )
-
-      result2 shouldBe result
-    }
-  }
-
-  "return zero if error when getting payments" in forAll { (chargeReference: String) =>
-    when(
-      mockOpsConnector.getPayments(
-        ArgumentMatchers.eq(chargeReference)
-      )(any())
-    ).thenReturn(Future.successful(Left(opsApiError)))
-
-    val result = await(service.getTotalPaid(Left(chargeReference)))
-
-    result shouldBe 0
+    result shouldBe Right(opsJourneyError)
   }
 }

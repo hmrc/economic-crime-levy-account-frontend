@@ -36,12 +36,10 @@ class AccountISpec extends ISpecBase with AuthorisedBehaviour {
       val eclRegistrationDate      = "20230901"
 
       val obligationData = random[ObligationData]
-      val chargeReference = random[String]
 
       stubQueryKnownFacts(eclRegistrationReference, eclRegistrationDate)
       stubGetObligations(obligationData)
-      stubFinancialData(chargeReference)
-      stubGetPayments(chargeReference)
+      stubFinancialData
 
       val result = callRoute(FakeRequest(routes.AccountController.onPageLoad()))
 

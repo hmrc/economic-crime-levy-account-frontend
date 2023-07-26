@@ -42,25 +42,25 @@ class PaymentsController @Inject() (
     getFinancialDetails.flatMap {
       case Some(value) =>
         opsService.startOpsJourney(value.chargeReference, value.amount, value.dueDate).map {
-          case Right(r) => Redirect(r.nextUrl)
-          case Left(_)  => Redirect(routes.AccountController.onPageLoad())
+          case Left(r) => Redirect(r.nextUrl)
+          case _       => Redirect(routes.AccountController.onPageLoad())
         }
-      case None        => Future.successful(Redirect(routes.AccountController.onPageLoad()))
+      case _           => Future.successful(Redirect(routes.AccountController.onPageLoad()))
     }
   }
 
   private def getFinancialDetails()(implicit
     hc: HeaderCarrier
   ): Future[Option[OpsData]] =
-    financialDataService.retrieveFinancialData.flatMap {
-      case Left(_)         => Future.successful(None)
+    financialDataService.retrieveFinancialData.map {
+      case Left(_)         => None
       case Right(response) =>
-        financialDataService.getLatestFinancialObligation(response).map {
+        financialDataService.getLatestFinancialObligation(response) match {
           case Some(value) =>
             Some(
               OpsData(
                 value.chargeReference,
-                value.amount - value.paidAmount,
+                value.amount,
                 Some(value.dueDate)
               )
             )

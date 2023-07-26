@@ -1,6 +1,5 @@
 package uk.gov.hmrc.economiccrimelevyaccount
 
-import com.danielasfregola.randomdatagenerator.RandomDataGenerator.random
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
 import uk.gov.hmrc.economiccrimelevyaccount.base.ISpecBase
 import play.api.test.FakeRequest
@@ -12,11 +11,8 @@ class ViewYourPaymentsISpec extends ISpecBase with AuthorisedBehaviour{
     behave like authorisedActionRoute(routes.ViewYourPaymentsController.onPageLoad())
 
     "respond with 200 status and return correct view" in {
-      val chargeReference = random[String]
-
       stubAuthorised()
-      stubFinancialData(chargeReference)
-      stubGetPayments(chargeReference)
+      stubFinancialData
 
       val result = callRoute(FakeRequest(routes.ViewYourPaymentsController.onPageLoad()))
 
