@@ -16,11 +16,12 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
+import play.api.mvc.Result
+import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.{OpsApiError, OpsConnector}
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.{OpsConnector, OpsJourneyError}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
-import uk.gov.hmrc.economiccrimelevyaccount.models.Payment.SUCCESSFUL
-import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse, Payment}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import java.time.LocalDate
@@ -34,7 +35,7 @@ class OpsService @Inject() (
 
   def startOpsJourney(chargeReference: String, amount: BigDecimal, dueDate: Option[LocalDate] = None)(implicit
     hc: HeaderCarrier
-  ): Future[Either[OpsApiError, OpsJourneyResponse]] = {
+  ): Future[Either[OpsJourneyResponse, OpsJourneyError]] = {
     val url = appConfig.dashboardUrl
     opsConnector
       .createOpsJourney(
@@ -46,30 +47,5 @@ class OpsService @Inject() (
           dueDate
         )
       )
-  }
-
-  def getPayments(chargeReference: String)(implicit
-    hc: HeaderCarrier
-  ): Future[Seq[Payment]] =
-    opsConnector.getPayments(chargeReference).map {
-      case Left(_)         => Seq()
-      case Right(payments) => payments
-    }
-
-  def getTotalPaid(argument: Either[String, Future[Seq[Payment]]])(implicit
-    hc: HeaderCarrier
-  ): Future[BigDecimal] = {
-    def sum(payments: Seq[Payment]): BigDecimal =
-      payments
-        .filter(_.status == SUCCESSFUL)
-        .map(_.amountInPence / 100)
-        .sum
-
-    argument match {
-      case Left(chargeReference) =>
-        getPayments(chargeReference).map(payments => sum(payments))
-      case Right(payments)       =>
-        payments.map(payments => sum(payments))
-    }
   }
 }

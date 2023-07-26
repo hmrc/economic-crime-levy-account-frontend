@@ -20,7 +20,7 @@ import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import play.api.http.Status.CREATED
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.OpsApiError
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.OpsJourneyError
 import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, FinancialDetails, OpsJourneyResponse}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{FinancialDataService, OpsService}
 
@@ -34,7 +34,7 @@ class PaymentsControllerSpec extends SpecBase {
 
   val date                = LocalDate.now()
   val expectedUrl: String = "http://www.bbc.co.uk"
-  val opsJourneyError     = OpsApiError(
+  val opsJourneyError     = OpsJourneyError(
     CREATED,
     "Invalid Json"
   )
@@ -68,7 +68,7 @@ class PaymentsControllerSpec extends SpecBase {
             ArgumentMatchers.eq(amount)
           )(any())
         )
-          .thenReturn(Future.successful(Right(opsJourneyResponse)))
+          .thenReturn(Future.successful(Left(opsJourneyResponse)))
 
         when(mockFinancialDataService.retrieveFinancialData(any()))
           .thenReturn(Future.successful(Right(response)))
@@ -78,16 +78,13 @@ class PaymentsControllerSpec extends SpecBase {
             ArgumentMatchers.eq(response)
           )
         ).thenReturn(
-          Future.successful(
-            Some(
-              FinancialDetails(
-                amount,
-                0,
-                date,
-                date,
-                "",
-                chargeReference
-              )
+          Some(
+            FinancialDetails(
+              amount,
+              date,
+              date,
+              "",
+              chargeReference
             )
           )
         )
@@ -113,7 +110,7 @@ class PaymentsControllerSpec extends SpecBase {
             ArgumentMatchers.eq(amount)
           )(any())
         )
-          .thenReturn(Future.successful(Left(opsJourneyError)))
+          .thenReturn(Future.successful(Right(opsJourneyError)))
 
         when(mockFinancialDataService.retrieveFinancialData(any()))
           .thenReturn(Future.successful(Right(response)))
@@ -122,7 +119,7 @@ class PaymentsControllerSpec extends SpecBase {
           mockFinancialDataService.getLatestFinancialObligation(
             ArgumentMatchers.eq(response)
           )
-        ).thenReturn(Future.successful(None))
+        ).thenReturn(None)
 
         val result = await(controller.onPageLoad()(fakeRequest))
 

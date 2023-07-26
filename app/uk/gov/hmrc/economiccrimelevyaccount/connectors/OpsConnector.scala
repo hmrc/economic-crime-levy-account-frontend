@@ -17,9 +17,9 @@
 package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
 import com.google.inject.Singleton
-import play.api.http.Status.{CREATED, OK}
+import play.api.http.Status.CREATED
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse, Payment, PaymentBlock}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
 import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
 
 import javax.inject.Inject
@@ -31,12 +31,11 @@ class OpsConnector @Inject() (
   httpClient: HttpClient
 )(implicit ec: ExecutionContext) {
 
-  private val opsServiceUrl: String  = s"${appConfig.opsStartJourneyUrl}"
-  private val getPaymentsUrl: String = s"${appConfig.getPaymentsUrl}"
+  private val opsServiceUrl: String = s"${appConfig.opsStartJourneyUrl}"
 
   def createOpsJourney(opsJourneyRequest: OpsJourneyRequest)(implicit
     hc: HeaderCarrier
-  ): Future[Either[OpsApiError, OpsJourneyResponse]] =
+  ): Future[Either[OpsJourneyResponse, OpsJourneyError]] =
     httpClient
       .POST[OpsJourneyRequest, HttpResponse](
         s"$opsServiceUrl",
@@ -48,34 +47,15 @@ class OpsConnector @Inject() (
           response.json
             .validate[OpsJourneyResponse]
             .fold(
-              invalid => Left(OpsApiError(response.status, "Invalid Json")),
-              valid => Right(valid)
+              invalid => Right(OpsJourneyError(response.status, "Invalid Json")),
+              valid => Left(valid)
             )
         case response                               =>
-          Left(OpsApiError(response.status, response.body))
-      }
-
-  def getPayments(chargeReference: String)(implicit
-    hc: HeaderCarrier
-  ): Future[Either[OpsApiError, Seq[Payment]]] =
-    httpClient
-      .GET[HttpResponse](
-        s"$getPaymentsUrl".replace("{chargeReference}", chargeReference)
-      )
-      .map {
-        case response if response.status == OK =>
-          response.json
-            .validate[PaymentBlock]
-            .fold(
-              invalid => Left(OpsApiError(response.status, "Invalid Json")),
-              valid => Right(valid.payments)
-            )
-        case response                          =>
-          Left(OpsApiError(response.status, response.body))
+          Right(OpsJourneyError(response.status, response.body))
       }
 }
 
-case class OpsApiError(
+case class OpsJourneyError(
   status: Int,
   message: String
 )

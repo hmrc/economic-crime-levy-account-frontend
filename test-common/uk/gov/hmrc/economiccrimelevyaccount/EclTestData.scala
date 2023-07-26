@@ -190,14 +190,13 @@ trait EclTestData {
 
   implicit val arbFinancialDetails: Arbitrary[FinancialDetails] = Arbitrary {
     for {
-      fromDate   <- genDate
-      toDate     <- genDate
-      periodKey  <- Arbitrary.arbitrary[String]
-      amount     <- Arbitrary.arbitrary[Int]
-      paidAmount <- Arbitrary.arbitrary[Int].retryUntil(_ <= amount)
+      fromDate  <- genDate
+      toDate    <- genDate
+      periodKey <- Arbitrary.arbitrary[String]
+      amount    <- Arbitrary.arbitrary[Int]
+
     } yield FinancialDetails(
       amount = BigDecimal(amount),
-      paidAmount = BigDecimal(paidAmount),
       fromDate = fromDate,
       toDate = toDate,
       periodKey = periodKey,
