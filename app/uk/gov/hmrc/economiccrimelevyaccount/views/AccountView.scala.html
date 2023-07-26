@@ -62,7 +62,7 @@
                 ))
             } else {
                 Html(messages("account.due.payments.subHeading",
-                    ViewUtils.formatMoney(financialData.amount),
+                    ViewUtils.formatMoney(financialData.amount - financialData.paidAmount),
                     ViewUtils.formatLocalDate(financialData.dueDate).takeRight(4),
                     ViewUtils.formatLocalDate(financialData.fromDate).takeRight(4),
                     ViewUtils.formatLocalDate(financialData.toDate).takeRight(4)
