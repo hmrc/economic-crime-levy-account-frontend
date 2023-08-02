@@ -81,10 +81,10 @@
 }
 
 @getViewReturnsLinkName = @{
-    if(appConfig.privateBetaEnabled) {
-        messages("account.viewReturns")
-    } else {
+    if(appConfig.amendReturnsEnabled) {
         messages("account.viewOrAmendReturns")
+    } else {
+        messages("account.viewReturns")
     }
 }
 
