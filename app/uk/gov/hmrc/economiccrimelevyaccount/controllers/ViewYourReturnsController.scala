@@ -98,7 +98,7 @@ class ViewYourReturnsController @Inject() (
     status match {
       case Submitted =>
         financialDetails.map {
-          case Left(value)     => None
+          case Left(_)         => None
           case Right(response) =>
             extractValue(response.documentDetails)
               .find(details =>
@@ -110,10 +110,6 @@ class ViewYourReturnsController @Inject() (
     }
 
   private def forgeFromToCaption(yearFrom: Integer, yearTo: Integer): String = s"$yearFrom-$yearTo"
-
-  private def calculateLastDateForAmend(inboundCorrespondenceToDate: LocalDate): LocalDate =
-    inboundCorrespondenceToDate.plusYears(1)
-
-  private def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
+  private def extractValue[A](value: Option[A]): A                           = value.getOrElse(throw new IllegalStateException())
 
 }
