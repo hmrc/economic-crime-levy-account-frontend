@@ -72,7 +72,7 @@ trait EclTestData {
                                           LocalDate.now(),
                                           Some(LocalDate.now()),
                                           LocalDate.now().plusDays(1),
-                                          "period-key"
+                                          "21XY"
                                         )
       obligationWithObligationDetails = obligation.copy(Seq(obligationDetails))
     } yield ObligationDataWithObligation(obligationData.copy(Seq(obligationWithObligationDetails)))
@@ -89,7 +89,7 @@ trait EclTestData {
                               LocalDate.now(),
                               Some(LocalDate.now()),
                               LocalDate.now().minusDays(1),
-                              "period-key"
+                              "21XY"
                             )
         overdueObligation = obligation.copy(Seq(obligationDetails))
       } yield ObligationDataWithOverdueObligation(obligationData.copy(Seq(overdueObligation)))
@@ -106,7 +106,7 @@ trait EclTestData {
                               LocalDate.now(),
                               Some(LocalDate.now()),
                               LocalDate.now().plusDays(1),
-                              "period-key"
+                              "21XY"
                             )
         overdueObligation = obligation.copy(Seq(obligationDetails))
       } yield ObligationDataWithSubmittedObligation(obligationData.copy(Seq(overdueObligation)))
@@ -126,8 +126,6 @@ trait EclTestData {
   implicit val arbValidFinancialDataResponse: Arbitrary[ValidFinancialDataResponse] = Arbitrary {
     for {
       penaltyTotals          <- Arbitrary.arbitrary[PenaltyTotals]
-      chargeReference        <- Arbitrary.arbitrary[String]
-      periodKey              <- Arbitrary.arbitrary[String]
       randomString           <- Arbitrary.arbitrary[String]
       totalAmount            <- Arbitrary.arbitrary[Int]
       clearedAmount          <- Arbitrary.arbitrary[Int]
@@ -152,7 +150,7 @@ trait EclTestData {
           Seq(
             documentDetails.copy(
               documentType = Some(NewCharge),
-              chargeReferenceNumber = Some(chargeReference),
+              chargeReferenceNumber = Some("test-ecl-registration-reference"),
               documentTotalAmount = Some(BigDecimal(totalAmount.toString)),
               documentClearedAmount = Some(BigDecimal(clearedAmount.toString)),
               documentOutstandingAmount = Some(BigDecimal(totalAmount.toString) - BigDecimal(clearedAmount.toString)),
@@ -170,12 +168,12 @@ trait EclTestData {
               lineItemDetails = Some(
                 Seq(
                   lineItemDetails.copy(
-                    chargeDescription = Some(chargeReference),
+                    chargeDescription = Some("test-ecl-registration-reference"),
                     amount = Some(BigDecimal(clearedAmount.toString)),
                     clearingDate = Some(LocalDate.now.toString),
                     periodFromDate = Some(LocalDate.now.toString),
                     periodToDate = Some(LocalDate.now.toString),
-                    periodKey = Some(periodKey)
+                    periodKey = Some("21XY")
                   )
                 )
               )
