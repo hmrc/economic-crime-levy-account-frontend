@@ -15,7 +15,7 @@ class ViewYourReturnsISpec extends ISpecBase with AuthorisedBehaviour{
 
     "respond with 200 status and return correct view" in {
       stubAuthorised()
-
+      stubFinancialData
       val obligationData = random[ObligationData]
 
       stubGetObligations(obligationData)

@@ -36,17 +36,22 @@
     }
 }
 
-@thirdCellResolve(status: ReturnStatus, periodKey: String, eclReference: String) = @{
+@thirdCellResolve(status: ReturnStatus, periodKey: String, chargeReference: Option[String]) = @{
     status match {
         case Due | Overdue => messages("account.viewReturns.table.link", s"${appConfig.returnsUrl}/period/$periodKey")
         case Submitted => ""
     }
 }
 @tableRows(rowData: ReturnsOverview) = @{
-    val tableLinkInfo = thirdCellResolve(rowData.status, rowData.periodKey, rowData.eclReference)
+    val tableLinkInfo = thirdCellResolve(rowData.status, rowData.periodKey, rowData.chargeReference)
+    val chargeReference = rowData.chargeReference match {
+      case Some(reference) => reference
+      case None => ""
+  }
 
     Seq(TableRow(content = ViewUtils.formatLocalDate(rowData.dueDate), classes = "govuk-table__header govuk-!-width-one-half"),
         TableRow(content = HtmlContent(messages("account.viewReturns.table.status", resolveStatusColour(rowData.status), rowData.status)), classes = "govuk-table__cell"),
+        TableRow(content = chargeReference, classes = "govuk-table__cell"),
         TableRow(content = HtmlContent(tableLinkInfo)))
 }
 
@@ -57,6 +62,7 @@
             head = Some(Seq(
                 HeadCell(content = Text(messages("account.viewReturns.table.column.1")), classes = "govuk-table__header"),
                 HeadCell(content = Text(messages("account.viewReturns.table.column.2")), classes = "govuk-table__header"),
+                HeadCell(content = Text(messages("account.viewReturns.table.column.3")), classes = "govuk-table__header govuk-!-width-one-quarter"),
                 HeadCell(content = Text(""), classes = "govuk-table__header govuk-!-width-one-quarter")
             )),
             firstCellIsHeader = true,

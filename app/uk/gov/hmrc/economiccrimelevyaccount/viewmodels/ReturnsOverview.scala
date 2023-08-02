@@ -31,5 +31,5 @@ case class ReturnsOverview(
   dueDate: LocalDate,
   status: ReturnStatus,
   periodKey: String,
-  eclReference: String
+  chargeReference: Option[String]
 )
