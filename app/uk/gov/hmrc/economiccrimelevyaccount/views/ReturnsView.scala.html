@@ -1,30 +1,31 @@
 @*
- * Copyright 2023 HM Revenue & Customs
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *@
+* Copyright 2023 HM Revenue & Customs
+*
+* Licensed under the Apache License, Version 2.0 (the "License");
+* you may not use this file except in compliance with the License.
+* You may obtain a copy of the License at
+*
+*     http://www.apache.org/licenses/LICENSE-2.0
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*@
 
 @import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus._
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview}
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Empty
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.table.HeadCell
 
 @this(
         layout: templates.Layout,
         appConfig: AppConfig,
         table: GovukTable
 )
-
 
 @(returnData: Seq[ReturnsOverview])(implicit request: Request[_], messages: Messages)
 
@@ -45,9 +46,9 @@
 @tableRows(rowData: ReturnsOverview) = @{
     val tableLinkInfo = thirdCellResolve(rowData.status, rowData.periodKey, rowData.chargeReference)
     val chargeReference = rowData.chargeReference match {
-      case Some(reference) => reference
-      case None => ""
-  }
+        case Some(reference) => reference
+        case None => ""
+    }
 
     Seq(TableRow(content = ViewUtils.formatLocalDate(rowData.dueDate), classes = "govuk-table__header govuk-!-width-one-half"),
         TableRow(content = HtmlContent(messages("account.viewReturns.table.status", resolveStatusColour(rowData.status), rowData.status)), classes = "govuk-table__cell"),
@@ -55,14 +56,21 @@
         TableRow(content = HtmlContent(tableLinkInfo)))
 }
 
+@getChargeReferenceHeader(data: ReturnsOverview) = @{
+    if(data.chargeReference.isDefined){
+        HeadCell(content = Text(messages("account.viewReturns.table.column.3")), classes = "govuk-table__header govuk-!-width-one-quarter")
+    }else{
+        HeadCell(content = Empty)
+    }
+}
 @generateTable = @{
     returnData.map { data =>
         table(Table(
             rows = Seq(tableRows(data)),
             head = Some(Seq(
-                HeadCell(content = Text(messages("account.viewReturns.table.column.1")), classes = "govuk-table__header"),
-                HeadCell(content = Text(messages("account.viewReturns.table.column.2")), classes = "govuk-table__header"),
-                HeadCell(content = Text(messages("account.viewReturns.table.column.3")), classes = "govuk-table__header govuk-!-width-one-quarter"),
+                HeadCell(content = Text(messages("account.viewReturns.table.column.1")), classes = "govuk-table__header govuk-!-width-one-half"),
+                HeadCell(content = Text(messages("account.viewReturns.table.column.2")), classes = "govuk-table__header govuk-!-width-one-quarter"),
+                getChargeReferenceHeader(data),
                 HeadCell(content = Text(""), classes = "govuk-table__header govuk-!-width-one-quarter")
             )),
             firstCellIsHeader = true,
