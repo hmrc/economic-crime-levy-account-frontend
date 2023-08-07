@@ -84,16 +84,18 @@ class FinancialDataService @Inject() (
     }
 
     val paymentsHistory = documentDetails.flatMap { details =>
-      extractValue(details.lineItemDetails).map { item =>
-        PaymentHistory(
-          paymentDate = getPaymentDate(item.clearingDate),
-          chargeReference = extractValue(details.chargeReferenceNumber),
-          fyFrom = LocalDate.parse(extractValue(item.periodFromDate)),
-          fyTo = LocalDate.parse(extractValue(item.periodToDate)),
-          amount = extractValue(item.amount),
-          paymentStatus = getPaymentStatus(details, "history")
-        )
-      }
+      extractValue(details.lineItemDetails)
+        .filter(item => item.clearingDate.nonEmpty)
+        .map { item =>
+          PaymentHistory(
+            paymentDate = getPaymentDate(item.clearingDate),
+            chargeReference = extractValue(details.chargeReferenceNumber),
+            fyFrom = LocalDate.parse(extractValue(item.periodFromDate)),
+            fyTo = LocalDate.parse(extractValue(item.periodToDate)),
+            amount = extractValue(item.amount),
+            paymentStatus = getPaymentStatus(details, "history")
+          )
+        }
     }
 
     FinancialViewDetails(outstandingPayments = outstandingPayments, paymentHistory = paymentsHistory)
