@@ -45,19 +45,23 @@ class FinancialDataService @Inject() (
     latestObligationDetails match {
       case None        => None
       case Some(value) =>
-        val outstandingAmount           = extractValue(value.documentOutstandingAmount)
+        val outstandingAmount           = value.documentOutstandingAmount.getOrElse(BigDecimal(0))
         val lineItemDetails             = extractValue(value.lineItemDetails)
         val firstLineItemDetailsElement = lineItemDetails.head
 
-        Some(
-          FinancialDetails(
-            outstandingAmount,
-            LocalDate.parse(extractValue(firstLineItemDetailsElement.periodFromDate)),
-            LocalDate.parse(extractValue(firstLineItemDetailsElement.periodToDate)),
-            extractValue(firstLineItemDetailsElement.periodKey),
-            extractValue(value.chargeReferenceNumber)
+        if (outstandingAmount > 0) {
+          Some(
+            FinancialDetails(
+              outstandingAmount,
+              LocalDate.parse(extractValue(firstLineItemDetailsElement.periodFromDate)),
+              LocalDate.parse(extractValue(firstLineItemDetailsElement.periodToDate)),
+              extractValue(firstLineItemDetailsElement.periodKey),
+              extractValue(value.chargeReferenceNumber)
+            )
           )
-        )
+        } else {
+          None
+        }
     }
   }
 
@@ -77,7 +81,7 @@ class FinancialDataService @Inject() (
         fyFrom =
           LocalDate.parse(extractValue(details.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head),
         fyTo = LocalDate.parse(extractValue(details.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head),
-        amount = extractValue(details.documentOutstandingAmount),
+        amount = details.documentOutstandingAmount.getOrElse(0),
         paymentStatus = getPaymentStatus(details, "outstanding")
       )
 
@@ -110,15 +114,16 @@ class FinancialDataService @Inject() (
     }
 
   private def getPaymentStatus(documentDetails: DocumentDetails, paymentType: String): PaymentStatus = {
-    val toDate: String     = extractValue(extractValue(documentDetails.lineItemDetails).head.periodToDate)
-    val dueDate: LocalDate = calculateDueDate(toDate)
+    val toDate: String            = extractValue(extractValue(documentDetails.lineItemDetails).head.periodToDate)
+    val dueDate: LocalDate        = calculateDueDate(toDate)
+    val documentOutstandingAmount = documentDetails.documentOutstandingAmount.getOrElse(0)
 
-    if (extractValue(documentDetails.documentOutstandingAmount) == 0) {
+    if (documentOutstandingAmount == 0) {
       Paid
     } else if (dueDate.isBefore(LocalDate.now()) && paymentType.equalsIgnoreCase("outstanding")) {
       Overdue
     } else if (
-      extractValue(documentDetails.documentOutstandingAmount) != 0 &&
+      documentOutstandingAmount != 0 &&
       documentDetails.documentClearedAmount.getOrElse(0) != 0 &&
       paymentType.equalsIgnoreCase("history")
     ) {
