@@ -30,7 +30,7 @@ trait FinancialDataStubs {
               periodToDate = Some("2023-04-01"),
               periodKey = Some("22XY"),
               netDueDate = Some("2023-09-30"),
-              amount = Some(BigDecimal("0 ")),
+              amount = Some(BigDecimal("0")),
               clearingDate = None,
               clearingDocument = None,
               clearingReason = None
