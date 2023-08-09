@@ -50,8 +50,15 @@
 
 
 @generateTablePaymentHistory() = @{
+
+    implicit val paymentHistoryOrdering: Ordering[PaymentHistory] = Ordering.by { p: PaymentHistory =>
+        (p.paymentDate, p.paymentDocument)
+    }
+
     val paymentHistory = financialViewDetails.paymentHistory
-            .filter(payment => payment.paymentStatus == Paid || payment.paymentStatus == PartiallyPaid)
+        .filter(payment => payment.paymentStatus == Paid || payment.paymentStatus == PartiallyPaid)
+        .sorted
+        .reverse
     if(paymentHistory.nonEmpty) {
         table(Table(
             rows = tableRowsPaymentHistory(paymentHistory),
@@ -87,10 +94,7 @@
 @tableRowsPaymentHistory(rowData: Seq[PaymentHistory]) = @{
     rowData.map(data => {
         val status = resolveStatus(data.paymentStatus)
-        val paymentDate = data.paymentDate match {
-            case Some(value) => ViewUtils.formatLocalDate(value)
-            case None => " "
-        }
+        val paymentDate = ViewUtils.formatLocalDate(data.paymentDate)
         Seq(TableRow(content = HtmlContent(paymentDate)),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.reference", data.chargeReference))),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.period", ViewUtils.formatLocalDate(data.fyFrom),

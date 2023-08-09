@@ -29,12 +29,13 @@ case class OutstandingPayments(
 )
 
 case class PaymentHistory(
-  paymentDate: Option[LocalDate],
+  paymentDate: LocalDate,
   chargeReference: String,
   fyFrom: LocalDate,
   fyTo: LocalDate,
   amount: BigDecimal,
-  paymentStatus: PaymentStatus
+  paymentStatus: PaymentStatus,
+  paymentDocument: String
 )
 sealed trait PaymentStatus
 

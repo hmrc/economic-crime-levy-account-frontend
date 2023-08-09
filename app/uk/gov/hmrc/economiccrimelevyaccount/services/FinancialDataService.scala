@@ -92,26 +92,19 @@ class FinancialDataService @Inject() (
         .filter(item => item.clearingDate.nonEmpty)
         .map { item =>
           PaymentHistory(
-            paymentDate = getPaymentDate(item.clearingDate),
+            paymentDate = LocalDate.parse(extractValue(item.clearingDate)),
             chargeReference = extractValue(details.chargeReferenceNumber),
             fyFrom = LocalDate.parse(extractValue(item.periodFromDate)),
             fyTo = LocalDate.parse(extractValue(item.periodToDate)),
             amount = extractValue(item.amount),
-            paymentStatus = getPaymentStatus(details, "history")
+            paymentStatus = getPaymentStatus(details, "history"),
+            paymentDocument = extractValue(item.clearingDocument)
           )
         }
     }
 
     FinancialViewDetails(outstandingPayments = outstandingPayments, paymentHistory = paymentsHistory)
   }
-
-  private def getPaymentDate(clearingDate: Option[String]): Option[LocalDate] =
-    clearingDate match {
-      case Some(value) =>
-        if (!value.equals("") || value.nonEmpty) { Some(LocalDate.parse(value)) }
-        else { None }
-      case None        => None
-    }
 
   private def getPaymentStatus(documentDetails: DocumentDetails, paymentType: String): PaymentStatus = {
     val toDate: String            = extractValue(extractValue(documentDetails.lineItemDetails).head.periodToDate)
@@ -132,7 +125,7 @@ class FinancialDataService @Inject() (
       Due
     }
   }
-  private def calculateDueDate(toDate: String): LocalDate                     =
+  private def calculateDueDate(toDate: String): LocalDate                                   =
     LocalDate.of(toDate.take(numOfCharsForYear).toInt, dueMonth, dueDay)
 
   def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
