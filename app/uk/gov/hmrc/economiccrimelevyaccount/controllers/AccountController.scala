@@ -115,6 +115,11 @@ class AccountController @Inject() (
       AccountViewedAuditFinancialDetails(
         response.totalisation.flatMap(_.totalAccountBalance),
         response.totalisation.flatMap(_.totalAccountOverdue),
+        response.totalisation.flatMap(_.totalOverdue),
+        response.totalisation.flatMap(_.totalNotYetDue),
+        response.totalisation.flatMap(_.totalBalance),
+        response.totalisation.flatMap(_.totalCredit),
+        response.totalisation.flatMap(_.totalCleared),
         response.documentDetails match {
           case Some(details) =>
             Some(
@@ -143,6 +148,8 @@ class AccountController @Inject() (
                         lineItems.map(lineItem =>
                           AccountViewedAuditLineItem(
                             lineItem.chargeDescription,
+                            lineItem.clearingReason,
+                            lineItem.clearingDocument,
                             lineItem.periodFromDate,
                             lineItem.periodToDate,
                             lineItem.periodKey

@@ -36,6 +36,11 @@ object AccountViewedAuditEvent {
 case class AccountViewedAuditFinancialDetails(
   totalAccountBalance: Option[BigDecimal],
   totalAccountOverdue: Option[BigDecimal],
+  totalOverdue: Option[BigDecimal],
+  totalNotYetDue: Option[BigDecimal],
+  totalBalance: Option[BigDecimal],
+  totalCredit: Option[BigDecimal],
+  totalCleared: Option[BigDecimal],
   documentDetails: Option[Seq[AccountViewedAuditDocumentDetails]]
 )
 
@@ -68,6 +73,8 @@ object AccountViewedAuditPenaltyTotals {
 
 case class AccountViewedAuditLineItem(
   chargeDescription: Option[String],
+  clearingReason: Option[String],
+  clearingDocument: Option[String],
   periodFromDate: Option[String],
   periodToDate: Option[String],
   periodKey: Option[String]

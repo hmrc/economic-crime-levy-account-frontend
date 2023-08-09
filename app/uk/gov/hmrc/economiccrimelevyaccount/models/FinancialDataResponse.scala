@@ -138,13 +138,15 @@ case object AmendedCharge extends FinancialDataDocumentType
 case object ReversedCharge extends FinancialDataDocumentType
 
 case class LineItemDetails(
+  amount: Option[BigDecimal],
   chargeDescription: Option[String],
+  clearingDate: Option[String],
+  clearingDocument: Option[String],
+  clearingReason: Option[String],
+  netDueDate: Option[String],
   periodFromDate: Option[String],
   periodToDate: Option[String],
-  periodKey: Option[String],
-  netDueDate: Option[String],
-  amount: Option[BigDecimal],
-  clearingDate: Option[String]
+  periodKey: Option[String]
 )
 
 object LineItemDetails {

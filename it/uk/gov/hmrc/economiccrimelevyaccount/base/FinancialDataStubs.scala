@@ -31,7 +31,9 @@ trait FinancialDataStubs {
               periodKey = Some("22XY"),
               netDueDate = Some("2023-09-30"),
               amount = Some(BigDecimal("0")),
-              clearingDate = None
+              clearingDate = None,
+              clearingDocument = None,
+              clearingReason = None
             ),
             )),
             interestPostedAmount = Some(BigDecimal("10000")),
