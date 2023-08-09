@@ -20,6 +20,7 @@
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Empty
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.table.HeadCell
+@import java.time.LocalDate
 
 @this(
         layout: templates.Layout,
@@ -37,23 +38,38 @@
     }
 }
 
-@thirdCellResolve(status: ReturnStatus, periodKey: String, chargeReference: Option[String]) = @{
+@thirdCellResolve(status: ReturnStatus, periodKey: String) = @{
     status match {
         case Due | Overdue => messages("account.viewReturns.table.link", s"${appConfig.returnsUrl}/period/$periodKey")
         case Submitted => ""
     }
 }
+@resolveAmmendLink(status: ReturnStatus, chargeReference: String, periodKey: String) = @{
+    status match {
+        case Submitted => messages("account.viewReturns.table.amend.link", s"${appConfig.returnsUrl}/amend/$periodKey/$chargeReference")
+        case Due | Overdue => ""
+    }
+}
+
 @tableRows(rowData: ReturnsOverview) = @{
-    val tableLinkInfo = thirdCellResolve(rowData.status, rowData.periodKey, rowData.chargeReference)
+    val tableLinkInfo = thirdCellResolve(rowData.status, rowData.periodKey)
     val chargeReference = rowData.chargeReference match {
         case Some(reference) => reference
         case None => ""
     }
 
+   val amendLink = rowData.chargeReference match {
+        case None => Empty
+        case Some(reference) => HtmlContent(resolveAmmendLink(rowData.status, reference, rowData.periodKey))
+    }
+
     Seq(TableRow(content = ViewUtils.formatLocalDate(rowData.dueDate), classes = "govuk-table__header govuk-!-width-one-half"),
         TableRow(content = HtmlContent(messages("account.viewReturns.table.status", resolveStatusColour(rowData.status), rowData.status)), classes = "govuk-table__cell"),
         TableRow(content = chargeReference, classes = "govuk-table__cell"),
-        TableRow(content = HtmlContent(tableLinkInfo)))
+        rowData.chargeReference match {
+            case Some(_) => if(rowData.dueDate.plusYears(1).isAfter(LocalDate.now())){(TableRow(content = amendLink))} else {TableRow(content = Empty)}
+            case None =>  TableRow(content = HtmlContent(tableLinkInfo))
+        })
 }
 
 @getChargeReferenceHeader(data: ReturnsOverview) = @{
@@ -63,6 +79,7 @@
         HeadCell(content = Empty)
     }
 }
+
 @generateTable = @{
     returnData.map { data =>
         table(Table(
