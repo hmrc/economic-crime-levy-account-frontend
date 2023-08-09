@@ -22,12 +22,10 @@ import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, status}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.{FinancialDataConnector, ObligationDataConnector}
-import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
-import uk.gov.hmrc.economiccrimelevyaccount.{ObligationDataWithObligation, ObligationDataWithOverdueObligation, ObligationDataWithSubmittedObligation, ValidFinancialDataResponse}
-import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
+import uk.gov.hmrc.economiccrimelevyaccount._
 
 import scala.concurrent.Future
 
