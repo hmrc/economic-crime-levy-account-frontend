@@ -18,7 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.FinancialDataConnector
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse.findLatestFinancialObligation
-import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialDataErrorResponse, FinancialDataResponse, FinancialDetails, NewCharge}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialDataErrorResponse, FinancialDataResponse, FinancialDetails, LineItemDetails, NewCharge}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -74,22 +74,24 @@ class FinancialDataService @Inject() (
   private def prepareFinancialDetails(response: FinancialDataResponse): FinancialViewDetails = {
     val documentDetails = extractValue(response.documentDetails)
 
-    val outstandingPayments = documentDetails.map { details =>
-      OutstandingPayments(
-        paymentDueDate = calculateDueDate(extractValue(extractValue(details.lineItemDetails).head.periodToDate)),
-        chargeReference = extractValue(details.chargeReferenceNumber),
-        fyFrom =
-          LocalDate.parse(extractValue(details.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head),
-        fyTo = LocalDate.parse(extractValue(details.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head),
-        amount = details.documentOutstandingAmount.getOrElse(0),
-        paymentStatus = getPaymentStatus(details, "outstanding")
-      )
-
-    }
+    val outstandingPayments = documentDetails
+      .filter(document => !document.isCleared)
+      .map { document =>
+        OutstandingPayments(
+          paymentDueDate = calculateDueDate(extractValue(extractValue(document.lineItemDetails).head.periodToDate)),
+          chargeReference = extractValue(document.chargeReferenceNumber),
+          fyFrom =
+            LocalDate.parse(extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head),
+          fyTo =
+            LocalDate.parse(extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head),
+          amount = document.documentOutstandingAmount.getOrElse(0),
+          paymentStatus = getOutstandingPaymentStatus(document)
+        )
+      }
 
     val paymentsHistory = documentDetails.flatMap { details =>
       extractValue(details.lineItemDetails)
-        .filter(item => item.clearingDate.nonEmpty)
+        .filter(item => item.isCleared)
         .map { item =>
           PaymentHistory(
             paymentDate = LocalDate.parse(extractValue(item.clearingDate)),
@@ -97,7 +99,7 @@ class FinancialDataService @Inject() (
             fyFrom = LocalDate.parse(extractValue(item.periodFromDate)),
             fyTo = LocalDate.parse(extractValue(item.periodToDate)),
             amount = extractValue(item.amount),
-            paymentStatus = getPaymentStatus(details, "history"),
+            paymentStatus = getHistoryPaymentStatus(details, "history"),
             paymentDocument = extractValue(item.clearingDocument)
           )
         }
@@ -106,7 +108,7 @@ class FinancialDataService @Inject() (
     FinancialViewDetails(outstandingPayments = outstandingPayments, paymentHistory = paymentsHistory)
   }
 
-  private def getPaymentStatus(documentDetails: DocumentDetails, paymentType: String): PaymentStatus = {
+  private def getHistoryPaymentStatus(documentDetails: DocumentDetails, paymentType: String): PaymentStatus = {
     val toDate: String            = extractValue(extractValue(documentDetails.lineItemDetails).head.periodToDate)
     val dueDate: LocalDate        = calculateDueDate(toDate)
     val documentOutstandingAmount = documentDetails.documentOutstandingAmount.getOrElse(0)
@@ -125,7 +127,19 @@ class FinancialDataService @Inject() (
       Due
     }
   }
-  private def calculateDueDate(toDate: String): LocalDate                                   =
+
+  private def getOutstandingPaymentStatus(documentDetails: DocumentDetails): PaymentStatus = {
+    val toDate: String     = extractValue(extractValue(documentDetails.lineItemDetails).head.periodToDate)
+    val dueDate: LocalDate = calculateDueDate(toDate)
+
+    if (dueDate.isBefore(LocalDate.now())) {
+      Overdue
+    } else {
+      Due
+    }
+  }
+
+  private def calculateDueDate(toDate: String): LocalDate =
     LocalDate.of(toDate.take(numOfCharsForYear).toInt, dueMonth, dueDay)
 
   def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())

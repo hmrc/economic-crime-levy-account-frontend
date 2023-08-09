@@ -19,6 +19,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.models
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
+
 case class FinancialDataResponse(totalisation: Option[Totalisation], documentDetails: Option[Seq[DocumentDetails]])
 
 object FinancialDataResponse {
@@ -101,7 +102,7 @@ case class DocumentDetails(
 ) {
   val isCleared: Boolean = documentOutstandingAmount match {
     case Some(value) => value <= 0
-    case None        => false
+    case None        => true
   }
 }
 object DocumentDetails {
@@ -147,7 +148,9 @@ case class LineItemDetails(
   periodFromDate: Option[String],
   periodToDate: Option[String],
   periodKey: Option[String]
-)
+) {
+  val isCleared = clearingDate.nonEmpty
+}
 
 object LineItemDetails {
   implicit val format: OFormat[LineItemDetails] = Json.format[LineItemDetails]
