@@ -14,10 +14,16 @@ trait OpsJourneyStubs { self: WireMockStubs =>
       post(urlEqualTo("/pay-api/economic-crime-levy/journey/start")),
       aResponse()
         .withStatus(CREATED)
-        .withBody(Json.toJson(OpsJourneyResponse(
-          "",
-          url
-        )).toString())
+        .withBody(
+          Json
+            .toJson(
+              OpsJourneyResponse(
+                "",
+                url
+              )
+            )
+            .toString()
+        )
     )
 
 }
