@@ -18,7 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.FinancialDataConnector
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse.findLatestFinancialObligation
-import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialDataErrorResponse, FinancialDataResponse, FinancialDetails, LineItemDetails, NewCharge}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialDataErrorResponse, FinancialDataResponse, FinancialDetails, LineItemDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.http.HeaderCarrier
@@ -30,10 +30,6 @@ import scala.concurrent.{ExecutionContext, Future}
 class FinancialDataService @Inject() (
   financialDataConnector: FinancialDataConnector
 )(implicit ec: ExecutionContext) {
-
-  private val dueMonth          = 9
-  private val dueDay            = 30
-  private val numOfCharsForYear = 4
 
   def retrieveFinancialData(implicit
     hc: HeaderCarrier
@@ -78,7 +74,7 @@ class FinancialDataService @Inject() (
       .filter(document => !document.isCleared)
       .map { document =>
         OutstandingPayments(
-          paymentDueDate = calculateDueDate(extractValue(extractValue(document.lineItemDetails).head.periodToDate)),
+          paymentDueDate = extractValue(document.paymentDueDate),
           chargeReference = extractValue(document.chargeReferenceNumber),
           fyFrom =
             LocalDate.parse(extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head),
@@ -99,7 +95,7 @@ class FinancialDataService @Inject() (
             fyFrom = LocalDate.parse(extractValue(item.periodFromDate)),
             fyTo = LocalDate.parse(extractValue(item.periodToDate)),
             amount = extractValue(item.amount),
-            paymentStatus = getHistoryPaymentStatus(details, "history"),
+            paymentStatus = getHistoricalPaymentStatus(item, details),
             paymentDocument = extractValue(item.clearingDocument)
           )
         }
@@ -108,39 +104,21 @@ class FinancialDataService @Inject() (
     FinancialViewDetails(outstandingPayments = outstandingPayments, paymentHistory = paymentsHistory)
   }
 
-  private def getHistoryPaymentStatus(documentDetails: DocumentDetails, paymentType: String): PaymentStatus = {
-    val toDate: String            = extractValue(extractValue(documentDetails.lineItemDetails).head.periodToDate)
-    val dueDate: LocalDate        = calculateDueDate(toDate)
-    val documentOutstandingAmount = documentDetails.documentOutstandingAmount.getOrElse(0)
-
-    if (documentOutstandingAmount == 0) {
-      Paid
-    } else if (dueDate.isBefore(LocalDate.now()) && paymentType.equalsIgnoreCase("outstanding")) {
-      Overdue
-    } else if (
-      documentOutstandingAmount != 0 &&
-      documentDetails.documentClearedAmount.getOrElse(0) != 0 &&
-      paymentType.equalsIgnoreCase("history")
-    ) {
+  private def getHistoricalPaymentStatus(lineItem: LineItemDetails, document: DocumentDetails): PaymentStatus =
+    if (document.isCleared) {
+      if (document.isNewestLineItem(lineItem)) Paid else PartiallyPaid
+    } else if (document.isPartiallyPaid) {
       PartiallyPaid
     } else {
       Due
     }
-  }
 
-  private def getOutstandingPaymentStatus(documentDetails: DocumentDetails): PaymentStatus = {
-    val toDate: String     = extractValue(extractValue(documentDetails.lineItemDetails).head.periodToDate)
-    val dueDate: LocalDate = calculateDueDate(toDate)
-
-    if (dueDate.isBefore(LocalDate.now())) {
+  private def getOutstandingPaymentStatus(document: DocumentDetails): PaymentStatus =
+    if (document.isOverdue) {
       Overdue
     } else {
       Due
     }
-  }
-
-  private def calculateDueDate(toDate: String): LocalDate =
-    LocalDate.of(toDate.take(numOfCharsForYear).toInt, dueMonth, dueDay)
 
   def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
 }
