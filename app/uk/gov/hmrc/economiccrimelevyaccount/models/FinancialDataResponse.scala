@@ -111,8 +111,7 @@ case class DocumentDetails(
           val dueDay   = 30
 
           Some(
-            LocalDate
-              .parse(periodToDate)
+            periodToDate
               .withMonth(dueMonth)
               .withDayOfMonth(dueDay)
           )
@@ -152,7 +151,7 @@ case class DocumentDetails(
       implicit val lineItemDetailsOrdering: Ordering[LineItemDetails] = Ordering.by { l: LineItemDetails =>
         (l.clearingDate, l.clearingDocument)
       }
-      Some(lineItems.sorted.reverse.head)
+      lineItems.sorted.reverse.headOption
     case None            => None
   }
 
@@ -194,12 +193,12 @@ case object ReversedCharge extends FinancialDataDocumentType
 case class LineItemDetails(
   amount: Option[BigDecimal],
   chargeDescription: Option[String],
-  clearingDate: Option[String],
+  clearingDate: Option[LocalDate],
   clearingDocument: Option[String],
   clearingReason: Option[String],
-  netDueDate: Option[String],
-  periodFromDate: Option[String],
-  periodToDate: Option[String],
+  netDueDate: Option[LocalDate],
+  periodFromDate: Option[LocalDate],
+  periodToDate: Option[LocalDate],
   periodKey: Option[String]
 ) {
   val isCleared: Boolean = clearingDate.nonEmpty

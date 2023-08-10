@@ -49,8 +49,8 @@ class FinancialDataService @Inject() (
           Some(
             FinancialDetails(
               outstandingAmount,
-              LocalDate.parse(extractValue(firstLineItemDetailsElement.periodFromDate)),
-              LocalDate.parse(extractValue(firstLineItemDetailsElement.periodToDate)),
+              extractValue(firstLineItemDetailsElement.periodFromDate),
+              extractValue(firstLineItemDetailsElement.periodToDate),
               extractValue(firstLineItemDetailsElement.periodKey),
               extractValue(value.chargeReferenceNumber)
             )
@@ -76,10 +76,8 @@ class FinancialDataService @Inject() (
         OutstandingPayments(
           paymentDueDate = extractValue(document.paymentDueDate),
           chargeReference = extractValue(document.chargeReferenceNumber),
-          fyFrom =
-            LocalDate.parse(extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head),
-          fyTo =
-            LocalDate.parse(extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head),
+          fyFrom = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head,
+          fyTo = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head,
           amount = document.documentOutstandingAmount.getOrElse(0),
           paymentStatus = getOutstandingPaymentStatus(document)
         )
@@ -90,10 +88,10 @@ class FinancialDataService @Inject() (
         .filter(item => item.isCleared)
         .map { item =>
           PaymentHistory(
-            paymentDate = LocalDate.parse(extractValue(item.clearingDate)),
+            paymentDate = extractValue(item.clearingDate),
             chargeReference = extractValue(details.chargeReferenceNumber),
-            fyFrom = LocalDate.parse(extractValue(item.periodFromDate)),
-            fyTo = LocalDate.parse(extractValue(item.periodToDate)),
+            fyFrom = extractValue(item.periodFromDate),
+            fyTo = extractValue(item.periodToDate),
             amount = extractValue(item.amount),
             paymentStatus = getHistoricalPaymentStatus(item, details),
             paymentDocument = extractValue(item.clearingDocument)

@@ -7,6 +7,8 @@ import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.base.WireMockHelper.stub
 import uk.gov.hmrc.economiccrimelevyaccount.models._
 
+import java.time.LocalDate
+
 trait FinancialDataStubs {
   self: WireMockStubs =>
 
@@ -26,10 +28,10 @@ trait FinancialDataStubs {
             documentOutstandingAmount = Some(BigDecimal("10000")),
             lineItemDetails = Some(Seq(LineItemDetails(
               chargeDescription = Some("XMECL0000000006"),
-              periodFromDate = Some("2022-03-31"),
-              periodToDate = Some("2023-04-01"),
+              periodFromDate = Some(LocalDate.parse("2022-03-31")),
+              periodToDate = Some(LocalDate.parse("2023-04-01")),
               periodKey = Some("22XY"),
-              netDueDate = Some("2023-09-30"),
+              netDueDate = Some(LocalDate.parse("2023-09-30")),
               amount = Some(BigDecimal("0")),
               clearingDate = None,
               clearingDocument = None,

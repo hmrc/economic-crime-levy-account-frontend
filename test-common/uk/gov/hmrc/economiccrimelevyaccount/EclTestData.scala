@@ -170,9 +170,9 @@ trait EclTestData {
                   lineItemDetails.copy(
                     chargeDescription = Some("test-ecl-registration-reference"),
                     amount = Some(BigDecimal(clearedAmount.toString)),
-                    clearingDate = Some(LocalDate.now.toString),
-                    periodFromDate = Some(LocalDate.now.toString),
-                    periodToDate = Some(LocalDate.now.toString),
+                    clearingDate = Some(LocalDate.now),
+                    periodFromDate = Some(LocalDate.now),
+                    periodToDate = Some(LocalDate.now),
                     periodKey = Some("21XY")
                   )
                 )

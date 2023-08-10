@@ -19,6 +19,8 @@ package uk.gov.hmrc.economiccrimelevyaccount.models.audit
 import play.api.libs.json.{JsValue, Json, OFormat}
 import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationDetails
 
+import java.time.LocalDate
+
 case class AccountViewedAuditEvent(
   internalId: String,
   eclReference: String,
@@ -75,8 +77,8 @@ case class AccountViewedAuditLineItem(
   chargeDescription: Option[String],
   clearingReason: Option[String],
   clearingDocument: Option[String],
-  periodFromDate: Option[String],
-  periodToDate: Option[String],
+  periodFromDate: Option[LocalDate],
+  periodToDate: Option[LocalDate],
   periodKey: Option[String]
 )
 
