@@ -41,7 +41,7 @@ class PaymentsISpec extends ISpecBase with AuthorisedBehaviour {
 
       val result = callRoute(FakeRequest(routes.PaymentsController.onPageLoad()))
 
-      status(result) shouldBe SEE_OTHER
+      status(result)                 shouldBe SEE_OTHER
       redirectLocation(result).value shouldBe expectedUrl
     }
   }

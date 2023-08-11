@@ -19,6 +19,9 @@ package uk.gov.hmrc.economiccrimelevyaccount.models
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
+
+import java.time.LocalDate
+
 case class FinancialDataResponse(totalisation: Option[Totalisation], documentDetails: Option[Seq[DocumentDetails]])
 
 object FinancialDataResponse {
@@ -99,10 +102,60 @@ case class DocumentDetails(
   interestPostedChargeRef: Option[String],
   penaltyTotals: Option[Seq[PenaltyTotals]]
 ) {
-  val isCleared: Boolean = documentOutstandingAmount match {
-    case Some(value) => value <= 0
-    case None        => false
+
+  val paymentDueDate: Option[LocalDate] = newestLineItem() match {
+    case Some(lineItem) =>
+      lineItem.periodToDate match {
+        case Some(periodToDate) =>
+          val dueMonth = 9
+          val dueDay   = 30
+
+          Some(
+            periodToDate
+              .withMonth(dueMonth)
+              .withDayOfMonth(dueDay)
+          )
+        case None               => None
+      }
+    case None           => None
   }
+
+  val hasClearedAmount: Boolean = documentClearedAmount match {
+    case Some(amount) => amount > 0
+    case None         => false
+  }
+
+  val isCleared: Boolean = documentOutstandingAmount match {
+    case Some(amount) => amount <= 0
+    case None         => true
+  }
+
+  val isOverdue: Boolean = !isCleared && (paymentDueDate match {
+    case Some(date) => date.isBefore(LocalDate.now())
+    case None       => false
+  })
+
+  val isPartiallyPaid: Boolean = documentOutstandingAmount match {
+    case Some(amount) => amount > 0 && hasClearedAmount
+    case None         => false
+  }
+
+  def isNewestLineItem(lineItem: LineItemDetails): Boolean =
+    newestLineItem() match {
+      case Some(newest) => newest.clearingDocument == lineItem.clearingDocument
+      case None         => false
+    }
+
+  private def newestLineItem(): Option[LineItemDetails] = lineItemDetails match {
+    case Some(lineItems) =>
+      implicit val lineItemDetailsOrdering: Ordering[LineItemDetails] = Ordering.by { l: LineItemDetails =>
+        (l.clearingDate, l.clearingDocument)
+      }
+      lineItems.sorted.reverse.headOption
+    case None            => None
+  }
+
+  def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
 }
 object DocumentDetails {
   implicit val format: OFormat[DocumentDetails] = Json.format[DocumentDetails]
@@ -140,14 +193,16 @@ case object ReversedCharge extends FinancialDataDocumentType
 case class LineItemDetails(
   amount: Option[BigDecimal],
   chargeDescription: Option[String],
-  clearingDate: Option[String],
+  clearingDate: Option[LocalDate],
   clearingDocument: Option[String],
   clearingReason: Option[String],
-  netDueDate: Option[String],
-  periodFromDate: Option[String],
-  periodToDate: Option[String],
+  netDueDate: Option[LocalDate],
+  periodFromDate: Option[LocalDate],
+  periodToDate: Option[LocalDate],
   periodKey: Option[String]
-)
+) {
+  val isCleared: Boolean = clearingDate.nonEmpty
+}
 
 object LineItemDetails {
   implicit val format: OFormat[LineItemDetails] = Json.format[LineItemDetails]
