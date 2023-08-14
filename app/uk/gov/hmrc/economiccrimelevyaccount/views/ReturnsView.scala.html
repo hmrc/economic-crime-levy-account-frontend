@@ -67,7 +67,12 @@
         TableRow(content = HtmlContent(messages("account.viewReturns.table.status", resolveStatusColour(rowData.status), rowData.status)), classes = "govuk-table__cell"),
         TableRow(content = chargeReference, classes = "govuk-table__cell"),
         rowData.chargeReference match {
-            case Some(_) => if(rowData.dueDate.plusYears(1).isAfter(LocalDate.now())){(TableRow(content = amendLink))} else {TableRow(content = Empty)}
+            case Some(_) =>
+                if (rowData.dueDate.plusYears(1).isAfter(LocalDate.now()) && appConfig.amendReturnsEnabled) {
+                    (TableRow(content = amendLink))
+                } else {
+                    TableRow(content = Empty)
+                }
             case None =>  TableRow(content = HtmlContent(tableLinkInfo))
         })
 }
