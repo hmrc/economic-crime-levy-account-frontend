@@ -100,12 +100,11 @@ class ViewYourReturnsController @Inject() (
         financialDetails.map {
           case Left(e)         => throw new RuntimeException(e.toString)
           case Right(response) =>
-            val chargeReference = extractValue(response.documentDetails)
+            extractValue(response.documentDetails)
               .find(details =>
                 extractValue(details.lineItemDetails).exists(item => extractValue(item.periodKey) == periodKey)
               )
               .flatMap(_.chargeReferenceNumber)
-            Some(extractValue(chargeReference))
         }
       case _         => Future.successful(None)
     }
