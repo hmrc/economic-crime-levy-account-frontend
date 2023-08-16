@@ -12,6 +12,8 @@ import java.time.LocalDate
 trait FinancialDataStubs {
   self: WireMockStubs =>
 
+  val periodKey = "22XY"
+
   def stubFinancialData: StubMapping =
     stub(
       get(urlEqualTo("/economic-crime-levy-account/financial-data")),
@@ -38,7 +40,7 @@ trait FinancialDataStubs {
                             chargeDescription = Some("XMECL0000000006"),
                             periodFromDate = Some(LocalDate.parse("2022-03-31")),
                             periodToDate = Some(LocalDate.parse("2023-04-01")),
-                            periodKey = Some("22XY"),
+                            periodKey = Some(periodKey),
                             netDueDate = Some(LocalDate.parse("2023-09-30")),
                             amount = Some(BigDecimal("0")),
                             clearingDate = None,
