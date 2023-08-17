@@ -98,13 +98,14 @@ class ViewYourReturnsController @Inject() (
     status match {
       case Submitted =>
         financialDetails.map {
-          case Left(_)         => None
+          case Left(e)         => throw new RuntimeException(e.toString)
           case Right(response) =>
-            extractValue(response.documentDetails)
+            val chargeReference = extractValue(response.documentDetails)
               .find(details =>
                 extractValue(details.lineItemDetails).exists(item => extractValue(item.periodKey) == periodKey)
               )
               .flatMap(_.chargeReferenceNumber)
+            Some(extractValue(chargeReference))
         }
       case _         => Future.successful(None)
     }

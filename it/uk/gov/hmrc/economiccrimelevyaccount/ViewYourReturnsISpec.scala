@@ -6,7 +6,9 @@ import com.danielasfregola.randomdatagenerator.RandomDataGenerator.random
 import uk.gov.hmrc.economiccrimelevyaccount.behaviours.AuthorisedBehaviour
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
-import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationData
+import uk.gov.hmrc.economiccrimelevyaccount.models.{Fulfilled, Obligation, ObligationData, ObligationDetails, Open}
+
+import java.time.LocalDate
 
 class ViewYourReturnsISpec extends ISpecBase with AuthorisedBehaviour {
 
@@ -16,7 +18,23 @@ class ViewYourReturnsISpec extends ISpecBase with AuthorisedBehaviour {
     "respond with 200 status and return correct view" in {
       stubAuthorised()
       stubFinancialData
-      val obligationData = random[ObligationData]
+      val date           = LocalDate.now
+      val obligationData = ObligationData(
+        obligations = Seq(
+          Obligation(
+            obligationDetails = Seq(
+              ObligationDetails(
+                status = Fulfilled,
+                inboundCorrespondenceFromDate = date,
+                inboundCorrespondenceToDate = date,
+                inboundCorrespondenceDateReceived = None,
+                inboundCorrespondenceDueDate = date,
+                periodKey = periodKey
+              )
+            )
+          )
+        )
+      )
 
       stubGetObligations(obligationData)
 

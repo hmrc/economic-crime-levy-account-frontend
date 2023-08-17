@@ -26,8 +26,10 @@ import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdu
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
 import uk.gov.hmrc.economiccrimelevyaccount._
+import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataErrorResponse
 
 import scala.concurrent.Future
+import scala.util.{Failure, Success, Try}
 
 class ViewYourReturnsControllerSpec extends SpecBase {
 
@@ -133,6 +135,48 @@ class ViewYourReturnsControllerSpec extends SpecBase {
 
       status(result)          shouldBe OK
       contentAsString(result) shouldBe noReturnsView()(fakeRequest, messages).toString()
+    }
+
+    "return Error when return is Submitted but no charge reference" in forAll {
+      (obligationData: ObligationDataWithSubmittedObligation, financialData: ValidFinancialDataResponse) =>
+        when(
+          mockObligationDataConnector.getObligationData()(any())
+        ).thenReturn(Future.successful(Some(obligationData.obligationData)))
+
+        when(
+          mockFinancialDataConnector.getFinancialData()(any())
+        ).thenReturn(
+          Future.successful(
+            Right(
+              financialData.financialDataResponse.copy(
+                documentDetails = None
+              )
+            )
+          )
+        )
+
+        val result: Future[Result] = controller.onPageLoad()(fakeRequest)
+        Try(status(result)) match {
+          case Success(_) => fail
+          case Failure(_) =>
+        }
+    }
+
+    "return Error when return is Submitted financial API fails" in forAll {
+      (obligationData: ObligationDataWithSubmittedObligation, financialData: ValidFinancialDataResponse) =>
+        when(
+          mockObligationDataConnector.getObligationData()(any())
+        ).thenReturn(Future.successful(Some(obligationData.obligationData)))
+
+        when(
+          mockFinancialDataConnector.getFinancialData()(any())
+        ).thenReturn(Future.successful(Left(FinancialDataErrorResponse(None, None))))
+
+        val result: Future[Result] = controller.onPageLoad()(fakeRequest)
+        Try(status(result)) match {
+          case Success(_) => fail
+          case Failure(_) =>
+        }
     }
   }
 }
