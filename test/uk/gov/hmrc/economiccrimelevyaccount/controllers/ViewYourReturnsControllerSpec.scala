@@ -145,14 +145,20 @@ class ViewYourReturnsControllerSpec extends SpecBase {
 
         when(
           mockFinancialDataConnector.getFinancialData()(any())
-        ).thenReturn(Future.successful(Right(financialData.financialDataResponse.copy(
-          documentDetails = None
-        ))))
+        ).thenReturn(
+          Future.successful(
+            Right(
+              financialData.financialDataResponse.copy(
+                documentDetails = None
+              )
+            )
+          )
+        )
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         Try(status(result)) match {
           case Success(_) => fail
-          case Failure(_) => {}
+          case Failure(_) =>
         }
     }
 
@@ -169,7 +175,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         Try(status(result)) match {
           case Success(_) => fail
-          case Failure(_) => {}
+          case Failure(_) =>
         }
     }
   }
