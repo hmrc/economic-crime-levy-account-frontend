@@ -103,9 +103,9 @@
         CardAction("view-payment-history", uk.gov.hmrc.economiccrimelevyaccount.controllers.routes.ViewYourPaymentsController.onPageLoad().url, messages("account.payments.viewHistory"))
     )
 }
-@registrationAction = @{
+@registrationAction() = @{
   Seq(
-      CardAction("amend-registration", "#", messages("account.registration.card.amendRegistration")),
+      CardAction("amend-registration", s"${appConfig.registrationUrl}/$eclRegistrationReference", messages("account.registration.card.amendRegistration")),
   )
 }
 
