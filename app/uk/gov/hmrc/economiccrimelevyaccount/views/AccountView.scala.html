@@ -104,7 +104,7 @@
 @paymentsActions = @{
     makePaymentLink.map(CardAction("make-payment", _, messages("account.payments.makePayment"))).toSeq ++
     Seq(
-        CardAction("how-to-make-payment", "https://www.gov.uk/guidance/pay-the-economic-crime-levy", messages("account.payments.howTo")),
+        CardAction("how-to-make-payment", "https://www.gov.uk/guidance/pay-your-economic-crime-levy", messages("account.payments.howTo")),
         CardAction("view-payment-history", uk.gov.hmrc.economiccrimelevyaccount.controllers.routes.ViewYourPaymentsController.onPageLoad().url, messages("account.payments.viewHistory"))
     )
 }
