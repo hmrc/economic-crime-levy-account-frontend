@@ -77,7 +77,12 @@
 }
 
 @makePaymentLink = @{
-    optFinancialDetails.map(o => "/economic-crime-levy-account/make-a-payment")
+  if(appConfig.paymentsEnabled) {
+      optFinancialDetails.map(o => "/economic-crime-levy-account/make-a-payment")
+  } else {
+      None
+  }
+
 }
 
 @getViewReturnsLinkName = @{
