@@ -17,8 +17,10 @@
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.economiccrimelevyaccount.views.html.{AgentCannotAccessServiceView, NotRegisteredView}
+import play.api.mvc.{Action, AnyContent, Call, MessagesControllerComponents}
+import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
+import uk.gov.hmrc.economiccrimelevyaccount.views.html.AgentCannotAccessServiceView
+import uk.gov.hmrc.http.HttpVerbs.GET
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.{Inject, Singleton}
@@ -26,13 +28,13 @@ import javax.inject.{Inject, Singleton}
 @Singleton
 class NotableErrorController @Inject() (
   val controllerComponents: MessagesControllerComponents,
-  notRegisteredView: NotRegisteredView,
+  appConfig: AppConfig,
   agentCannotAccessServiceView: AgentCannotAccessServiceView
 ) extends FrontendBaseController
     with I18nSupport {
 
   def notRegistered: Action[AnyContent] = Action { implicit request =>
-    Ok(notRegisteredView())
+    Redirect(Call(GET, s"${appConfig.eclEnrolmentBaseUrl}/add-economic-crime-levy/do-you-have-an-ecl-reference-number"))
   }
 
   def agentCannotAccessService: Action[AnyContent] = Action { implicit request =>
