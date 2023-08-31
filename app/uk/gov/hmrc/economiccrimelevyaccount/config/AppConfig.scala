@@ -55,8 +55,6 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
 
   val economicCrimeLevyAccountBaseUrl: String = servicesConfig.baseUrl("economic-crime-levy-account")
 
-  val eclEnrolmentBaseUrl: String = servicesConfig.baseUrl("economic-crime-levy-enrolment")
-
   val opsServiceUrl: String = servicesConfig.baseUrl("pay-api")
 
   val opsStartJourneyUrl =

@@ -34,7 +34,7 @@ class NotableErrorController @Inject() (
     with I18nSupport {
 
   def notRegistered: Action[AnyContent] = Action { implicit request =>
-    Redirect(Call(GET, s"${appConfig.eclEnrolmentBaseUrl}/add-economic-crime-levy/do-you-have-an-ecl-reference-number"))
+    Redirect(Call(GET, appConfig.claimUrl))
   }
 
   def agentCannotAccessService: Action[AnyContent] = Action { implicit request =>
