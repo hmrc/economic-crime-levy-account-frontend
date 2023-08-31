@@ -19,28 +19,25 @@ package uk.gov.hmrc.economiccrimelevyaccount.controllers
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.views.html.{AgentCannotAccessServiceView, NotRegisteredView}
+import uk.gov.hmrc.economiccrimelevyaccount.views.html.AgentCannotAccessServiceView
 
 import scala.concurrent.Future
 
 class NotableErrorControllerSpec extends SpecBase {
 
-  val notRegisteredView: NotRegisteredView                       = app.injector.instanceOf[NotRegisteredView]
   val agentCannotAccessServiceView: AgentCannotAccessServiceView = app.injector.instanceOf[AgentCannotAccessServiceView]
 
   val controller = new NotableErrorController(
     mcc,
-    notRegisteredView,
+    appConfig,
     agentCannotAccessServiceView
   )
 
   "notRegistered" should {
-    "return OK and the correct view" in {
+    "redirects to enrolment service and returns SEE_OTHER" in {
       val result: Future[Result] = controller.notRegistered()(fakeRequest)
 
-      status(result) shouldBe OK
-
-      contentAsString(result) shouldBe notRegisteredView()(fakeRequest, messages).toString
+      status(result) shouldBe SEE_OTHER
     }
   }
 

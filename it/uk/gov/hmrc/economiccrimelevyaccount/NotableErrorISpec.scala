@@ -24,13 +24,12 @@ import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
 class NotableErrorISpec extends ISpecBase with AuthorisedBehaviour {
 
   s"GET ${routes.NotableErrorController.notRegistered().url}"            should {
-    "respond with 200 status and the not registered HTML view" in {
+    "redirect to enrolment service and return 303 status" in {
       stubAuthorised()
 
       val result = callRoute(FakeRequest(routes.NotableErrorController.notRegistered()))
 
-      status(result) shouldBe OK
-      html(result)     should include("You must register for the Economic Crime Levy")
+      status(result) shouldBe SEE_OTHER
     }
   }
 
