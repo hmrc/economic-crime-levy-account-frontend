@@ -34,7 +34,7 @@ object FinancialDataResponse {
     ): Either[FinancialDataErrorResponse, FinancialDataResponse] =
       response.status match {
         case OK                    =>
-          response.json.validate[FinancialDataResponse] match {
+          response.json.validate[Option[FinancialDataResponse]] match {
             case JsSuccess(response, _) => Right(response)
             case JsError(errors)        =>
               Left(
