@@ -4,7 +4,6 @@ account.eclReferenceNumber = Cyfeirnod ECL: {0}
 account.submitEcl = Cyflwyno datganiad Ardoll Troseddau Economaidd
 account.howToComplete = Sut i lenwi a chyflwyno datganiad
 account.viewOrAmendReturns = Bwrw golwg dros neu ddiwygio eich datganiadau
-
 account.viewReturns = Bwrw golwg dros eich datganiadau
 account.viewReturns.title = Eich datganiadau Ardoll Troseddau Economaidd
 account.viewReturns.heading = Eich datganiadau Ardoll Troseddau Economaidd
@@ -12,12 +11,10 @@ account.viewReturns.table.column.1 = Datganiad a thaliad yn ddyledus erbyn
 account.viewReturns.table.column.1.fulfilled = Dyddiad cyflawni
 account.viewReturns.table.column.2 = Statws datganiad
 account.viewReturns.table.column.3 = Rhif datganiad ECL
-
 account.viewReturns.table.link = <a href="{0}" class="govuk-link">Cyflwyno datganiad</a>
 account.viewReturns.table.amend.link = <a href="{0}" class="govuk-link">Diwygio’ch datganiad</a>
 account.viewReturns.table.placeholder = Cyflwyno datganiad
 account.viewReturns.table.status = <strong class="govuk-tag govuk-tag--{0}">{1}</strong>
-
 account.viewReturns.noReturnsFound.title = Eich datganiadau Ardoll Troseddau Economaidd
 account.viewReturns.noReturnsFound.heading = Eich datganiadau Ardoll Troseddau Economaidd
 account.viewReturns.noReturnsFound.p1 = Nid ydych wedi cyflwyno unrhyw ddatganiadau Ardoll Troseddau Economaidd.
@@ -58,7 +55,6 @@ account.viewPayments.table.paymentsHistory.header.2 = Math o daliad
 account.viewPayments.table.paymentsHistory.header.3 = Cyfnod talu
 account.viewPayments.table.paymentsHistory.header.4 = Rydych chi wedi talu CThEF
 account.viewPayments.table.paymentsHistory.header.5 = Statws y taliad
-
 account.registration.card.title = Cofrestriad
 account.registration.card.amendRegistration = Diwygio cofrestriad
 
