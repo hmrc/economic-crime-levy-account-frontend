@@ -1,3 +1,27 @@
+service.name =
+
+site.back = Yn ôl
+site.remove = Tynnu
+site.change = Newid
+site.no = Na
+site.yes = Iawn
+site.continue = Yn eich blaen
+site.saveAndContinue = Cadw ac yn eich blaen
+site.start = Dechrau nawr
+site.startAgain =
+site.signIn = Mewngofnodi
+site.govuk = GOV.UK
+
+timeout.title = Rydych ar fin cael eich allgofnodi
+timeout.message = Am resymau diogelwch, cewch eich allgofnodi o’r gwasanaeth hwn ymhen
+timeout.keepAlive = Parhau i fod wedi’ch mewngofnodi
+timeout.signOut = Allgofnodi
+
+error.browser.title.prefix = Gwall:
+error.problemWithService.title = Mae’n ddrwg gennym, ond mae problem gyda’r gwasanaeth – Ardoll Troseddau Economaidd – GOV.UK
+error.problemWithService.heading = Mae’n ddrwg gennym, ond mae problem gyda’r gwasanaeth
+error.problemWithService.message = Rhowch gynnig arall arni yn nes ymlaen.
+
 account.title = Manylion eich cyfrif Ardoll Troseddau Economaidd
 account.heading = Manylion eich cyfrif Ardoll Troseddau Economaidd
 account.eclReferenceNumber = Cyfeirnod ECL: {0}
@@ -58,4 +82,28 @@ account.viewPayments.table.paymentsHistory.header.5 = Statws y taliad
 account.registration.card.title = Cofrestriad
 account.registration.card.amendRegistration = Diwygio cofrestriad
 
+agentCannotAccessService.title =
+agentCannotAccessService.heading =
+agentCannotAccessService.p1 =
+agentCannotAccessService.p2 =
+agentCannotAccessService.p3 = Ewch i’ch {0}.
+agentCannotAccessService.p3.link =
 
+notRegistered.title =
+notRegistered.heading =
+notRegistered.body1 =
+notRegistered.body2 =
+notRegistered.body3 =
+
+date.month.1 = Ionawr
+date.month.2 = Chwefror
+date.month.3 = Mawrth
+date.month.4 = Ebrill
+date.month.5 = Mai
+date.month.6 = Mehefin
+date.month.7 = Gorffennaf
+date.month.8 = Awst
+date.month.9 = Medi
+date.month.10 = Hydref
+date.month.11 = Tachwedd
+date.month.12 = Rhagfyr
