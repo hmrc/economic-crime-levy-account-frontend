@@ -19,37 +19,46 @@ package uk.gov.hmrc.economiccrimelevyaccount.models
 import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponse
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 
-
 class FinancialDataResponseSpec extends SpecBase {
 
   "FinancialDataResponse refundAmount" should {
 
-    val zero = BigDecimal(0)
+    val zero       = BigDecimal(0)
     val oneHundred = BigDecimal(100)
     val twoHundred = BigDecimal(200)
 
-    "return zero for partially paid document" in forAll { (
-      dataResponse: ValidFinancialDataResponse
-    ) =>
-      val details = dataResponse
-        .financialDataResponse
-        .documentDetails.get.head
+    def setup(dataResponse: ValidFinancialDataResponse, total: BigDecimal, paid: BigDecimal): DocumentDetails =
+      dataResponse.financialDataResponse.documentDetails.get.head
         .copy(
-          documentClearedAmount = Some(oneHundred),
-          documentTotalAmount = Some(twoHundred)
+          documentClearedAmount = Some(paid),
+          documentTotalAmount = Some(total)
         )
 
-      details.refundAmount should equal(zero)
+    "return zero for partially paid document" in forAll {
+      (
+        dataResponse: ValidFinancialDataResponse
+      ) =>
+        val details = setup(dataResponse, twoHundred, oneHundred)
+
+        details.refundAmount should equal(zero)
     }
 
-    "return zero for fully paid document" in {
+    "return zero for fully paid document" in forAll {
+      (
+        dataResponse: ValidFinancialDataResponse
+      ) =>
+        val details = setup(dataResponse, oneHundred, oneHundred)
 
-
+        details.refundAmount should equal(zero)
     }
 
-    "return correct amount for overpaid document" in {
+    "return correct amount for overpaid document" in forAll {
+      (
+        dataResponse: ValidFinancialDataResponse
+      ) =>
+        val details = setup(dataResponse, oneHundred, twoHundred)
 
-
+        details.refundAmount should equal(oneHundred)
     }
   }
 }
