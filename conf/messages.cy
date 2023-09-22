@@ -1,4 +1,4 @@
-service.name =
+service.name = Cyfrif Ardoll Troseddau Economaidd
 
 site.back = Yn ôl
 site.remove = Tynnu
@@ -8,7 +8,7 @@ site.yes = Iawn
 site.continue = Yn eich blaen
 site.saveAndContinue = Cadw ac yn eich blaen
 site.start = Dechrau nawr
-site.startAgain =
+site.startAgain = Dechrau eto
 site.signIn = Mewngofnodi
 site.govuk = GOV.UK
 
@@ -82,18 +82,18 @@ account.viewPayments.table.paymentsHistory.header.5 = Statws y taliad
 account.registration.card.title = Cofrestriad
 account.registration.card.amendRegistration = Diwygio cofrestriad
 
-agentCannotAccessService.title =
-agentCannotAccessService.heading =
-agentCannotAccessService.p1 =
-agentCannotAccessService.p2 =
+agentCannotAccessService.title = Ni allwch ddefnyddio’r gwasanaeth hwn
+agentCannotAccessService.heading = Ni allwch ddefnyddio’r gwasanaeth hwn
+agentCannotAccessService.p1 = Ni all asiantau ddefnyddio’r gwasanaeth hwn ar ran cleient.
+agentCannotAccessService.p2 = Mae’n rhaid i’ch cleient gael mynediad at y gwasanaeth, drwy ddefnyddio’i Dynodydd Defnyddiwr (ID) ar gyfer Porth y Llywodraeth ei hun.
 agentCannotAccessService.p3 = Ewch i’ch {0}.
-agentCannotAccessService.p3.link =
+agentCannotAccessService.p3.link = <a href="https://www.gov.uk/guidance/sign-in-to-your-agent-services-account" class="govuk-link">cyfrif gwasanaethau asiant</a>
 
-notRegistered.title =
-notRegistered.heading =
-notRegistered.body1 =
-notRegistered.body2 =
-notRegistered.body3 =
+notRegistered.title = Mae’n rhaid i chi gofrestru ar gyfer yr Ardoll Troseddau Economaidd cyn i chi gyflwyno datganiad - Ardoll Troseddau Economaidd - GOV.UK
+notRegistered.heading = Mae’n rhaid i chi gofrestru ar gyfer yr Ardoll Troseddau Economaidd cyn gallwch gyflwyno datganiad
+notRegistered.body1 = Ni allwch gyflwyno datganiad Ardoll Troseddau Economaidd (ECL).
+notRegistered.body2 = Gall hyn fod oherwydd nad ydych wedi cofrestru ar gyfer yr Ardoll Troseddau Economaidd.
+notRegistered.body3 = Os ydych eisoes wedi cofrestru ac wedi cael cyfeirnod ECL, bydd angen i chi ychwanegu’r ardoll i’ch <a href="{0}" class="govuk-link">cyfrif treth busnes</a>.
 
 date.month.1 = Ionawr
 date.month.2 = Chwefror
