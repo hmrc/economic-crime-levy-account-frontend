@@ -44,21 +44,9 @@ class ViewYourPaymentsController @Inject() (
     with I18nSupport {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    financialDataService.getFinancialDetails.flatMap {
-      case Some(value) => getChargeDetails.map {
-        case Some(data) => Ok(view(value, data, appConfig.refundBaseUrl))
-        case None       => Ok(view(value, Seq.empty, appConfig.refundBaseUrl))
-      }
-      case None        => Future.successful(Ok(noPaymentsView()))
-    }
-  }
-
-  private def getChargeDetails()(implicit
-    hc: HeaderCarrier
-  ): Future[Option[Seq[DocumentDetails]]] = {
-    financialDataService.retrieveFinancialData.map{
-      case Left(_)      => None
-      case Right(value) => value.documentDetails
+    financialDataService.getFinancialDetails.map {
+      case Some(value) => Ok(view(value, appConfig.refundBaseUrl))
+      case None => Ok(noPaymentsView())
     }
   }
 }

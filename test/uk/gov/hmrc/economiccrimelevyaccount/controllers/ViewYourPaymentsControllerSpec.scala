@@ -21,10 +21,10 @@ import play.api.http.Status.OK
 import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, status}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
+import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.economiccrimelevyaccount.services.FinancialDataService
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.FinancialViewDetails
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoPaymentsView, PaymentsView}
-import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 
 import scala.concurrent.Future
 
@@ -39,7 +39,8 @@ class ViewYourPaymentsControllerSpec extends SpecBase {
     fakeAuthorisedAction,
     mockFinancialDataService,
     paymentsView,
-    noPaymentsView
+    noPaymentsView,
+    appConfig
   )
 
   "onPageLoad" should {
@@ -50,7 +51,7 @@ class ViewYourPaymentsControllerSpec extends SpecBase {
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         status(result)          shouldBe OK
-        contentAsString(result) shouldBe paymentsView(financialViewDetails)(fakeRequest, messages).toString()
+        contentAsString(result) shouldBe paymentsView(financialViewDetails, appConfig.refundBaseUrl)(fakeRequest, messages).toString()
     }
     "return OK and the correct view when financialData is missing" in {
       when(mockFinancialDataService.getFinancialDetails(any()))

@@ -26,7 +26,7 @@
         table: GovukTable
 )
 
-@(financialViewDetails: FinancialViewDetails, details: Seq[DocumentDetails], refundBaseUrl: String)(implicit request: Request[_], messages: Messages)
+@(financialViewDetails: FinancialViewDetails, refundBaseUrl: String)(implicit request: Request[_], messages: Messages)
 
 @generateTableOutstandingPayments = @{
     val outstandingPayments = financialViewDetails.outstandingPayments
@@ -97,7 +97,7 @@
     rowData.map(data => {
         val status = resolveStatus(data.paymentStatus)
         val paymentDate = ViewUtils.formatLocalDate(data.paymentDate)
-        val link = refundBaseUrl + "?amount=" + getRefundAmount(data.chargeReference)
+        val link = refundBaseUrl + "?amount=" + data.refundAmount
         Seq(TableRow(content = HtmlContent(paymentDate)),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.reference", data.chargeReference))),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.period", ViewUtils.formatLocalDate(data.fyFrom),
@@ -107,22 +107,6 @@
             TableRow(content = HtmlContent(s"<a href=${'"'}$link${'"'}>" + messages("account.viewPayments.table.paymentsHistory.cell.6") + "</a>"), classes = "govuk-table__cell"),
         )
     })
-}
-
-@getRefundAmount(chargeReference: String) = @{
-    val zero = BigDecimal(0)
-    details.find(d => d.chargeReferenceNumber.getOrElse("") == chargeReference) match {
-        case Some(documentDetails) => {
-            val clearedAmount = documentDetails.documentClearedAmount.getOrElse(zero)
-            val totalAmount = documentDetails.documentTotalAmount.getOrElse(zero)
-            if (clearedAmount > totalAmount) {
-                clearedAmount - totalAmount
-            } else {
-                zero
-            }
-        }
-        case None                  => zero
-    }
 }
 
 @resolveStatus(paymentStatus: PaymentStatus) = @{
