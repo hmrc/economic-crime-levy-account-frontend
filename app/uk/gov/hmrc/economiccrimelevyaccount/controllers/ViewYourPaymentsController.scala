@@ -18,15 +18,18 @@ package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
+import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, OpsData}
 import uk.gov.hmrc.economiccrimelevyaccount.services.FinancialDataService
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Due, Overdue}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.PaymentsView
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.NoPaymentsView
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class ViewYourPaymentsController @Inject() (
@@ -34,15 +37,28 @@ class ViewYourPaymentsController @Inject() (
   authorise: AuthorisedAction,
   financialDataService: FinancialDataService,
   view: PaymentsView,
-  noPaymentsView: NoPaymentsView
+  noPaymentsView: NoPaymentsView,
+  appConfig: AppConfig
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    financialDataService.getFinancialDetails.map {
-      case Some(value) => Ok(view(value))
-      case None        => Ok(noPaymentsView())
+    financialDataService.getFinancialDetails.flatMap {
+      case Some(value) => getChargeDetails.map {
+        case Some(data) => Ok(view(value, data, appConfig.refundBaseUrl))
+        case None       => Ok(view(value, Seq.empty, appConfig.refundBaseUrl))
+      }
+      case None        => Future.successful(Ok(noPaymentsView()))
+    }
+  }
+
+  private def getChargeDetails()(implicit
+    hc: HeaderCarrier
+  ): Future[Option[Seq[DocumentDetails]]] = {
+    financialDataService.retrieveFinancialData.map{
+      case Left(_)      => None
+      case Right(value) => value.documentDetails
     }
   }
 }
