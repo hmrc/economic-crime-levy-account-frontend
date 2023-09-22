@@ -141,9 +141,9 @@ case class DocumentDetails(
   }
 
   val refundAmount: BigDecimal = {
-    val zero = BigDecimal(0)
+    val zero          = BigDecimal(0)
     val clearedAmount = documentClearedAmount.getOrElse(zero)
-    val totalAmount = documentTotalAmount.getOrElse(zero)
+    val totalAmount   = documentTotalAmount.getOrElse(zero)
 
     if (clearedAmount > totalAmount) {
       clearedAmount - totalAmount

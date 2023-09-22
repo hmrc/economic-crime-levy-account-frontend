@@ -67,5 +67,5 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
   val amendRegistrationEnabled: Boolean = configuration.get[Boolean]("features.amendRegistrationEnabled")
 
   val paymentsEnabled: Boolean = configuration.get[Boolean]("features.paymentsEnabled")
-  val refundBaseUrl: String = servicesConfig.getString("urls.refund")
+  val refundBaseUrl: String    = servicesConfig.getString("urls.refund")
 }

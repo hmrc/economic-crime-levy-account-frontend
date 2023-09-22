@@ -51,7 +51,10 @@ class ViewYourPaymentsControllerSpec extends SpecBase {
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         status(result)          shouldBe OK
-        contentAsString(result) shouldBe paymentsView(financialViewDetails, appConfig.refundBaseUrl)(fakeRequest, messages).toString()
+        contentAsString(result) shouldBe paymentsView(financialViewDetails, appConfig.refundBaseUrl)(
+          fakeRequest,
+          messages
+        ).toString()
     }
     "return OK and the correct view when financialData is missing" in {
       when(mockFinancialDataService.getFinancialDetails(any()))
