@@ -19,13 +19,14 @@
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentHistory
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
+@import uk.gov.hmrc.economiccrimelevyaccount.models.DocumentDetails
 
 @this(
         layout: templates.Layout,
         table: GovukTable
 )
 
-@(financialViewDetails: FinancialViewDetails)(implicit request: Request[_], messages: Messages)
+@(financialViewDetails: FinancialViewDetails, refundBaseUrl: String)(implicit request: Request[_], messages: Messages)
 
 @generateTableOutstandingPayments = @{
     val outstandingPayments = financialViewDetails.outstandingPayments
@@ -67,7 +68,8 @@
                 HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.2")), classes = "govuk-table__header govuk-!-width-one-quarter"),
                 HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.3")), classes = "govuk-table__header govuk-!-width-one-quarter"),
                 HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.4")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.5")), classes = "govuk-table__header govuk-!-width-one-quarter")
+                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.5")), classes = "govuk-table__header govuk-!-width-one-quarter"),
+                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.6")), classes = "govuk-table__header govuk-!-width-one-quarter")
             )),
             firstCellIsHeader = true,
             caption = Some(messages("account.viewPayments.table.paymentsHistory.header.title")),
@@ -95,15 +97,18 @@
     rowData.map(data => {
         val status = resolveStatus(data.paymentStatus)
         val paymentDate = ViewUtils.formatLocalDate(data.paymentDate)
+        val link = refundBaseUrl + "?amount=" + data.refundAmount
         Seq(TableRow(content = HtmlContent(paymentDate)),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.reference", data.chargeReference))),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.period", ViewUtils.formatLocalDate(data.fyFrom),
                 ViewUtils.formatLocalDate(data.fyTo))), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(ViewUtils.formatMoney(data.amount)), classes = "govuk-table__cell"),
-            TableRow(content = HtmlContent(messages("account.viewPayments.table.status", status._1, status._2)), classes = status._2)
+            TableRow(content = HtmlContent(messages("account.viewPayments.table.status", status._1, status._2)), classes = status._2),
+            TableRow(content = HtmlContent(messages("account.viewPayments.table.paymentsHistory.cell.6", link)), classes = "govuk-table__cell"),
         )
     })
 }
+
 @resolveStatus(paymentStatus: PaymentStatus) = @{
     paymentStatus match {
         case Due => ("blue", messages("account.viewPayments.table.cell.status.due"))

@@ -140,6 +140,18 @@ case class DocumentDetails(
     case None         => false
   }
 
+  val refundAmount: BigDecimal = {
+    val zero          = BigDecimal(0)
+    val clearedAmount = documentClearedAmount.getOrElse(zero)
+    val totalAmount   = documentTotalAmount.getOrElse(zero)
+
+    if (clearedAmount > totalAmount) {
+      clearedAmount - totalAmount
+    } else {
+      zero
+    }
+  }
+
   def isNewestLineItem(lineItem: LineItemDetails): Boolean =
     newestLineItem() match {
       case Some(newest) => newest.clearingDocument == lineItem.clearingDocument

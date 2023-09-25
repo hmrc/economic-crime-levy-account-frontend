@@ -35,7 +35,8 @@ case class PaymentHistory(
   fyTo: LocalDate,
   amount: BigDecimal,
   paymentStatus: PaymentStatus,
-  paymentDocument: String
+  paymentDocument: String,
+  refundAmount: BigDecimal
 )
 sealed trait PaymentStatus
 
