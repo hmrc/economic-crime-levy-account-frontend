@@ -80,7 +80,7 @@ account.viewPayments.table.paymentsHistory.header.3 = Payment period
 account.viewPayments.table.paymentsHistory.header.4 = You paid HMRC
 account.viewPayments.table.paymentsHistory.header.5 = Payment status
 account.viewPayments.table.paymentsHistory.header.6 = Actions
-account.viewPayments.table.paymentsHistory.cell.6 = Request a refund
+account.viewPayments.table.paymentsHistory.cell.6 = <a href="{0}" class="govuk-link">Request a refund</a>
 account.registration.card.title = Registration
 account.registration.card.amendRegistration = Amend registration
 

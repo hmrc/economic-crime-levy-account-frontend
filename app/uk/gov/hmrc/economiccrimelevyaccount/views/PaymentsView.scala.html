@@ -104,7 +104,7 @@
                 ViewUtils.formatLocalDate(data.fyTo))), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(ViewUtils.formatMoney(data.amount)), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.status", status._1, status._2)), classes = status._2),
-            TableRow(content = HtmlContent(s"<a href=${'"'}$link${'"'}>" + messages("account.viewPayments.table.paymentsHistory.cell.6") + "</a>"), classes = "govuk-table__cell"),
+            TableRow(content = HtmlContent(messages("account.viewPayments.table.paymentsHistory.cell.6", link)), classes = "govuk-table__cell"),
         )
     })
 }
