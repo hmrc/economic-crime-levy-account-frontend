@@ -38,8 +38,9 @@ case class PaymentHistory(
   fyTo: LocalDate,
   amount: BigDecimal,
   paymentStatus: PaymentStatus,
+  paymentType: PaymentType,
   paymentDocument: String,
-  paymentType: PaymentType
+  refundAmount: BigDecimal
 )
 sealed trait PaymentStatus
 
@@ -74,7 +75,7 @@ object PaymentType {
     override def writes(o: PaymentType): JsValue = o match {
       case Payment  => JsString("Payment")
       case Interest => JsString("Interest")
-      case Unknown => JsString("Unknown")
+      case Unknown  => JsString("Unknown")
     }
   }
 

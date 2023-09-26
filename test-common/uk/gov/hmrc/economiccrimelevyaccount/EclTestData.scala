@@ -290,7 +290,8 @@ trait EclTestData {
             amount = amount,
             paymentStatus = Paid,
             paymentDocument = "payment-document",
-            paymentType = Payment
+            paymentType = Payment,
+            refundAmount = BigDecimal(0)
           )
         )
       )

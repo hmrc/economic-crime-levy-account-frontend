@@ -101,7 +101,8 @@ class FinancialDataServiceSpec extends SpecBase {
                 amount = firstItem.amount.get,
                 paymentStatus = PartiallyPaid,
                 paymentDocument = firstItem.clearingDocument.get,
-                paymentType = Payment
+                paymentType = Payment,
+                refundAmount = BigDecimal(0)
               )
             )
           )

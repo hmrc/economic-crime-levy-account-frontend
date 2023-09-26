@@ -97,7 +97,8 @@ class FinancialDataService @Inject() (
             amount = extractValue(item.amount),
             paymentStatus = getHistoricalPaymentStatus(item, details),
             paymentDocument = extractValue(item.clearingDocument),
-            paymentType = details.getPaymentType
+            paymentType = details.getPaymentType,
+            refundAmount = details.refundAmount
           )
         }
     }
