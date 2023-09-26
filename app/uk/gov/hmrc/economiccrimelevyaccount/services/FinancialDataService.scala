@@ -17,9 +17,11 @@
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.FinancialDataConnector
+import uk.gov.hmrc.economiccrimelevyaccount.models
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse.findLatestFinancialObligation
 import uk.gov.hmrc.economiccrimelevyaccount.models._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.Interest
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -75,7 +77,11 @@ class FinancialDataService @Inject() (
       .map { document =>
         OutstandingPayments(
           paymentDueDate = extractValue(document.paymentDueDate),
-          chargeReference = extractValue(document.chargeReferenceNumber),
+          chargeReference = if (document.getPaymentType == Interest) {
+            extractValue(getPaymentReferenceNumber(documentDetails, extractValue(document.chargeReferenceNumber)))
+          } else {
+            extractValue(document.chargeReferenceNumber)
+          },
           fyFrom = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head,
           fyTo = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head,
           amount = document.documentOutstandingAmount.getOrElse(0),
@@ -122,5 +128,24 @@ class FinancialDataService @Inject() (
       Due
     }
 
-  def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
+  private def getPaymentReferenceNumber(documentDetails: Seq[DocumentDetails], interestReferenceNumber: String) =
+    documentDetails
+      .filter(alignDataForPayments)
+      .filter(document => extractValue(document.interestPostedChargeRef).equalsIgnoreCase(interestReferenceNumber))
+      .head
+      .chargeReferenceNumber
+
+  private def filterInPayments: PartialFunction[DocumentDetails, Boolean] = {
+    case x: DocumentDetails
+        if extractValue(x.documentType) == NewCharge | extractValue(x.documentType) == AmendedCharge =>
+      true
+  }
+
+  private def filterOutInterest: PartialFunction[DocumentDetails, Boolean] = {
+    case x: DocumentDetails if extractValue(x.documentType) == InterestCharge => false
+  }
+
+  private def alignDataForPayments: PartialFunction[DocumentDetails, Boolean] =
+    filterInPayments orElse filterOutInterest
+  def extractValue[A](value: Option[A]): A                                    = value.getOrElse(throw new IllegalStateException())
 }
