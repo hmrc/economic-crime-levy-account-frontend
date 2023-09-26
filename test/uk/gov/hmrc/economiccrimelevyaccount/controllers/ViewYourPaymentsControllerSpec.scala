@@ -20,6 +20,7 @@ import org.mockito.ArgumentMatchers.any
 import play.api.http.Status.OK
 import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, status}
+import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialViewDetails
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.services.FinancialDataService
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.FinancialViewDetails
@@ -44,13 +45,14 @@ class ViewYourPaymentsControllerSpec extends SpecBase {
 
   "onPageLoad" should {
     "return OK and the correct view when financialData is present" in forAll {
-      (financialViewDetails: FinancialViewDetails) =>
+      (financialViewDetails: ValidFinancialViewDetails) =>
         when(mockFinancialDataService.getFinancialDetails(any()))
-          .thenReturn(Future.successful(Some(financialViewDetails)))
+          .thenReturn(Future.successful(Some(financialViewDetails.financialViewDetails)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         status(result)          shouldBe OK
-        contentAsString(result) shouldBe paymentsView(financialViewDetails)(fakeRequest, messages).toString()
+        contentAsString(result) shouldBe paymentsView(financialViewDetails.financialViewDetails)(fakeRequest, messages)
+          .toString()
     }
     "return OK and the correct view when financialData is missing" in {
       when(mockFinancialDataService.getFinancialDetails(any()))

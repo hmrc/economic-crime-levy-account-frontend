@@ -41,7 +41,8 @@ class ViewYourPaymentsController @Inject() (
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
     financialDataService.getFinancialDetails.map {
-      case Some(value) => Ok(view(value))
+      case Some(value) =>
+        Ok(view(value))
       case None        => Ok(noPaymentsView())
     }
   }

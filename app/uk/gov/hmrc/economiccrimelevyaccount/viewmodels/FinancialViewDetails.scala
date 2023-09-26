@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
 
+import play.api.libs.json._
 import java.time.LocalDate
 
 case class FinancialViewDetails(outstandingPayments: Seq[OutstandingPayments], paymentHistory: Seq[PaymentHistory])
@@ -25,7 +26,9 @@ case class OutstandingPayments(
   fyFrom: LocalDate,
   fyTo: LocalDate,
   amount: BigDecimal,
-  paymentStatus: PaymentStatus
+  paymentStatus: PaymentStatus,
+  paymentType: PaymentType,
+  interestChargeReference: Option[String]
 )
 
 case class PaymentHistory(
@@ -35,7 +38,8 @@ case class PaymentHistory(
   fyTo: LocalDate,
   amount: BigDecimal,
   paymentStatus: PaymentStatus,
-  paymentDocument: String
+  paymentDocument: String,
+  paymentType: PaymentType
 )
 sealed trait PaymentStatus
 
@@ -47,4 +51,31 @@ object PaymentStatus {
   case object Paid extends PaymentStatus
 
   case object PartiallyPaid extends PaymentStatus
+}
+
+sealed trait PaymentType
+
+object PaymentType {
+  case object Payment extends PaymentType
+  case object Interest extends PaymentType
+  case object Unknown extends PaymentType
+
+  implicit val format: Format[PaymentType] = new Format[PaymentType] {
+    override def reads(json: JsValue): JsResult[PaymentType] = json.validate[String] match {
+      case JsSuccess(value, _) =>
+        value match {
+          case "Payment"  => JsSuccess(Payment)
+          case "Interest" => JsSuccess(Interest)
+          case _          => JsSuccess(Unknown)
+        }
+      case e: JsError          => e
+    }
+
+    override def writes(o: PaymentType): JsValue = o match {
+      case Payment  => JsString("Payment")
+      case Interest => JsString("Interest")
+      case Unknown => JsString("Unknown")
+    }
+  }
+
 }

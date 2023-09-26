@@ -16,6 +16,7 @@
 
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{FinancialViewDetails, OutstandingPayments, PaymentStatus}
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentHistory
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
@@ -79,30 +80,56 @@
 
 @tableRowsOutstandingPayments(rowData: Seq[OutstandingPayments]) = @{
     rowData.map(data => {
-        val status = resolveStatus(data.paymentStatus)
-        Seq(TableRow(content = HtmlContent(ViewUtils.formatLocalDate(data.paymentDueDate)), classes = "govuk-table__header"),
-            TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.reference", data.chargeReference)), classes = "govuk-table__cell"),
+        Seq(getPaymentDueDateCellContent(data),
+            TableRow(content = HtmlContent(getOutstandingPaymentTypeCellContent(data)), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.period", ViewUtils.formatLocalDate(data.fyFrom),
                 ViewUtils.formatLocalDate(data.fyTo))), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(ViewUtils.formatMoney(data.amount)), classes = "govuk-table__cell"),
-            TableRow(content = HtmlContent(messages("account.viewPayments.table.status", status._1, status._2)), classes = status._2)
+            getPaymentStatusCellContent(data)
         )
     }
     )
 }
-
+@getPaymentDueDateCellContent(data: OutstandingPayments) = @{
+  data.paymentType match {
+      case Payment => TableRow(content = HtmlContent(ViewUtils.formatLocalDate(data.paymentDueDate)), classes = "govuk-table__header")
+      case Interest => TableRow(content = Empty)
+  }
+}
+@getPaymentStatusCellContent(data: OutstandingPayments) = @{
+    data.paymentType match {
+        case Payment => {
+            val status = resolveStatus(data.paymentStatus)
+            TableRow(content = HtmlContent(messages("account.viewPayments.table.status", status._1, status._2)), classes = status._2)
+        }
+        case Interest => TableRow(content = Empty)
+    }
+}
+@getOutstandingPaymentTypeCellContent(data: OutstandingPayments) = @{
+    data.paymentType match {
+        case Payment => messages("account.viewPayments.table.cell.reference", data.chargeReference)
+        case Interest => messages("account.viewPayments.outstanding.table.cell.interest.reference", data.interestChargeReference.getOrElse(???), data.chargeReference)
+    }
+}
 @tableRowsPaymentHistory(rowData: Seq[PaymentHistory]) = @{
     rowData.map(data => {
         val status = resolveStatus(data.paymentStatus)
         val paymentDate = ViewUtils.formatLocalDate(data.paymentDate)
         Seq(TableRow(content = HtmlContent(paymentDate)),
-            TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.reference", data.chargeReference))),
+            TableRow(content = HtmlContent(getHistoryPaymentTypeCellContent(data))),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.period", ViewUtils.formatLocalDate(data.fyFrom),
                 ViewUtils.formatLocalDate(data.fyTo))), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(ViewUtils.formatMoney(data.amount)), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.status", status._1, status._2)), classes = status._2)
         )
     })
+}
+@getHistoryPaymentTypeCellContent(data: PaymentHistory) = @{
+  data.paymentType match {
+      case Payment => messages("account.viewPayments.table.cell.reference", data.chargeReference)
+      case Interest => messages("account.viewPayments.history.table.cell.interest.reference", data.chargeReference)
+
+  }
 }
 @resolveStatus(paymentStatus: PaymentStatus) = @{
     paymentStatus match {

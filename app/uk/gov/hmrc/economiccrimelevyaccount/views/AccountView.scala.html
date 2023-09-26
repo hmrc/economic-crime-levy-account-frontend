@@ -19,6 +19,8 @@
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 @import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationDetails
 @import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDetails
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.Payment
+
 
 
 @this(
@@ -54,20 +56,24 @@
 @paymentsSubHeading = @{
     optFinancialDetails match {
         case Some(financialData) =>
-            if(financialData.isOverdue) {
-                Html(messages("account.overdue.payments.subHeading.1",
-                    ViewUtils.formatLocalDate(financialData.fromDate).takeRight(4),
-                    ViewUtils.formatLocalDate(financialData.toDate).takeRight(4),
-                    ViewUtils.formatMoney(financialData.amount)
-                ))
-            } else {
-                Html(messages("account.due.payments.subHeading",
-                    ViewUtils.formatMoney(financialData.amount),
-                    ViewUtils.formatLocalDate(financialData.dueDate).takeRight(4),
-                    ViewUtils.formatLocalDate(financialData.fromDate).takeRight(4),
-                    ViewUtils.formatLocalDate(financialData.toDate).takeRight(4)
-                ))
-            }
+          if(financialData.paymentType == Payment) {
+              if(financialData.isOverdue) {
+                  Html(messages("account.overdue.payments.subHeading.1",
+                      ViewUtils.formatLocalDate(financialData.fromDate).takeRight(4),
+                      ViewUtils.formatLocalDate(financialData.toDate).takeRight(4),
+                      ViewUtils.formatMoney(financialData.amount)
+                  ))
+              } else {
+                      Html(messages("account.due.payments.subHeading",
+                          ViewUtils.formatMoney(financialData.amount),
+                          ViewUtils.formatLocalDate(financialData.dueDate).takeRight(4),
+                          ViewUtils.formatLocalDate(financialData.fromDate).takeRight(4),
+                          ViewUtils.formatLocalDate(financialData.toDate).takeRight(4)))
+                  }
+              } else {
+              Html(messages("account.interest.payments.subHeading"))
+
+          }
         case None => Html(messages("account.noneDue.payments.subHeading"))
     }
 }

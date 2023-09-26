@@ -18,6 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.models.audit
 
 import play.api.libs.json.{JsValue, Json, OFormat}
 import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationDetails
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType
 
 import java.time.LocalDate
 
@@ -55,6 +56,7 @@ case class AccountViewedAuditDocumentDetails(
   issueDate: Option[String],
   interestPostedAmount: Option[BigDecimal],
   postingDate: Option[String],
+  paymentType: PaymentType,
   penaltyTotals: Option[Seq[AccountViewedAuditPenaltyTotals]],
   lineItems: Option[Seq[AccountViewedAuditLineItem]]
 )

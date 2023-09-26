@@ -22,6 +22,9 @@ import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments}
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.EclEnrolment
 import uk.gov.hmrc.economiccrimelevyaccount.models._
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.Paid
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{FinancialViewDetails, OutstandingPayments, PaymentHistory}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
 
 import java.time.{Instant, LocalDate}
 
@@ -34,6 +37,9 @@ case class ObligationDataWithOverdueObligation(obligationData: ObligationData)
 case class ObligationDataWithSubmittedObligation(obligationData: ObligationData)
 
 case class ValidFinancialDataResponse(financialDataResponse: FinancialDataResponse)
+case class ValidFinancialDataResponseForLatestObligation(financialDataResponse: FinancialDataResponse)
+
+case class ValidFinancialViewDetails(financialViewDetails: FinancialViewDetails)
 
 trait EclTestData {
 
@@ -183,7 +189,59 @@ trait EclTestData {
       )
     )
   }
-  private val genDate: Gen[LocalDate]                                               =
+
+  implicit val arbValidFinancialDataResponseForLatestObligation
+    : Arbitrary[ValidFinancialDataResponseForLatestObligation] = Arbitrary {
+    for {
+      arbTotalisationAmounts <- Arbitrary.arbitrary[Int]
+      documentDetails        <- Arbitrary.arbitrary[DocumentDetails]
+      lineItemDetails        <- Arbitrary.arbitrary[LineItemDetails]
+
+    } yield ValidFinancialDataResponseForLatestObligation(
+      FinancialDataResponse(
+        totalisation = Some(
+          Totalisation(
+            totalAccountBalance = Some(BigDecimal(arbTotalisationAmounts)),
+            totalAccountOverdue = Some(BigDecimal(arbTotalisationAmounts.toString)),
+            totalOverdue = Some(BigDecimal(arbTotalisationAmounts.toString)),
+            totalNotYetDue = Some(BigDecimal(arbTotalisationAmounts.toString)),
+            totalBalance = Some(BigDecimal(arbTotalisationAmounts.toString)),
+            totalCredit = Some(BigDecimal(arbTotalisationAmounts.toString)),
+            totalCleared = Some(BigDecimal(arbTotalisationAmounts.toString))
+          )
+        ),
+        documentDetails = Some(
+          Seq(
+            documentDetails.copy(
+              documentType = Some(NewCharge),
+              chargeReferenceNumber = Some("test-ecl-registration-reference"),
+              documentTotalAmount = Some(BigDecimal(10000)),
+              documentClearedAmount = Some(BigDecimal(1000)),
+              documentOutstandingAmount = Some(BigDecimal(9000)),
+              interestPostedAmount = None,
+              interestAccruingAmount = None,
+              issueDate = Some(LocalDate.now.toString),
+              penaltyTotals = None,
+              lineItemDetails = Some(
+                Seq(
+                  lineItemDetails.copy(
+                    chargeDescription = Some("test-ecl-registration-reference"),
+                    amount = Some(BigDecimal(1000)),
+                    clearingDate = Some(LocalDate.now),
+                    periodFromDate = Some(LocalDate.now),
+                    periodToDate = Some(LocalDate.now),
+                    periodKey = Some("21XY"),
+                    clearingDocument = Some("clearing-document")
+                  )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+  }
+  private val genDate: Gen[LocalDate]                          =
     localDateGen(currentYear - 1, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY)
 
   implicit val arbFinancialDetails: Arbitrary[FinancialDetails] = Arbitrary {
@@ -198,10 +256,47 @@ trait EclTestData {
       fromDate = fromDate,
       toDate = toDate,
       periodKey = periodKey,
-      chargeReference = ""
+      chargeReference = "",
+      paymentType = Payment
     )
   }
-  def alphaNumericString: String                                = Gen.alphaNumStr.sample.get
+
+  implicit val arbFinancialViewDetails: Arbitrary[ValidFinancialViewDetails] = Arbitrary {
+    for {
+      fromDate <- genDate
+      toDate   <- genDate
+      amount   <- Arbitrary.arbitrary[Int]
+
+    } yield ValidFinancialViewDetails(
+      FinancialViewDetails(
+        outstandingPayments = Seq(
+          OutstandingPayments(
+            paymentDueDate = fromDate,
+            chargeReference = "test-ecl-reference",
+            fyFrom = fromDate,
+            fyTo = toDate,
+            amount = amount,
+            paymentStatus = Paid,
+            paymentType = Payment,
+            interestChargeReference = Some("test-ecl-reference")
+          )
+        ),
+        paymentHistory = Seq(
+          PaymentHistory(
+            paymentDate = fromDate,
+            chargeReference = "test-ecl-reference",
+            fyFrom = fromDate,
+            fyTo = toDate,
+            amount = amount,
+            paymentStatus = Paid,
+            paymentDocument = "payment-document",
+            paymentType = Payment
+          )
+        )
+      )
+    )
+  }
+  def alphaNumericString: String                                             = Gen.alphaNumStr.sample.get
 
   val testInternalId: String               = alphaNumericString
   val testEclRegistrationReference: String = alphaNumericString

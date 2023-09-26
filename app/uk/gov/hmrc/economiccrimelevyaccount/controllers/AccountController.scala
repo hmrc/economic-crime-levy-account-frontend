@@ -74,7 +74,9 @@ class AccountController @Inject() (
                   ViewUtils.formatLocalDate(registrationDate),
                   latestObligationData,
                   dataResponse.documentDetails match {
-                    case Some(_) => financialDataService.getLatestFinancialObligation(dataResponse)
+                    case Some(_) =>
+                      val x = financialDataService.getLatestFinancialObligation(dataResponse)
+                      x
                     case None    => None
                   }
                 )
@@ -129,6 +131,7 @@ class AccountController @Inject() (
                   detail.issueDate,
                   detail.interestPostedAmount,
                   detail.postingDate,
+                  detail.getPaymentType,
                   detail.penaltyTotals match {
                     case Some(penaltyTotals) =>
                       Some(

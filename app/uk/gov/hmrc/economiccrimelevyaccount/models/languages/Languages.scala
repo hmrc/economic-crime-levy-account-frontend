@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.economiccrimelevyaccount.models
+package uk.gov.hmrc.economiccrimelevyaccount.models.languages
 
 import play.api.i18n.Lang
 
