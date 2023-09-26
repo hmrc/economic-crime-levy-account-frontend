@@ -18,6 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.models
 
 import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponse
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
 
 class FinancialDataResponseSpec extends SpecBase {
 
@@ -33,6 +34,13 @@ class FinancialDataResponseSpec extends SpecBase {
           documentClearedAmount = Some(paid),
           documentTotalAmount = Some(total)
         )
+
+    def setupDocumentType(
+      dataResponse: ValidFinancialDataResponse,
+      documentType: FinancialDataDocumentType
+    ): DocumentDetails =
+      dataResponse.financialDataResponse.documentDetails.get.head
+        .copy(documentType = Some(documentType))
 
     "return zero for partially paid document" in forAll {
       (
@@ -59,6 +67,42 @@ class FinancialDataResponseSpec extends SpecBase {
         val details = setup(dataResponse, oneHundred, twoHundred)
 
         details.refundAmount should equal(oneHundred)
+    }
+
+    "return Payment obligation for NewCharge documentType" in forAll {
+      (
+        dataResponse: ValidFinancialDataResponse
+      ) =>
+        val details = setupDocumentType(dataResponse, NewCharge)
+        details.getPaymentType should equal(Payment)
+    }
+
+    "return Interest obligation for InterestCharge documentType" in forAll {
+      (
+        dataResponse: ValidFinancialDataResponse
+      ) =>
+        val details = setupDocumentType(dataResponse, InterestCharge)
+        details.getPaymentType should equal(Interest)
+    }
+
+    "return interest charge reference when documentType is InterestCharge" in forAll {
+      (
+        dataResponse: ValidFinancialDataResponse
+      ) =>
+        val details = setupDocumentType(dataResponse, InterestCharge)
+        details.getInterestChargeReference should equal(Some("test-ecl-registration-reference"))
+    }
+
+    "return None for interest charge reference when documentType is NewCharge" in forAll {
+      (
+        dataResponse: ValidFinancialDataResponse
+      ) =>
+        val details = setupDocumentType(dataResponse, NewCharge)
+        details.getInterestChargeReference should equal(None)
+    }
+
+    "throw exception if None is passed in extractValue method" in {
+      an[IllegalStateException] should be thrownBy DocumentDetails.extractValue(None)
     }
   }
 }

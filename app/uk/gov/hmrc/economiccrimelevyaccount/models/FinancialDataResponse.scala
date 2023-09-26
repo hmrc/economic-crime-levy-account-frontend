@@ -200,9 +200,10 @@ case class DocumentDetails(
           case InterestCharge            => chargeReferenceNumber
         }
     }
-  def extractValue[A](value: Option[A]): A       = value.getOrElse(throw new IllegalStateException())
 }
 object DocumentDetails {
+  def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
+
   implicit val format: OFormat[DocumentDetails] = Json.format[DocumentDetails]
 }
 
