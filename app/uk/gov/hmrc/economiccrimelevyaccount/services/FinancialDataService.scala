@@ -51,7 +51,8 @@ class FinancialDataService @Inject() (
               extractValue(firstLineItemDetailsElement.periodFromDate),
               extractValue(firstLineItemDetailsElement.periodToDate),
               extractValue(firstLineItemDetailsElement.periodKey),
-              extractValue(value.chargeReferenceNumber)
+              extractValue(value.chargeReferenceNumber),
+              value.getPaymentType
             )
           )
         } else {
@@ -78,7 +79,9 @@ class FinancialDataService @Inject() (
           fyFrom = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head,
           fyTo = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head,
           amount = document.documentOutstandingAmount.getOrElse(0),
-          paymentStatus = getOutstandingPaymentStatus(document)
+          paymentStatus = getOutstandingPaymentStatus(document),
+          paymentType = document.getPaymentType,
+          interestChargeReference = document.getInterestChargeReference
         )
       }
 
@@ -94,6 +97,7 @@ class FinancialDataService @Inject() (
             amount = extractValue(item.amount),
             paymentStatus = getHistoricalPaymentStatus(item, details),
             paymentDocument = extractValue(item.clearingDocument),
+            paymentType = details.getPaymentType,
             refundAmount = details.refundAmount
           )
         }

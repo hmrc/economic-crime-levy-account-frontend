@@ -17,6 +17,7 @@
 package uk.gov.hmrc.economiccrimelevyaccount.models
 
 import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType
 
 import java.time.LocalDate
 
@@ -25,7 +26,8 @@ case class FinancialDetails(
   fromDate: LocalDate,
   toDate: LocalDate,
   periodKey: String,
-  chargeReference: String
+  chargeReference: String,
+  paymentType: PaymentType
 ) {
   private val dueMonth   = 9
   private val dueDay     = 30

@@ -129,6 +129,7 @@ class AccountController @Inject() (
                   detail.issueDate,
                   detail.interestPostedAmount,
                   detail.postingDate,
+                  detail.getPaymentType,
                   detail.penaltyTotals match {
                     case Some(penaltyTotals) =>
                       Some(

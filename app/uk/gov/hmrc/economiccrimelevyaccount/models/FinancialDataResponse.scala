@@ -18,6 +18,8 @@ package uk.gov.hmrc.economiccrimelevyaccount.models
 
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json._
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
 import java.time.LocalDate
@@ -63,11 +65,23 @@ object FinancialDataResponse {
   def findLatestFinancialObligation(financialData: FinancialDataResponse): Option[DocumentDetails] =
     financialData.documentDetails match {
       case Some(value) =>
-        value
-          .filter(docDetails => extractValue(docDetails.documentType) != ReversedCharge)
+        val eligiblePayments = value
+          .filter(docDetails =>
+            extractValue(docDetails.documentType) == NewCharge || extractValue(
+              docDetails.documentType
+            ) == AmendedCharge
+          )
           .filter(!_.isCleared)
-          .sortBy(_.postingDate)
-          .headOption
+
+        if (eligiblePayments.nonEmpty) {
+          eligiblePayments.sortBy(_.postingDate).headOption
+        } else {
+          value
+            .filter(docDetails => extractValue(docDetails.documentType) == InterestCharge)
+            .filter(!_.isCleared)
+            .sortBy(_.postingDate)
+            .headOption
+        }
       case None        => None
     }
 
@@ -167,9 +181,29 @@ case class DocumentDetails(
     case None            => None
   }
 
-  def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
+  def getPaymentType: PaymentType =
+    documentType match {
+      case None        => Unknown
+      case Some(value) =>
+        value match {
+          case NewCharge | AmendedCharge => Payment
+          case InterestCharge            => Interest
+        }
+    }
+
+  def getInterestChargeReference: Option[String] =
+    documentType match {
+      case None        => None
+      case Some(value) =>
+        value match {
+          case NewCharge | AmendedCharge => None
+          case InterestCharge            => chargeReferenceNumber
+        }
+    }
 }
 object DocumentDetails {
+  def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
+
   implicit val format: OFormat[DocumentDetails] = Json.format[DocumentDetails]
 }
 
@@ -183,7 +217,8 @@ object FinancialDataDocumentType {
           case "TRM New Charge"      => JsSuccess(NewCharge)
           case "TRM Amended Charge"  => JsSuccess(AmendedCharge)
           case "TRM Reversed Charge" => JsSuccess(ReversedCharge)
-          case _                     => JsError("Invalid charge type has been passed")
+          case "Interest Document"   => JsSuccess(InterestCharge)
+          case _                     => JsError(s"Invalid charge type has been passed: $value")
         }
       case e: JsError          => e
     }
@@ -192,6 +227,7 @@ object FinancialDataDocumentType {
       case NewCharge      => JsString("TRM New Charge")
       case AmendedCharge  => JsString("TRM Amended Charge")
       case ReversedCharge => JsString("TRM Reversed Charge")
+      case InterestCharge => JsString("Interest Document")
     }
   }
 }
@@ -201,6 +237,7 @@ case object NewCharge extends FinancialDataDocumentType
 case object AmendedCharge extends FinancialDataDocumentType
 
 case object ReversedCharge extends FinancialDataDocumentType
+case object InterestCharge extends FinancialDataDocumentType
 
 case class LineItemDetails(
   amount: Option[BigDecimal],
