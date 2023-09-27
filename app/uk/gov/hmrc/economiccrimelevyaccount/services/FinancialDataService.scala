@@ -97,7 +97,11 @@ class FinancialDataService @Inject() (
         .map { item =>
           PaymentHistory(
             paymentDate = extractValue(item.clearingDate),
-            chargeReference = extractValue(details.chargeReferenceNumber),
+            chargeReference = if (details.getPaymentType == Interest) {
+              extractValue(getPaymentReferenceNumber(documentDetails, extractValue(details.chargeReferenceNumber)))
+            } else {
+              extractValue(details.chargeReferenceNumber)
+            },
             fyFrom = extractValue(item.periodFromDate),
             fyTo = extractValue(item.periodToDate),
             amount = extractValue(item.amount),
