@@ -94,13 +94,13 @@
 }
 @getPaymentDueDateCellContent(data: OutstandingPayments) = @{
   data.paymentType match {
-      case Payment => TableRow(content = HtmlContent(ViewUtils.formatLocalDate(data.paymentDueDate)), classes = "govuk-table__header")
+      case StandardPayment => TableRow(content = HtmlContent(ViewUtils.formatLocalDate(data.paymentDueDate)), classes = "govuk-table__header")
       case Interest => TableRow(content = Empty)
   }
 }
 @getPaymentStatusCellContent(data: OutstandingPayments) = @{
     data.paymentType match {
-        case Payment => {
+        case StandardPayment => {
             val status = resolveStatus(data.paymentStatus)
             TableRow(content = HtmlContent(messages("account.viewPayments.table.status", status._1, status._2)), classes = status._2)
         }
@@ -109,7 +109,7 @@
 }
 @getOutstandingPaymentTypeCellContent(data: OutstandingPayments) = @{
     data.paymentType match {
-        case Payment => messages("account.viewPayments.table.cell.reference", data.chargeReference)
+        case StandardPayment => messages("account.viewPayments.table.cell.reference", data.chargeReference)
         case Interest => messages("account.viewPayments.outstanding.table.cell.interest.reference", data.interestChargeReference.get, data.chargeReference)
     }
 }
@@ -117,7 +117,11 @@
     rowData.map(data => {
         val status = resolveStatus(data.paymentStatus)
         val paymentDate = ViewUtils.formatLocalDate(data.paymentDate)
-        val link = refundBaseUrl + "?amount=" + data.refundAmount
+        val refundAmount = data.refundAmount match {
+            case None => BigDecimal(0)
+            case Some(value) => value
+        }
+        val link = refundBaseUrl + "?amount=" + refundAmount
         Seq(TableRow(content = HtmlContent(paymentDate)),
             TableRow(content = HtmlContent(getHistoryPaymentTypeCellContent(data))),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.period", ViewUtils.formatLocalDate(data.fyFrom),
@@ -130,7 +134,7 @@
 }
 @getHistoryPaymentTypeCellContent(data: PaymentHistory) = @{
   data.paymentType match {
-      case Payment => messages("account.viewPayments.table.cell.reference", data.chargeReference)
+      case StandardPayment => messages("account.viewPayments.table.cell.reference", data.chargeReference)
       case Interest => messages("account.viewPayments.history.table.cell.interest.reference", data.chargeReference)
 
   }

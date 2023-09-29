@@ -108,7 +108,10 @@ class FinancialDataService @Inject() (
             paymentStatus = getHistoricalPaymentStatus(item, details),
             paymentDocument = extractValue(item.clearingDocument),
             paymentType = details.getPaymentType,
-            refundAmount = details.refundAmount
+            refundAmount = (details.documentType, details.contractObjectNumber) match {
+              case (Some(Payment), Some(contractObjectNumber)) => response.refundAmount(contractObjectNumber)
+              case _                                           => None
+            }
           )
         }
     }

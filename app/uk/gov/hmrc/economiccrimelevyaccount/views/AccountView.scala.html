@@ -19,7 +19,7 @@
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 @import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationDetails
 @import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDetails
-@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.Payment
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.StandardPayment
 
 
 
@@ -56,7 +56,7 @@
 @paymentsSubHeading = @{
     optFinancialDetails match {
         case Some(financialData) =>
-          if(financialData.paymentType == Payment) {
+          if(financialData.paymentType == StandardPayment) {
               if(financialData.isOverdue) {
                   Html(messages("account.overdue.payments.subHeading.1",
                       ViewUtils.formatLocalDate(financialData.fromDate).takeRight(4),

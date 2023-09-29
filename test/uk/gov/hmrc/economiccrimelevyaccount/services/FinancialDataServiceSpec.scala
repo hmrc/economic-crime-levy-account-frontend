@@ -23,7 +23,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.connectors.FinancialDataConnector
 import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, FinancialDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Due, Paid, PartiallyPaid}
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.Payment
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.StandardPayment
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{FinancialViewDetails, OutstandingPayments, PaymentHistory}
 
 import java.time.LocalDate
@@ -88,7 +88,7 @@ class FinancialDataServiceSpec extends SpecBase {
                 fyTo = firstItem.periodToDate.get,
                 amount = documentDetails.documentOutstandingAmount.get,
                 paymentStatus = Due,
-                paymentType = Payment,
+                paymentType = StandardPayment,
                 interestChargeReference = None
               )
             ),
@@ -101,8 +101,8 @@ class FinancialDataServiceSpec extends SpecBase {
                 amount = firstItem.amount.get,
                 paymentStatus = PartiallyPaid,
                 paymentDocument = firstItem.clearingDocument.get,
-                paymentType = Payment,
-                refundAmount = BigDecimal(0)
+                paymentType = StandardPayment,
+                refundAmount = None
               )
             )
           )
