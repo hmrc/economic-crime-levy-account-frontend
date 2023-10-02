@@ -33,9 +33,9 @@ case class OutstandingPayments(
 
 case class PaymentHistory(
   paymentDate: LocalDate,
-  chargeReference: String,
-  fyFrom: LocalDate,
-  fyTo: LocalDate,
+  chargeReference: Option[String],
+  fyFrom: Option[LocalDate],
+  fyTo: Option[LocalDate],
   amount: BigDecimal,
   paymentStatus: PaymentStatus,
   paymentType: PaymentType,

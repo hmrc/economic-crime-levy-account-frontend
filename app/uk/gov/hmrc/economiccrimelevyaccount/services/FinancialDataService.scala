@@ -21,7 +21,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.models
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse.findLatestFinancialObligation
 import uk.gov.hmrc.economiccrimelevyaccount.models._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.Interest
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, Overpayment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -73,7 +73,7 @@ class FinancialDataService @Inject() (
     val documentDetails = extractValue(response.documentDetails)
 
     val outstandingPayments = documentDetails
-      .filter(document => !document.isCleared)
+      .filter(document => !document.isCleared | !document.documentType.contains(Payment))
       .map { document =>
         OutstandingPayments(
           paymentDueDate = extractValue(document.paymentDueDate),
@@ -97,13 +97,17 @@ class FinancialDataService @Inject() (
         .map { item =>
           PaymentHistory(
             paymentDate = extractValue(item.clearingDate),
-            chargeReference = if (details.getPaymentType == Interest) {
-              extractValue(getPaymentReferenceNumber(documentDetails, extractValue(details.chargeReferenceNumber)))
-            } else {
-              extractValue(details.chargeReferenceNumber)
+            chargeReference = details.getPaymentType match {
+              case Interest    =>
+                Some(
+                  extractValue(getPaymentReferenceNumber(documentDetails, extractValue(details.chargeReferenceNumber)))
+                )
+              case Overpayment =>
+                None
+              case _           => Some(extractValue(details.chargeReferenceNumber))
             },
-            fyFrom = extractValue(item.periodFromDate),
-            fyTo = extractValue(item.periodToDate),
+            fyFrom = if (details.getPaymentType == Overpayment) None else Some(extractValue(item.periodFromDate)),
+            fyTo = if (details.getPaymentType == Overpayment) None else Some(extractValue(item.periodToDate)),
             amount = extractValue(item.amount),
             paymentStatus = getHistoricalPaymentStatus(item, details),
             paymentDocument = extractValue(item.clearingDocument),
