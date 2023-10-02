@@ -27,7 +27,7 @@
         table: GovukTable
 )
 
-@(financialViewDetails: FinancialViewDetails, refundBaseUrl: String)(implicit request: Request[_], messages: Messages)
+@(financialViewDetails: FinancialViewDetails, refundBaseUrl: String, disableRefund: Boolean)(implicit request: Request[_], messages: Messages)
 
 @generateTableOutstandingPayments = @{
     val outstandingPayments = financialViewDetails.outstandingPayments
@@ -70,7 +70,7 @@
                 HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.3")), classes = "govuk-table__header govuk-!-width-one-quarter"),
                 HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.4")), classes = "govuk-table__header govuk-!-width-one-quarter"),
                 HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.5")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.6")), classes = "govuk-table__header govuk-!-width-one-quarter")
+                HeadCell(content = if (disableRefund) " " else Text(messages("account.viewPayments.table.paymentsHistory.header.6")), classes = "govuk-table__header govuk-!-width-one-quarter")
             )),
             firstCellIsHeader = true,
             caption = Some(messages("account.viewPayments.table.paymentsHistory.header.title")),
@@ -124,7 +124,7 @@
                 ViewUtils.formatLocalDate(data.fyTo))), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(ViewUtils.formatMoney(data.amount)), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.status", status._1, status._2)), classes = status._2),
-            TableRow(content = HtmlContent(messages("account.viewPayments.table.paymentsHistory.cell.6", link)), classes = "govuk-table__cell"),
+            TableRow(content = HtmlContent(if (disableRefund) "&nbsp;" else messages("account.viewPayments.table.paymentsHistory.cell.6", link)), classes = "govuk-table__cell"),
         )
     })
 }
