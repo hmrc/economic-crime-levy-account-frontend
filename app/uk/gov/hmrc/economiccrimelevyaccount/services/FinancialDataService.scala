@@ -21,7 +21,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.models
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse.findLatestFinancialObligation
 import uk.gov.hmrc.economiccrimelevyaccount.models._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, StandardPayment}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, Payment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -129,7 +129,10 @@ class FinancialDataService @Inject() (
         }
     }
 
-    FinancialViewDetails(outstandingPayments = outstandingPayments ++ accruingInterestOutstandingPayments, paymentHistory = paymentsHistory)
+    FinancialViewDetails(
+      outstandingPayments = outstandingPayments ++ accruingInterestOutstandingPayments,
+      paymentHistory = paymentsHistory
+    )
   }
 
   private def getHistoricalPaymentStatus(lineItem: LineItemDetails, document: DocumentDetails): PaymentStatus =
@@ -173,8 +176,8 @@ class FinancialDataService @Inject() (
     case x: DocumentDetails if !x.isCleared => x
   }
 
-  private def filterItemsThatAreStandardPayment: PartialFunction[DocumentDetails, DocumentDetails] = {
-    case x: DocumentDetails if x.getPaymentType == StandardPayment => x
+  private def filterItemsThatArePayment: PartialFunction[DocumentDetails, DocumentDetails] = {
+    case x: DocumentDetails if x.getPaymentType == Payment => x
   }
 
   private def filterItemsThatHaveAccruingInterestAmount: PartialFunction[DocumentDetails, DocumentDetails] = {
@@ -183,6 +186,6 @@ class FinancialDataService @Inject() (
 
   private def filterItemsThatHaveAccruingInterest: PartialFunction[DocumentDetails, DocumentDetails] =
     filterItemsThatAreNotCleared andThen
-      filterItemsThatAreStandardPayment andThen
+      filterItemsThatArePayment andThen
       filterItemsThatHaveAccruingInterestAmount
 }
