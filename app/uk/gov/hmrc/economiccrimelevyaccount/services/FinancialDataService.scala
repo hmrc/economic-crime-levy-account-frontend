@@ -21,7 +21,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.models
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse.findLatestFinancialObligation
 import uk.gov.hmrc.economiccrimelevyaccount.models._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.Interest
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, StandardPayment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -73,7 +73,7 @@ class FinancialDataService @Inject() (
     val documentDetails = extractValue(response.documentDetails)
 
     val outstandingPayments = documentDetails
-      .filter(document => !document.isCleared)
+      .collect(filterItemsThatAreNotCleared)
       .map { document =>
         OutstandingPayments(
           paymentDueDate = extractValue(document.paymentDueDate),
@@ -88,6 +88,22 @@ class FinancialDataService @Inject() (
           paymentStatus = getOutstandingPaymentStatus(document),
           paymentType = document.getPaymentType,
           interestChargeReference = document.getInterestChargeReference
+        )
+      }
+
+    val accruingInterestOutstandingPayments = documentDetails
+      .collect(filterItemsThatHaveAccruingInterest)
+      .filter(document => document.interestAccruingAmount.nonEmpty)
+      .map { document =>
+        OutstandingPayments(
+          paymentDueDate = extractValue(document.paymentDueDate),
+          chargeReference = extractValue(document.chargeReferenceNumber),
+          fyFrom = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head,
+          fyTo = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head,
+          amount = extractValue(document.interestAccruingAmount),
+          paymentStatus = getOutstandingPaymentStatus(document),
+          paymentType = Interest,
+          interestChargeReference = Some("123")
         )
       }
 
@@ -113,7 +129,7 @@ class FinancialDataService @Inject() (
         }
     }
 
-    FinancialViewDetails(outstandingPayments = outstandingPayments, paymentHistory = paymentsHistory)
+    FinancialViewDetails(outstandingPayments = outstandingPayments ++ accruingInterestOutstandingPayments, paymentHistory = paymentsHistory)
   }
 
   private def getHistoricalPaymentStatus(lineItem: LineItemDetails, document: DocumentDetails): PaymentStatus =
@@ -152,4 +168,21 @@ class FinancialDataService @Inject() (
   private def alignDataForPayments: PartialFunction[DocumentDetails, Boolean] =
     filterInPayments orElse filterOutInterest
   def extractValue[A](value: Option[A]): A                                    = value.getOrElse(throw new IllegalStateException())
+
+  private def filterItemsThatAreNotCleared: PartialFunction[DocumentDetails, DocumentDetails] = {
+    case x: DocumentDetails if !x.isCleared => x
+  }
+
+  private def filterItemsThatAreStandardPayment: PartialFunction[DocumentDetails, DocumentDetails] = {
+    case x: DocumentDetails if x.getPaymentType == StandardPayment => x
+  }
+
+  private def filterItemsThatHaveAccruingInterestAmount: PartialFunction[DocumentDetails, DocumentDetails] = {
+    case x: DocumentDetails if x.interestAccruingAmount.nonEmpty => x
+  }
+
+  private def filterItemsThatHaveAccruingInterest: PartialFunction[DocumentDetails, DocumentDetails] =
+    filterItemsThatAreNotCleared andThen
+      filterItemsThatAreStandardPayment andThen
+      filterItemsThatHaveAccruingInterestAmount
 }
