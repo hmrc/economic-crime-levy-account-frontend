@@ -126,7 +126,6 @@ class FinancialDataService @Inject() (
 
     val accruingInterestOutstandingPayments = documentDetails
       .collect(filterItemsThatHaveAccruingInterest)
-      .filter(document => document.interestAccruingAmount.nonEmpty)
       .map { document =>
         OutstandingPayments(
           paymentDueDate = extractValue(document.paymentDueDate),
