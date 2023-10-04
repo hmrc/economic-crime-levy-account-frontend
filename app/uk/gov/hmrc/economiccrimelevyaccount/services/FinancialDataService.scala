@@ -21,7 +21,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.models
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse.findLatestFinancialObligation
 import uk.gov.hmrc.economiccrimelevyaccount.models._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, Payment}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, Overpayment, StandardPayment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -73,7 +73,7 @@ class FinancialDataService @Inject() (
     val documentDetails = extractValue(response.documentDetails)
 
     val outstandingPayments = documentDetails
-      .collect(filterItemsThatAreNotCleared)
+      .filter(document => !document.isCleared & !document.documentType.contains(Payment))
       .map { document =>
         OutstandingPayments(
           paymentDueDate = extractValue(document.paymentDueDate),
@@ -91,6 +91,39 @@ class FinancialDataService @Inject() (
         )
       }
 
+    val paymentsHistory = documentDetails
+      .collect(filterOutOverPayment)
+      .flatMap { details =>
+        extractValue(details.lineItemDetails)
+          .filter(item => item.isCleared)
+          .map { item =>
+            PaymentHistory(
+              paymentDate = extractValue(item.clearingDate),
+              chargeReference = details.getPaymentType match {
+                case Interest    =>
+                  Some(
+                    extractValue(
+                      getPaymentReferenceNumber(documentDetails, extractValue(details.chargeReferenceNumber))
+                    )
+                  )
+                case Overpayment => None
+                case _           => Some(extractValue(details.chargeReferenceNumber))
+              },
+              fyFrom = if (details.getPaymentType == Overpayment) None else Some(extractValue(item.periodFromDate)),
+              fyTo = if (details.getPaymentType == Overpayment) None else Some(extractValue(item.periodToDate)),
+              amount = extractValue(item.amount),
+              paymentStatus = getHistoricalPaymentStatus(item, details),
+              paymentDocument = extractValue(item.clearingDocument),
+              paymentType = details.getPaymentType,
+              refundAmount = (details.documentType, details.contractObjectNumber) match {
+                case (Some(NewCharge), Some(contractObjectNumber)) =>
+                  response.refundAmount(contractObjectNumber).abs
+                case _                                             => BigDecimal(0)
+              }
+            )
+          }
+      }
+
     val accruingInterestOutstandingPayments = documentDetails
       .collect(filterItemsThatHaveAccruingInterest)
       .filter(document => document.interestAccruingAmount.nonEmpty)
@@ -106,28 +139,6 @@ class FinancialDataService @Inject() (
           interestChargeReference = None
         )
       }
-
-    val paymentsHistory = documentDetails.flatMap { details =>
-      extractValue(details.lineItemDetails)
-        .filter(item => item.isCleared)
-        .map { item =>
-          PaymentHistory(
-            paymentDate = extractValue(item.clearingDate),
-            chargeReference = if (details.getPaymentType == Interest) {
-              extractValue(getPaymentReferenceNumber(documentDetails, extractValue(details.chargeReferenceNumber)))
-            } else {
-              extractValue(details.chargeReferenceNumber)
-            },
-            fyFrom = extractValue(item.periodFromDate),
-            fyTo = extractValue(item.periodToDate),
-            amount = extractValue(item.amount),
-            paymentStatus = getHistoricalPaymentStatus(item, details),
-            paymentDocument = extractValue(item.clearingDocument),
-            paymentType = details.getPaymentType,
-            refundAmount = details.refundAmount
-          )
-        }
-    }
 
     FinancialViewDetails(
       outstandingPayments = outstandingPayments ++ accruingInterestOutstandingPayments,
@@ -168,16 +179,14 @@ class FinancialDataService @Inject() (
     case x: DocumentDetails if extractValue(x.documentType) == InterestCharge => false
   }
 
-  private def alignDataForPayments: PartialFunction[DocumentDetails, Boolean] =
+  private def alignDataForPayments: PartialFunction[DocumentDetails, Boolean]                 =
     filterInPayments orElse filterOutInterest
-  def extractValue[A](value: Option[A]): A                                    = value.getOrElse(throw new IllegalStateException())
-
   private def filterItemsThatAreNotCleared: PartialFunction[DocumentDetails, DocumentDetails] = {
     case x: DocumentDetails if !x.isCleared => x
   }
 
   private def filterItemsThatArePayment: PartialFunction[DocumentDetails, DocumentDetails] = {
-    case x: DocumentDetails if x.getPaymentType == Payment => x
+    case x: DocumentDetails if x.getPaymentType == StandardPayment => x
   }
 
   private def filterItemsThatHaveAccruingInterestAmount: PartialFunction[DocumentDetails, DocumentDetails] = {
@@ -188,4 +197,10 @@ class FinancialDataService @Inject() (
     filterItemsThatAreNotCleared andThen
       filterItemsThatArePayment andThen
       filterItemsThatHaveAccruingInterestAmount
+
+  private def filterOutOverPayment: PartialFunction[DocumentDetails, DocumentDetails] = {
+    case x: DocumentDetails if x.getPaymentType == StandardPayment | x.getPaymentType == Interest => x
+  }
+
+  def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
 }

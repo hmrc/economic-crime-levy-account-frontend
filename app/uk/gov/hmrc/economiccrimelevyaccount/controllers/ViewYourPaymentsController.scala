@@ -45,7 +45,7 @@ class ViewYourPaymentsController @Inject() (
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
     financialDataService.getFinancialDetails.map {
-      case Some(value) => Ok(view(value, appConfig.refundBaseUrl))
+      case Some(value) => Ok(view(value, appConfig.refundBaseUrl, appConfig.disableRefund))
       case None        => Ok(noPaymentsView())
     }
   }

@@ -23,7 +23,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.OpsJourneyError
 import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, FinancialDetails, OpsJourneyResponse}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{FinancialDataService, OpsService}
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.Payment
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.StandardPayment
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -86,7 +86,7 @@ class PaymentsControllerSpec extends SpecBase {
               date,
               "",
               chargeReference,
-              Payment
+              StandardPayment
             )
           )
         )

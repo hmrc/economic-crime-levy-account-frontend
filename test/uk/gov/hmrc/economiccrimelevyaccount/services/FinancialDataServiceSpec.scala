@@ -23,7 +23,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.connectors.FinancialDataConnector
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, FinancialDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, PartiallyPaid}
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.Payment
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{FinancialViewDetails, OutstandingPayments, PaymentHistory}
 
 import scala.concurrent.Future
@@ -87,20 +87,20 @@ class FinancialDataServiceSpec extends SpecBase {
                 fyTo = firstItem.periodToDate.get,
                 amount = documentDetails.documentOutstandingAmount.get,
                 paymentStatus = Overdue,
-                paymentType = Payment,
+                paymentType = StandardPayment,
                 interestChargeReference = None
               )
             ),
             Seq(
               PaymentHistory(
                 paymentDate = firstItem.clearingDate.get,
-                chargeReference = documentDetails.chargeReferenceNumber.get,
-                fyFrom = firstItem.periodFromDate.get,
-                fyTo = firstItem.periodToDate.get,
+                chargeReference = documentDetails.chargeReferenceNumber,
+                fyFrom = firstItem.periodFromDate,
+                fyTo = firstItem.periodToDate,
                 amount = firstItem.amount.get,
                 paymentStatus = PartiallyPaid,
                 paymentDocument = firstItem.clearingDocument.get,
-                paymentType = Payment,
+                paymentType = StandardPayment,
                 refundAmount = BigDecimal(0)
               )
             )

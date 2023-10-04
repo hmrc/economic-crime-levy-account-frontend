@@ -24,16 +24,35 @@ class FinancialDataResponseSpec extends SpecBase {
 
   "FinancialDataResponse refundAmount" should {
 
-    val zero       = BigDecimal(0)
-    val oneHundred = BigDecimal(100)
     val twoHundred = BigDecimal(200)
 
-    def setup(dataResponse: ValidFinancialDataResponse, total: BigDecimal, paid: BigDecimal): DocumentDetails =
-      dataResponse.financialDataResponse.documentDetails.get.head
-        .copy(
-          documentClearedAmount = Some(paid),
-          documentTotalAmount = Some(total)
+    def setup(
+      dataResponse: ValidFinancialDataResponse,
+      overpaymentAmount: BigDecimal,
+      contractObjectNumberParam: String,
+      regime: String,
+      secondRecordDocumentType: FinancialDataDocumentType
+    ): FinancialDataResponse = {
+      val documentDetails = dataResponse.financialDataResponse.documentDetails.get.head
+      dataResponse.financialDataResponse.copy(
+        documentDetails = Some(
+          Seq(
+            documentDetails.copy(
+              documentTotalAmount = Some(overpaymentAmount),
+              contractObjectNumber = Some(contractObjectNumberParam),
+              contractObjectType = Some(regime),
+              documentType = Some(NewCharge)
+            ),
+            documentDetails.copy(
+              documentTotalAmount = Some(overpaymentAmount),
+              contractObjectNumber = Some(contractObjectNumberParam),
+              contractObjectType = Some(regime),
+              documentType = Some(secondRecordDocumentType)
+            )
+          )
         )
+      )
+    }
 
     def setupDocumentType(
       dataResponse: ValidFinancialDataResponse,
@@ -42,31 +61,22 @@ class FinancialDataResponseSpec extends SpecBase {
       dataResponse.financialDataResponse.documentDetails.get.head
         .copy(documentType = Some(documentType))
 
-    "return zero for partially paid document" in forAll {
+    "return None documents that do not have an overpayment" in forAll {
       (
         dataResponse: ValidFinancialDataResponse
       ) =>
-        val details = setup(dataResponse, twoHundred, oneHundred)
+        val details = setup(dataResponse, twoHundred, "1234567890", "ECL", NewCharge)
 
-        details.refundAmount should equal(zero)
+        details.refundAmount("1234567890") should equal(BigDecimal(0))
     }
 
-    "return zero for fully paid document" in forAll {
+    "return Some of correct amount when we have an overpayment" in forAll {
       (
         dataResponse: ValidFinancialDataResponse
       ) =>
-        val details = setup(dataResponse, oneHundred, oneHundred)
+        val details = setup(dataResponse, twoHundred, "1234567890", "ECL", Payment)
 
-        details.refundAmount should equal(zero)
-    }
-
-    "return correct amount for overpaid document" in forAll {
-      (
-        dataResponse: ValidFinancialDataResponse
-      ) =>
-        val details = setup(dataResponse, oneHundred, twoHundred)
-
-        details.refundAmount should equal(oneHundred)
+        details.refundAmount("1234567890") should equal(BigDecimal(200))
     }
 
     "return Payment obligation for NewCharge documentType" in forAll {
@@ -74,7 +84,7 @@ class FinancialDataResponseSpec extends SpecBase {
         dataResponse: ValidFinancialDataResponse
       ) =>
         val details = setupDocumentType(dataResponse, NewCharge)
-        details.getPaymentType should equal(Payment)
+        details.getPaymentType should equal(StandardPayment)
     }
 
     "return Interest obligation for InterestCharge documentType" in forAll {
