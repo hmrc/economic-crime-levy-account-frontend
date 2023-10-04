@@ -16,17 +16,17 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
-import org.mockito.ArgumentMatchers.{any, anyInt}
-import uk.gov.hmrc.economiccrimelevyaccount.{ValidFinancialDataResponse, ValidFinancialDataResponseForLatestObligation}
+import org.mockito.ArgumentMatchers.any
+import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponseForLatestObligation
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.FinancialDataConnector
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, FinancialDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Due, Overdue, Paid, PartiallyPaid}
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.Payment
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{FinancialViewDetails, OutstandingPayments, PaymentHistory}
+import uk.gov.hmrc.economiccrimelevyaccount.models._
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, PartiallyPaid}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.StandardPayment
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{FinancialViewDetails, PaymentHistory}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 
-import java.time.LocalDate
 import scala.concurrent.Future
 
 class FinancialDataServiceSpec extends SpecBase {
@@ -88,20 +88,20 @@ class FinancialDataServiceSpec extends SpecBase {
                 fyTo = firstItem.periodToDate.get,
                 amount = documentDetails.documentOutstandingAmount.get,
                 paymentStatus = Overdue,
-                paymentType = Payment,
+                paymentType = StandardPayment,
                 interestChargeReference = None
               )
             ),
             Seq(
               PaymentHistory(
                 paymentDate = firstItem.clearingDate.get,
-                chargeReference = documentDetails.chargeReferenceNumber.get,
-                fyFrom = firstItem.periodFromDate.get,
-                fyTo = firstItem.periodToDate.get,
+                chargeReference = documentDetails.chargeReferenceNumber,
+                fyFrom = firstItem.periodFromDate,
+                fyTo = firstItem.periodToDate,
                 amount = firstItem.amount.get,
                 paymentStatus = PartiallyPaid,
                 paymentDocument = firstItem.clearingDocument.get,
-                paymentType = Payment,
+                paymentType = StandardPayment,
                 refundAmount = BigDecimal(0)
               )
             )

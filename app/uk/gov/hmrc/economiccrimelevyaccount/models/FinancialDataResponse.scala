@@ -18,13 +18,33 @@ package uk.gov.hmrc.economiccrimelevyaccount.models
 
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json._
+import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse.extractValue
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
 import java.time.LocalDate
 
-case class FinancialDataResponse(totalisation: Option[Totalisation], documentDetails: Option[Seq[DocumentDetails]])
+case class FinancialDataResponse(totalisation: Option[Totalisation], documentDetails: Option[Seq[DocumentDetails]]) {
+  private def getDocumentsByContractObject(
+    contractObjectNumber: String,
+    contractObjectType: String
+  ): Seq[DocumentDetails] =
+    extractValue(documentDetails).filter(document =>
+      document.contractObjectType.contains(contractObjectType)
+        && document.contractObjectNumber.contains(contractObjectNumber)
+    )
+
+  def refundAmount(contractObjectNumber: String): BigDecimal =
+    getDocumentsByContractObject(contractObjectNumber, "ECL")
+      .collect(outOverPaymentPredicate)
+      .flatMap(_.documentTotalAmount)
+      .sum
+
+  def outOverPaymentPredicate: PartialFunction[DocumentDetails, DocumentDetails] = {
+    case document: DocumentDetails if document.getPaymentType == Overpayment => document
+  }
+}
 
 object FinancialDataResponse {
   implicit object FinancialDataResponseReads
@@ -114,7 +134,9 @@ case class DocumentDetails(
   interestPostedAmount: Option[BigDecimal],
   interestAccruingAmount: Option[BigDecimal],
   interestPostedChargeRef: Option[String],
-  penaltyTotals: Option[Seq[PenaltyTotals]]
+  penaltyTotals: Option[Seq[PenaltyTotals]],
+  contractObjectNumber: Option[String],
+  contractObjectType: Option[String]
 ) {
 
   val paymentDueDate: Option[LocalDate] = newestLineItem() match {
@@ -140,7 +162,7 @@ case class DocumentDetails(
   }
 
   val isCleared: Boolean = documentOutstandingAmount match {
-    case Some(amount) => amount <= 0
+    case Some(amount) => amount == 0
     case None         => true
   }
 
@@ -152,18 +174,6 @@ case class DocumentDetails(
   val isPartiallyPaid: Boolean = documentOutstandingAmount match {
     case Some(amount) => amount > 0 && hasClearedAmount
     case None         => false
-  }
-
-  val refundAmount: BigDecimal = {
-    val zero          = BigDecimal(0)
-    val clearedAmount = documentClearedAmount.getOrElse(zero)
-    val totalAmount   = documentTotalAmount.getOrElse(zero)
-
-    if (clearedAmount > totalAmount) {
-      clearedAmount - totalAmount
-    } else {
-      zero
-    }
   }
 
   def isNewestLineItem(lineItem: LineItemDetails): Boolean =
@@ -186,8 +196,9 @@ case class DocumentDetails(
       case None        => Unknown
       case Some(value) =>
         value match {
-          case NewCharge | AmendedCharge => Payment
+          case NewCharge | AmendedCharge => StandardPayment
           case InterestCharge            => Interest
+          case Payment                   => Overpayment
         }
     }
 
@@ -218,6 +229,7 @@ object FinancialDataDocumentType {
           case "TRM Amended Charge"  => JsSuccess(AmendedCharge)
           case "TRM Reversed Charge" => JsSuccess(ReversedCharge)
           case "Interest Document"   => JsSuccess(InterestCharge)
+          case "Payment"             => JsSuccess(Payment)
           case _                     => JsError(s"Invalid charge type has been passed: $value")
         }
       case e: JsError          => e
@@ -228,6 +240,7 @@ object FinancialDataDocumentType {
       case AmendedCharge  => JsString("TRM Amended Charge")
       case ReversedCharge => JsString("TRM Reversed Charge")
       case InterestCharge => JsString("Interest Document")
+      case Payment        => JsString("Payment")
     }
   }
 }
@@ -238,6 +251,7 @@ case object AmendedCharge extends FinancialDataDocumentType
 
 case object ReversedCharge extends FinancialDataDocumentType
 case object InterestCharge extends FinancialDataDocumentType
+case object Payment extends FinancialDataDocumentType
 
 case class LineItemDetails(
   amount: Option[BigDecimal],

@@ -45,7 +45,7 @@ class OpsServiceSpec extends SpecBase {
 
       val opsJourneyRequest = OpsJourneyRequest(
         chargeReference,
-        amount * 100,
+        amount.abs * 100,
         url,
         url,
         None
@@ -58,7 +58,7 @@ class OpsServiceSpec extends SpecBase {
       )
         .thenReturn(Future.successful(Left(opsJourneyResponse)))
 
-      val result = await(service.startOpsJourney(chargeReference, amount, None))
+      val result = await(service.startOpsJourney(chargeReference, amount.abs, None))
 
       result shouldBe Left(opsJourneyResponse)
     }
@@ -69,7 +69,7 @@ class OpsServiceSpec extends SpecBase {
 
     val opsJourneyRequest = OpsJourneyRequest(
       chargeReference,
-      amount * 100,
+      amount.abs * 100,
       url,
       url,
       None
@@ -81,7 +81,7 @@ class OpsServiceSpec extends SpecBase {
       )(any())
     ).thenReturn(Future.successful(Right(opsJourneyError)))
 
-    val result = await(service.startOpsJourney(chargeReference, amount, None))
+    val result = await(service.startOpsJourney(chargeReference, amount.abs, None))
 
     result shouldBe Right(opsJourneyError)
   }

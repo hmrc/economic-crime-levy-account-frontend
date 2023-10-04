@@ -257,7 +257,7 @@ trait EclTestData {
       toDate = toDate,
       periodKey = periodKey,
       chargeReference = "",
-      paymentType = Payment
+      paymentType = StandardPayment
     )
   }
 
@@ -277,20 +277,20 @@ trait EclTestData {
             fyTo = toDate,
             amount = amount,
             paymentStatus = Paid,
-            paymentType = Payment,
+            paymentType = StandardPayment,
             interestChargeReference = Some("test-ecl-reference")
           )
         ),
         paymentHistory = Seq(
           PaymentHistory(
             paymentDate = fromDate,
-            chargeReference = "test-ecl-reference",
-            fyFrom = fromDate,
-            fyTo = toDate,
+            chargeReference = Some("test-ecl-reference"),
+            fyFrom = Some(fromDate),
+            fyTo = Some(toDate),
             amount = amount,
             paymentStatus = Paid,
             paymentDocument = "payment-document",
-            paymentType = Payment,
+            paymentType = StandardPayment,
             refundAmount = BigDecimal(0)
           )
         )
