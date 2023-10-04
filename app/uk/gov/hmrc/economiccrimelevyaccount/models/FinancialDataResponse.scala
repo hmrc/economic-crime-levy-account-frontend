@@ -35,10 +35,11 @@ case class FinancialDataResponse(totalisation: Option[Totalisation], documentDet
         && document.contractObjectNumber.contains(contractObjectNumber)
     )
 
-  def refundAmount(contractObjectNumber: String): Option[BigDecimal] =
+  def refundAmount(contractObjectNumber: String): BigDecimal =
     getDocumentsByContractObject(contractObjectNumber, "ECL")
-      .collectFirst(outOverPaymentPredicate)
+      .collect(outOverPaymentPredicate)
       .flatMap(_.documentTotalAmount)
+      .sum
 
   def outOverPaymentPredicate: PartialFunction[DocumentDetails, DocumentDetails] = {
     case document: DocumentDetails if document.getPaymentType == Overpayment => document

@@ -40,7 +40,7 @@ case class PaymentHistory(
   paymentStatus: PaymentStatus,
   paymentType: PaymentType,
   paymentDocument: String,
-  refundAmount: Option[BigDecimal]
+  refundAmount: BigDecimal
 )
 sealed trait PaymentStatus
 

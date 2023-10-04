@@ -52,7 +52,9 @@ trait FinancialDataStubs {
                       interestPostedAmount = Some(BigDecimal("10000")),
                       interestAccruingAmount = Some(BigDecimal("10000")),
                       interestPostedChargeRef = Some("XMECL0000000006"),
-                      penaltyTotals = None
+                      penaltyTotals = None,
+                      contractObjectNumber = Some("00000290000000000173"),
+                      contractObjectType = Some("ECL")
                     )
                   )
                 )

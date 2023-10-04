@@ -117,15 +117,13 @@
     rowData.map(data => {
         val status = resolveStatus(data.paymentStatus)
         val paymentDate = ViewUtils.formatLocalDate(data.paymentDate)
-        val refundAmount = data.refundAmount match {
-            case None => BigDecimal(0)
-            case Some(value) => value
-        }
+        val refundAmount = data.refundAmount
+
         val link = refundBaseUrl + "?amount=" + refundAmount
         Seq(TableRow(content = HtmlContent(paymentDate)),
             TableRow(content = HtmlContent(getHistoryPaymentTypeCellContent(data))),
-            TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.period", ViewUtils.formatLocalDate(data.fyFrom),
-                ViewUtils.formatLocalDate(data.fyTo))), classes = "govuk-table__cell"),
+            TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.period", ViewUtils.formatLocalDate(data.fyFrom.get),
+                ViewUtils.formatLocalDate(data.fyTo.get))), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(ViewUtils.formatMoney(data.amount)), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.status", status._1, status._2)), classes = status._2),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.paymentsHistory.cell.6", link)), classes = "govuk-table__cell"),

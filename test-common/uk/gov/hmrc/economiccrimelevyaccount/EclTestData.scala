@@ -284,14 +284,14 @@ trait EclTestData {
         paymentHistory = Seq(
           PaymentHistory(
             paymentDate = fromDate,
-            chargeReference = "test-ecl-reference",
-            fyFrom = fromDate,
-            fyTo = toDate,
+            chargeReference = Some("test-ecl-reference"),
+            fyFrom = Some(fromDate),
+            fyTo = Some(toDate),
             amount = amount,
             paymentStatus = Paid,
             paymentDocument = "payment-document",
             paymentType = StandardPayment,
-            refundAmount = None
+            refundAmount = BigDecimal(0)
           )
         )
       )
