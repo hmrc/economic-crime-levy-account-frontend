@@ -103,7 +103,7 @@ class FinancialDataService @Inject() (
           amount = extractValue(document.interestAccruingAmount),
           paymentStatus = getOutstandingPaymentStatus(document),
           paymentType = Interest,
-          interestChargeReference = Some("123")
+          interestChargeReference = None
         )
       }
 
