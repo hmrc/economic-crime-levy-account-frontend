@@ -162,7 +162,7 @@ case class DocumentDetails(
   }
 
   val isCleared: Boolean = documentOutstandingAmount match {
-    case Some(amount) => amount <= 0
+    case Some(amount) => amount == 0
     case None         => true
   }
 

@@ -73,7 +73,7 @@ class FinancialDataService @Inject() (
     val documentDetails = extractValue(response.documentDetails)
 
     val outstandingPayments = documentDetails
-      .filter(document => !document.isCleared | !document.documentType.contains(Payment))
+      .filter(document => !document.isCleared & !document.documentType.contains(Payment))
       .map { document =>
         OutstandingPayments(
           paymentDueDate = extractValue(document.paymentDueDate),

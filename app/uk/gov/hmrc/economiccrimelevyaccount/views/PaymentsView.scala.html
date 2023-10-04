@@ -132,8 +132,8 @@
 }
 @getHistoryPaymentTypeCellContent(data: PaymentHistory) = @{
   data.paymentType match {
-      case StandardPayment => messages("account.viewPayments.table.cell.reference", data.chargeReference)
-      case Interest => messages("account.viewPayments.history.table.cell.interest.reference", data.chargeReference)
+      case StandardPayment => messages("account.viewPayments.table.cell.reference", data.chargeReference.get)
+      case Interest => messages("account.viewPayments.history.table.cell.interest.reference", data.chargeReference.get)
 
   }
 }
