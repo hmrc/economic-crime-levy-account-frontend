@@ -16,6 +16,7 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
+import play.api.Logging
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.{FinancialDataConnector, ObligationDataConnector}
@@ -42,7 +43,8 @@ class ViewYourReturnsController @Inject() (
   noReturnsView: NoReturnsView
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with Logging {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
     obligationDataConnector.getObligationData().flatMap {
@@ -84,7 +86,8 @@ class ViewYourReturnsController @Inject() (
             }
           Ok(returnsView(viewData.sortBy(_.dueDate)(Ordering[LocalDate].reverse)))
       }
-      .recover { case _ =>
+      .recover { case e =>
+        logger.error(s"Exception thrown when assembling returns view data: ${e.getMessage}")
         InternalServerError
       }
 
