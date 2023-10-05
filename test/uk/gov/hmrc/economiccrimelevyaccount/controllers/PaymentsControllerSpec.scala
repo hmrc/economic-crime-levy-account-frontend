@@ -72,7 +72,7 @@ class PaymentsControllerSpec extends SpecBase {
           .thenReturn(Future.successful(Left(opsJourneyResponse)))
 
         when(mockFinancialDataService.retrieveFinancialData(any()))
-          .thenReturn(Future.successful(Right(response)))
+          .thenReturn(Future.successful(Some(response)))
 
         when(
           mockFinancialDataService.getLatestFinancialObligation(
@@ -115,7 +115,7 @@ class PaymentsControllerSpec extends SpecBase {
           .thenReturn(Future.successful(Right(opsJourneyError)))
 
         when(mockFinancialDataService.retrieveFinancialData(any()))
-          .thenReturn(Future.successful(Right(response)))
+          .thenReturn(Future.successful(Some(response)))
 
         when(
           mockFinancialDataService.getLatestFinancialObligation(

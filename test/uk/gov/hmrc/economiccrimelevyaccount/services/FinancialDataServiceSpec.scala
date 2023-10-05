@@ -17,6 +17,7 @@
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import org.mockito.ArgumentMatchers.any
+import play.api.http.Status.BAD_REQUEST
 import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponseForLatestObligation
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.FinancialDataConnector
@@ -26,6 +27,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, P
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.StandardPayment
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{FinancialViewDetails, PaymentHistory}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
+import uk.gov.hmrc.http.UpstreamErrorResponse
 
 import scala.concurrent.Future
 
@@ -60,10 +62,10 @@ class FinancialDataServiceSpec extends SpecBase {
     }
   }
   "getFinancialDetails"          should {
-    "return None if we receive error from financialDataConnector" in {
+    "return None if we receive None from financialDataConnector" in {
 
       when(mockFinancialDataConnector.getFinancialData()(any()))
-        .thenReturn(Future.successful(Left(any())))
+        .thenReturn(Future.successful(None))
 
       val response = await(service.getFinancialDetails)
 
@@ -73,7 +75,7 @@ class FinancialDataServiceSpec extends SpecBase {
     "return Some with FinancialViewDetails if we receive correct response from financialDataConnector" in forAll {
       validResponse: ValidFinancialDataResponseForLatestObligation =>
         when(mockFinancialDataConnector.getFinancialData()(any()))
-          .thenReturn(Future.successful(Right(validResponse.financialDataResponse)))
+          .thenReturn(Future.successful(Some(validResponse.financialDataResponse)))
 
         val response        = await(service.getFinancialDetails)
         val documentDetails = validResponse.financialDataResponse.documentDetails.get.head

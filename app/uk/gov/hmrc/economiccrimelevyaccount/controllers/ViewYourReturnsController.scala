@@ -21,7 +21,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.{FinancialDataConnector, ObligationDataConnector}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataErrorResponse, FinancialDataResponse, Fulfilled, ObligationData, ObligationDetails, Open}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, Fulfilled, ObligationData, ObligationDetails, Open}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
@@ -54,48 +54,43 @@ class ViewYourReturnsController @Inject() (
 
   private def assembleReturnsViewData(
     obligationData: ObligationData
-  )(implicit hc: HeaderCarrier, request: AuthorisedRequest[_]) = {
-    val financialDetails = financialDataConnector.getFinancialData()
-
-    financialDetails.map{
-      case Left(FinancialDataErrorResponse(errorCode, reason)) =>
+  )(implicit hc: HeaderCarrier, request: AuthorisedRequest[_]) =
+    financialDataConnector
+      .getFinancialData()
+      .map {
+        case None                        =>
+          Ok(noReturnsView())
+        case Some(financialDataResponse) =>
+          val viewData = obligationData.obligations
+            .flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate))
+            .map { details =>
+              val status    = resolveStatus(details)
+              val reference = getChargeReference(
+                status = status,
+                dueDate = details.inboundCorrespondenceDueDate,
+                documentDetails = financialDataResponse.documentDetails,
+                periodKey = details.periodKey
+              )
+              ReturnsOverview(
+                forgeFromToCaption(
+                  details.inboundCorrespondenceFromDate.getYear,
+                  details.inboundCorrespondenceToDate.getYear
+                ),
+                details.inboundCorrespondenceDueDate,
+                status,
+                details.periodKey,
+                reference
+              )
+            }
+          Ok(returnsView(viewData.sortBy(_.dueDate)(Ordering[LocalDate].reverse)))
+      }
+      .recover { case _ =>
         InternalServerError
-      case Right(financialDataResponse) =>
-        val viewData = obligationData.obligations
-        .flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate))
-        .map { details =>
-          val status = resolveStatus(details)
-          val reference = getChargeReference(
-            status = status,
-            dueDate = details.inboundCorrespondenceDueDate,
-            documentDetails = financialDataResponse.documentDetails,
-            periodKey = details.periodKey
-          )
-            ReturnsOverview(
-              forgeFromToCaption(
-                details.inboundCorrespondenceFromDate.getYear,
-                details.inboundCorrespondenceToDate.getYear
-              ),
-              details.inboundCorrespondenceDueDate,
-              status,
-              details.periodKey,
-              reference
-          )
-        }
-        Ok(returnsView(viewData.sortBy(_.dueDate)(Ordering[LocalDate].reverse)))
-    }.recoverWith{
-      case JsError(e) =>   BadRequest
-      case e =>   InternalServerError
-    }
-//    Future.sequence(
-//
-//    )
-  }
+      }
 
   private def resolveStatus(details: ObligationDetails): ReturnStatus = details.status match {
-    case Open if details.isOverdue  => Overdue
-    case Open if !details.isOverdue => Due
-    case Fulfilled                  => Submitted
+    case Open      => if (details.isOverdue) Overdue else Due
+    case Fulfilled => Submitted
   }
 
   private def getChargeReference(
@@ -106,12 +101,12 @@ class ViewYourReturnsController @Inject() (
   ): Option[String] =
     status match {
       case Submitted =>
-            val chargeReference = extractValue(documentDetails)
-              .find(details =>
-                extractValue(details.lineItemDetails).exists(item => extractValue(item.periodKey) == periodKey)
-              )
-              .flatMap(_.chargeReferenceNumber)
-            Some(extractValue(chargeReference))
+        val chargeReference = extractValue(documentDetails)
+          .find(details =>
+            extractValue(details.lineItemDetails).exists(item => extractValue(item.periodKey) == periodKey)
+          )
+          .flatMap(_.chargeReferenceNumber)
+        Some(extractValue(chargeReference))
       case _         => None
     }
 

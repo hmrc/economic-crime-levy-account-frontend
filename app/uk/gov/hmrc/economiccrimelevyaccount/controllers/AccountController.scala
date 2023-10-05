@@ -56,7 +56,7 @@ class AccountController @Inject() (
           }
 
           financialDataService.retrieveFinancialData.map {
-            case Left(_)             =>
+            case None               =>
               auditAccountViewed(obligationData, None)
               Ok(
                 view(
@@ -66,7 +66,7 @@ class AccountController @Inject() (
                   None
                 )
               )
-            case Right(dataResponse) =>
+            case Some(dataResponse) =>
               auditAccountViewed(obligationData, Some(dataResponse))
               Ok(
                 view(
