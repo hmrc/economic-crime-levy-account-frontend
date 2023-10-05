@@ -110,7 +110,13 @@
 @getOutstandingPaymentTypeCellContent(data: OutstandingPayments) = @{
     data.paymentType match {
         case StandardPayment => messages("account.viewPayments.table.cell.reference", data.chargeReference)
-        case Interest => messages("account.viewPayments.outstanding.table.cell.interest.reference", data.interestChargeReference.get, data.chargeReference)
+        case Interest => {
+            data.interestChargeReference match {
+                case Some(value) => messages("account.viewPayments.outstanding.table.cell.interest.reference", value, data.chargeReference)
+                case None => messages("account.viewPayments.outstanding.table.cell.interest.reference", "", data.chargeReference)
+            }
+
+        }
     }
 }
 @tableRowsPaymentHistory(rowData: Seq[PaymentHistory]) = @{

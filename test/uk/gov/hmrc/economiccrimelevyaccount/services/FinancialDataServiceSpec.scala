@@ -22,9 +22,8 @@ import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponseForLatestO
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.FinancialDataConnector
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
-import uk.gov.hmrc.economiccrimelevyaccount.models._
+import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialDataResponse, FinancialDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, PartiallyPaid}
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.StandardPayment
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{FinancialViewDetails, PaymentHistory}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.http.UpstreamErrorResponse
@@ -56,7 +55,9 @@ class FinancialDataServiceSpec extends SpecBase {
             firstItem.periodToDate.get,
             firstItem.periodKey.get,
             documentDetails.chargeReferenceNumber.get,
-            documentDetails.getPaymentType
+            documentDetails.get
+            
+            
           )
         )
     }
@@ -91,6 +92,68 @@ class FinancialDataServiceSpec extends SpecBase {
                 amount = documentDetails.documentOutstandingAmount.get,
                 paymentStatus = Overdue,
                 paymentType = StandardPayment,
+                interestChargeReference = None
+              )
+            ),
+            Seq(
+              PaymentHistory(
+                paymentDate = firstItem.clearingDate.get,
+                chargeReference = documentDetails.chargeReferenceNumber,
+                fyFrom = firstItem.periodFromDate,
+                fyTo = firstItem.periodToDate,
+                amount = firstItem.amount.get,
+                paymentStatus = PartiallyPaid,
+                paymentDocument = firstItem.clearingDocument.get,
+                paymentType = StandardPayment,
+                refundAmount = BigDecimal(0)
+              )
+            )
+          )
+        )
+    }
+
+    "return Some with FinancialViewDetails with interest that is not yet formed into interest document" in forAll {
+      validResponse: ValidFinancialDataResponseForLatestObligation =>
+        val documentDetailsFirstItem = validResponse.financialDataResponse.documentDetails.get.head
+
+        val updatedDocumentDetailsFirstItem = documentDetailsFirstItem.copy(
+          interestAccruingAmount = Some(BigDecimal(15.00))
+        )
+        val xTest                           = validResponse.financialDataResponse.copy(documentDetails =
+          Some(
+            Seq(
+              updatedDocumentDetailsFirstItem
+            )
+          )
+        )
+
+        when(mockFinancialDataConnector.getFinancialData()(any()))
+          .thenReturn(Future.successful(Right(xTest)))
+
+        val response        = await(service.getFinancialDetails)
+        val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
+        val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head
+        response shouldBe Some(
+          FinancialViewDetails(
+            Seq(
+              OutstandingPayments(
+                paymentDueDate = documentDetails.paymentDueDate.get,
+                chargeReference = documentDetails.chargeReferenceNumber.get,
+                fyFrom = firstItem.periodFromDate.get,
+                fyTo = firstItem.periodToDate.get,
+                amount = documentDetails.documentOutstandingAmount.get,
+                paymentStatus = Overdue,
+                paymentType = StandardPayment,
+                interestChargeReference = None
+              ),
+              OutstandingPayments(
+                paymentDueDate = documentDetails.paymentDueDate.get,
+                chargeReference = documentDetails.chargeReferenceNumber.get,
+                fyFrom = firstItem.periodFromDate.get,
+                fyTo = firstItem.periodToDate.get,
+                amount = BigDecimal(15.00),
+                paymentStatus = Overdue,
+                paymentType = Interest,
                 interestChargeReference = None
               )
             ),

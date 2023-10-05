@@ -107,8 +107,7 @@ class FinancialDataService @Inject() (
                       getPaymentReferenceNumber(documentDetails, extractValue(details.chargeReferenceNumber))
                     )
                   )
-                case Overpayment =>
-                  None
+                case Overpayment => None
                 case _           => Some(extractValue(details.chargeReferenceNumber))
               },
               fyFrom = if (details.getPaymentType == Overpayment) None else Some(extractValue(item.periodFromDate)),
@@ -126,7 +125,25 @@ class FinancialDataService @Inject() (
           }
       }
 
-    FinancialViewDetails(outstandingPayments = outstandingPayments, paymentHistory = paymentsHistory)
+    val accruingInterestOutstandingPayments = documentDetails
+      .collect(filterItemsThatHaveAccruingInterest)
+      .map { document =>
+        OutstandingPayments(
+          paymentDueDate = extractValue(document.paymentDueDate),
+          chargeReference = extractValue(document.chargeReferenceNumber),
+          fyFrom = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head,
+          fyTo = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head,
+          amount = extractValue(document.interestAccruingAmount),
+          paymentStatus = getOutstandingPaymentStatus(document),
+          paymentType = Interest,
+          interestChargeReference = None
+        )
+      }
+
+    FinancialViewDetails(
+      outstandingPayments = outstandingPayments ++ accruingInterestOutstandingPayments,
+      paymentHistory = paymentsHistory
+    )
   }
 
   private def getHistoricalPaymentStatus(lineItem: LineItemDetails, document: DocumentDetails): PaymentStatus =
@@ -162,8 +179,24 @@ class FinancialDataService @Inject() (
     case x: DocumentDetails if extractValue(x.documentType) == InterestCharge => false
   }
 
-  private def alignDataForPayments: PartialFunction[DocumentDetails, Boolean] =
+  private def alignDataForPayments: PartialFunction[DocumentDetails, Boolean]                 =
     filterInPayments orElse filterOutInterest
+  private def filterItemsThatAreNotCleared: PartialFunction[DocumentDetails, DocumentDetails] = {
+    case x: DocumentDetails if !x.isCleared => x
+  }
+
+  private def filterItemsThatArePayment: PartialFunction[DocumentDetails, DocumentDetails] = {
+    case x: DocumentDetails if x.getPaymentType == StandardPayment => x
+  }
+
+  private def filterItemsThatHaveAccruingInterestAmount: PartialFunction[DocumentDetails, DocumentDetails] = {
+    case x: DocumentDetails if x.interestAccruingAmount.nonEmpty => x
+  }
+
+  private def filterItemsThatHaveAccruingInterest: PartialFunction[DocumentDetails, DocumentDetails] =
+    filterItemsThatAreNotCleared andThen
+      filterItemsThatArePayment andThen
+      filterItemsThatHaveAccruingInterestAmount
 
   private def filterOutOverPayment: PartialFunction[DocumentDetails, DocumentDetails] = {
     case x: DocumentDetails if x.getPaymentType == StandardPayment | x.getPaymentType == Interest => x
