@@ -20,6 +20,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.{FinancialDataConnector, ObligationDataConnector}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
+import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
 import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataErrorResponse, FinancialDataResponse, Fulfilled, ObligationData, ObligationDetails, Open}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview}
@@ -47,27 +48,29 @@ class ViewYourReturnsController @Inject() (
     obligationDataConnector.getObligationData().flatMap {
       case Some(obligationData) =>
         assembleReturnsViewData(obligationData)
-          .map(viewData => Ok(returnsView(viewData.sortBy(_.dueDate)(Ordering[LocalDate].reverse))))
       case None                 => Future.successful(Ok(noReturnsView()))
     }
   }
 
   private def assembleReturnsViewData(
     obligationData: ObligationData
-  )(implicit hc: HeaderCarrier): Future[Seq[ReturnsOverview]] = {
+  )(implicit hc: HeaderCarrier, request: AuthorisedRequest[_]) = {
     val financialDetails = financialDataConnector.getFinancialData()
 
-    Future.sequence(
-      obligationData.obligations
+    financialDetails.map{
+      case Left(FinancialDataErrorResponse(errorCode, reason)) =>
+        InternalServerError
+      case Right(financialDataResponse) =>
+        val viewData = obligationData.obligations
         .flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate))
         .map { details =>
           val status = resolveStatus(details)
-          getChargeReference(
+          val reference = getChargeReference(
             status = status,
             dueDate = details.inboundCorrespondenceDueDate,
-            financialDetails = financialDetails,
+            documentDetails = financialDataResponse.documentDetails,
             periodKey = details.periodKey
-          ).map(reference =>
+          )
             ReturnsOverview(
               forgeFromToCaption(
                 details.inboundCorrespondenceFromDate.getYear,
@@ -77,10 +80,16 @@ class ViewYourReturnsController @Inject() (
               status,
               details.periodKey,
               reference
-            )
           )
         }
-    )
+        Ok(returnsView(viewData.sortBy(_.dueDate)(Ordering[LocalDate].reverse)))
+    }.recoverWith{
+      case JsError(e) =>   BadRequest
+      case e =>   InternalServerError
+    }
+//    Future.sequence(
+//
+//    )
   }
 
   private def resolveStatus(details: ObligationDetails): ReturnStatus = details.status match {
@@ -92,22 +101,18 @@ class ViewYourReturnsController @Inject() (
   private def getChargeReference(
     status: ReturnStatus,
     dueDate: LocalDate,
-    financialDetails: Future[Either[FinancialDataErrorResponse, FinancialDataResponse]],
+    documentDetails: Option[Seq[DocumentDetails]],
     periodKey: String
-  ): Future[Option[String]] =
+  ): Option[String] =
     status match {
       case Submitted =>
-        financialDetails.map {
-          case Left(e)         => throw new RuntimeException(e.toString)
-          case Right(response) =>
-            val chargeReference = extractValue(response.documentDetails)
+            val chargeReference = extractValue(documentDetails)
               .find(details =>
                 extractValue(details.lineItemDetails).exists(item => extractValue(item.periodKey) == periodKey)
               )
               .flatMap(_.chargeReferenceNumber)
             Some(extractValue(chargeReference))
-        }
-      case _         => Future.successful(None)
+      case _         => None
     }
 
   private def forgeFromToCaption(yearFrom: Integer, yearTo: Integer): String = s"$yearFrom-$yearTo"

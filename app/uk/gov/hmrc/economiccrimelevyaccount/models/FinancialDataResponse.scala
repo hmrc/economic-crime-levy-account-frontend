@@ -226,8 +226,8 @@ object FinancialDataDocumentType {
       case JsSuccess(value, _) =>
         value match {
           case "TRM New Charge"      => JsSuccess(NewCharge)
-          case "TRM Amended Charge"  => JsSuccess(AmendedCharge)
-          case "TRM Reversed Charge" => JsSuccess(ReversedCharge)
+          case "TRM Amend Charge"  => JsSuccess(AmendedCharge)
+          case "TRM Reverse Charge" => JsSuccess(ReversedCharge)
           case "Interest Document"   => JsSuccess(InterestCharge)
           case "Payment"             => JsSuccess(Payment)
           case _                     => JsError(s"Invalid charge type has been passed: $value")
@@ -237,8 +237,8 @@ object FinancialDataDocumentType {
 
     override def writes(o: FinancialDataDocumentType): JsValue = o match {
       case NewCharge      => JsString("TRM New Charge")
-      case AmendedCharge  => JsString("TRM Amended Charge")
-      case ReversedCharge => JsString("TRM Reversed Charge")
+      case AmendedCharge  => JsString("TRM Amend Charge")
+      case ReversedCharge => JsString("TRM Revers Charge")
       case InterestCharge => JsString("Interest Document")
       case Payment        => JsString("Payment")
     }
@@ -252,6 +252,8 @@ case object AmendedCharge extends FinancialDataDocumentType
 case object ReversedCharge extends FinancialDataDocumentType
 case object InterestCharge extends FinancialDataDocumentType
 case object Payment extends FinancialDataDocumentType
+
+case class UnknownDocumentType(unknownType: String) extends FinancialDataDocumentType
 
 case class LineItemDetails(
   amount: Option[BigDecimal],
