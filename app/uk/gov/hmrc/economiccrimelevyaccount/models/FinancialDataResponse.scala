@@ -199,7 +199,7 @@ case class DocumentDetails(
           case NewCharge | AmendedCharge => StandardPayment
           case InterestCharge            => Interest
           case Payment                   => Overpayment
-          //TODO - what do we do when the value is ReversedCharge
+          case _                         => Unknown
         }
     }
 
@@ -208,9 +208,8 @@ case class DocumentDetails(
       case None        => None
       case Some(value) =>
         value match {
-          case NewCharge | AmendedCharge => None
-          case InterestCharge            => chargeReferenceNumber
-          //TODO - what do we do when the value is ReversedCharge
+          case InterestCharge => chargeReferenceNumber
+          case _              => None
         }
     }
 }
@@ -227,12 +226,11 @@ object FinancialDataDocumentType {
     override def reads(json: JsValue): JsResult[FinancialDataDocumentType] = json.validate[String] match {
       case JsSuccess(value, _) =>
         value match {
-          case "TRM New Charge"     => JsSuccess(NewCharge)
-          case "TRM Amend Charge"   => JsSuccess(AmendedCharge)
-          case "TRM Reverse Charge" => JsSuccess(ReversedCharge)
-          case "Interest Document"  => JsSuccess(InterestCharge)
-          case "Payment"            => JsSuccess(Payment)
-          case _                    => JsError(s"Invalid charge type has been passed: $value")
+          case "TRM New Charge"    => JsSuccess(NewCharge)
+          case "TRM Amend Charge"  => JsSuccess(AmendedCharge)
+          case "Interest Document" => JsSuccess(InterestCharge)
+          case "Payment"           => JsSuccess(Payment)
+          case value               => JsSuccess(Other(value))
         }
       case e: JsError          => e
     }
@@ -240,9 +238,9 @@ object FinancialDataDocumentType {
     override def writes(o: FinancialDataDocumentType): JsValue = o match {
       case NewCharge      => JsString("TRM New Charge")
       case AmendedCharge  => JsString("TRM Amend Charge")
-      case ReversedCharge => JsString("TRM Revers Charge")
       case InterestCharge => JsString("Interest Document")
       case Payment        => JsString("Payment")
+      case Other(value)   => JsString(value)
     }
   }
 }
@@ -251,9 +249,11 @@ case object NewCharge extends FinancialDataDocumentType
 
 case object AmendedCharge extends FinancialDataDocumentType
 
-case object ReversedCharge extends FinancialDataDocumentType
 case object InterestCharge extends FinancialDataDocumentType
+
 case object Payment extends FinancialDataDocumentType
+
+case class Other(value: String) extends FinancialDataDocumentType
 
 case class LineItemDetails(
   amount: Option[BigDecimal],
