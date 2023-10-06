@@ -52,8 +52,8 @@ class PaymentsController @Inject() (
     hc: HeaderCarrier
   ): Future[Option[OpsData]] =
     financialDataService.retrieveFinancialData.map {
-      case Left(_)         => None
-      case Right(response) =>
+      case None           => None
+      case Some(response) =>
         financialDataService.getLatestFinancialObligation(response) match {
           case Some(value) =>
             Some(

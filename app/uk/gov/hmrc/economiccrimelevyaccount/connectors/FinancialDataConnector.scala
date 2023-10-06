@@ -17,10 +17,11 @@
 package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
 import com.google.inject.Singleton
+import play.api.http.Status.{NOT_FOUND, OK}
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataErrorResponse, FinancialDataResponse}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
-
+import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse
+import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.HttpReads.Implicits._
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -28,14 +29,24 @@ import scala.concurrent.{ExecutionContext, Future}
 class FinancialDataConnector @Inject() (
   appConfig: AppConfig,
   httpClient: HttpClient
-)(implicit ec: ExecutionContext) {
+)(implicit ec: ExecutionContext)
+    extends BaseConnector {
 
   private val eclAccountUrl: String = s"${appConfig.economicCrimeLevyAccountBaseUrl}/economic-crime-levy-account"
 
   def getFinancialData()(implicit
     hc: HeaderCarrier
-  ): Future[Either[FinancialDataErrorResponse, FinancialDataResponse]] =
-    httpClient.GET[Either[FinancialDataErrorResponse, FinancialDataResponse]](
-      s"$eclAccountUrl/financial-data"
-    )
+  ): Future[Option[FinancialDataResponse]] =
+    httpClient
+      .GET[HttpResponse](
+        s"$eclAccountUrl/financial-data"
+      )
+      .flatMap { response =>
+        response.status match {
+          case OK        => response.as[FinancialDataResponse].map(Some(_))
+          case NOT_FOUND => Future.successful(None)
+          case _         =>
+            response.error
+        }
+      }
 }

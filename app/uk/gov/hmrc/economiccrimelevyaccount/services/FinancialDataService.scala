@@ -34,7 +34,8 @@ class FinancialDataService @Inject() (
 
   def retrieveFinancialData(implicit
     hc: HeaderCarrier
-  ): Future[Either[FinancialDataErrorResponse, FinancialDataResponse]] = financialDataConnector.getFinancialData()
+  ): Future[Option[FinancialDataResponse]] =
+    financialDataConnector.getFinancialData()
 
   def getLatestFinancialObligation(financialData: FinancialDataResponse): Option[FinancialDetails] = {
     val latestObligationDetails = findLatestFinancialObligation(financialData)
@@ -65,8 +66,8 @@ class FinancialDataService @Inject() (
 
   def getFinancialDetails(implicit hc: HeaderCarrier): Future[Option[FinancialViewDetails]] =
     retrieveFinancialData.map {
-      case Left(_)         => None
-      case Right(response) => Some(prepareFinancialDetails(response))
+      case None           => None
+      case Some(response) => Some(prepareFinancialDetails(response))
     }
 
   private def prepareFinancialDetails(response: FinancialDataResponse): FinancialViewDetails = {

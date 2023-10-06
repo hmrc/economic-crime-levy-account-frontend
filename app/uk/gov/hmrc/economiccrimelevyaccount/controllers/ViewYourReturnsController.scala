@@ -16,11 +16,14 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
+import play.api.Logging
 import play.api.i18n.I18nSupport
+import play.api.libs.json.JsResult
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.{FinancialDataConnector, ObligationDataConnector}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataErrorResponse, FinancialDataResponse, Fulfilled, ObligationData, ObligationDetails, Open}
+import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
+import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, Fulfilled, ObligationData, ObligationDetails, Open}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
@@ -41,73 +44,74 @@ class ViewYourReturnsController @Inject() (
   noReturnsView: NoReturnsView
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with Logging {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
     obligationDataConnector.getObligationData().flatMap {
       case Some(obligationData) =>
         assembleReturnsViewData(obligationData)
-          .map(viewData => Ok(returnsView(viewData.sortBy(_.dueDate)(Ordering[LocalDate].reverse))))
       case None                 => Future.successful(Ok(noReturnsView()))
     }
   }
 
   private def assembleReturnsViewData(
     obligationData: ObligationData
-  )(implicit hc: HeaderCarrier): Future[Seq[ReturnsOverview]] = {
-    val financialDetails = financialDataConnector.getFinancialData()
-
-    Future.sequence(
-      obligationData.obligations
-        .flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate))
-        .map { details =>
-          val status = resolveStatus(details)
-          getChargeReference(
-            status = status,
-            dueDate = details.inboundCorrespondenceDueDate,
-            financialDetails = financialDetails,
-            periodKey = details.periodKey
-          ).map(reference =>
-            ReturnsOverview(
-              forgeFromToCaption(
-                details.inboundCorrespondenceFromDate.getYear,
-                details.inboundCorrespondenceToDate.getYear
-              ),
-              details.inboundCorrespondenceDueDate,
-              status,
-              details.periodKey,
-              reference
-            )
-          )
-        }
-    )
-  }
+  )(implicit hc: HeaderCarrier, request: AuthorisedRequest[_]) =
+    financialDataConnector
+      .getFinancialData()
+      .map {
+        case None                        =>
+          Ok(noReturnsView())
+        case Some(financialDataResponse) =>
+          val viewData = obligationData.obligations
+            .flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate))
+            .map { details =>
+              val status    = resolveStatus(details)
+              val reference = getChargeReference(
+                status = status,
+                dueDate = details.inboundCorrespondenceDueDate,
+                documentDetails = financialDataResponse.documentDetails,
+                periodKey = details.periodKey
+              )
+              ReturnsOverview(
+                forgeFromToCaption(
+                  details.inboundCorrespondenceFromDate.getYear,
+                  details.inboundCorrespondenceToDate.getYear
+                ),
+                details.inboundCorrespondenceDueDate,
+                status,
+                details.periodKey,
+                reference
+              )
+            }
+          Ok(returnsView(viewData.sortBy(_.dueDate)(Ordering[LocalDate].reverse)))
+      }
+      .recover { case e =>
+        logger.error(s"Exception thrown when assembling returns view data: ${e.getMessage}")
+        InternalServerError
+      }
 
   private def resolveStatus(details: ObligationDetails): ReturnStatus = details.status match {
-    case Open if details.isOverdue  => Overdue
-    case Open if !details.isOverdue => Due
-    case Fulfilled                  => Submitted
+    case Open      => if (details.isOverdue) Overdue else Due
+    case Fulfilled => Submitted
   }
 
   private def getChargeReference(
     status: ReturnStatus,
     dueDate: LocalDate,
-    financialDetails: Future[Either[FinancialDataErrorResponse, FinancialDataResponse]],
+    documentDetails: Option[Seq[DocumentDetails]],
     periodKey: String
-  ): Future[Option[String]] =
+  ): Option[String] =
     status match {
       case Submitted =>
-        financialDetails.map {
-          case Left(e)         => throw new RuntimeException(e.toString)
-          case Right(response) =>
-            val chargeReference = extractValue(response.documentDetails)
-              .find(details =>
-                extractValue(details.lineItemDetails).exists(item => extractValue(item.periodKey) == periodKey)
-              )
-              .flatMap(_.chargeReferenceNumber)
-            Some(extractValue(chargeReference))
-        }
-      case _         => Future.successful(None)
+        val chargeReference = extractValue(documentDetails)
+          .find(details =>
+            extractValue(details.lineItemDetails).exists(item => extractValue(item.periodKey) == periodKey)
+          )
+          .flatMap(_.chargeReferenceNumber)
+        Some(extractValue(chargeReference))
+      case _         => None
     }
 
   private def forgeFromToCaption(yearFrom: Integer, yearTo: Integer): String = s"$yearFrom-$yearTo"
