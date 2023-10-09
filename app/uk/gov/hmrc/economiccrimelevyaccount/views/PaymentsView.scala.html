@@ -95,7 +95,7 @@
 @getPaymentDueDateCellContent(data: OutstandingPayments) = @{
   data.paymentType match {
       case StandardPayment => TableRow(content = HtmlContent(ViewUtils.formatLocalDate(data.paymentDueDate)), classes = "govuk-table__header")
-      case Interest => TableRow(content = Empty)
+      case _ => TableRow(content = Empty)
   }
 }
 @getPaymentStatusCellContent(data: OutstandingPayments) = @{
@@ -104,7 +104,7 @@
             val status = resolveStatus(data.paymentStatus)
             TableRow(content = HtmlContent(messages("account.viewPayments.table.status", status._1, status._2)), classes = status._2)
         }
-        case Interest => TableRow(content = Empty)
+        case _ => TableRow(content = Empty)
     }
 }
 @getOutstandingPaymentTypeCellContent(data: OutstandingPayments) = @{
@@ -115,8 +115,8 @@
                 case Some(value) => messages("account.viewPayments.outstanding.table.cell.interest.reference", value, data.chargeReference)
                 case None => messages("account.viewPayments.outstanding.table.cell.interest.reference", "", data.chargeReference)
             }
-
         }
+        case _ => ""
     }
 }
 @tableRowsPaymentHistory(rowData: Seq[PaymentHistory]) = @{
@@ -140,7 +140,7 @@
   data.paymentType match {
       case StandardPayment => messages("account.viewPayments.table.cell.reference", data.chargeReference.get)
       case Interest => messages("account.viewPayments.history.table.cell.interest.reference", data.chargeReference.get)
-
+      case _ => ""
   }
 }
 @resolveStatus(paymentStatus: PaymentStatus) = @{
