@@ -21,7 +21,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.models
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse.findLatestFinancialObligation
 import uk.gov.hmrc.economiccrimelevyaccount.models._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, Overpayment, StandardPayment}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, Overpayment, StandardPayment, Unknown}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.http.HeaderCarrier
 
@@ -74,7 +74,10 @@ class FinancialDataService @Inject() (
     val documentDetails = extractValue(response.documentDetails)
 
     val outstandingPayments = documentDetails
-      .filter(document => !document.isCleared & !document.documentType.contains(Payment))
+      .filter(document =>
+        !document.isCleared && !document.documentType
+          .contains(Payment) && !document.documentType.forall(_.isInstanceOf[Other])
+      )
       .map { document =>
         OutstandingPayments(
           paymentDueDate = extractValue(document.paymentDueDate),
