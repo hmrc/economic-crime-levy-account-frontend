@@ -12,7 +12,7 @@ lazy val root = (project in file("."))
   .configs(IntegrationTest)
   .settings(inConfig(IntegrationTest)(itSettings): _*)
   .settings(majorVersion := 0)
-  .settings(ThisBuild / useSuperShell := false)
+  .settings(inThisBuild(buildSettings))
   .settings(scoverageSettings: _*)
   .settings(scalaCompilerOptions: _*)
   .settings(
@@ -65,6 +65,11 @@ lazy val testSettings: Seq[Def.Setting[_]] = Seq(
     baseDirectory.value / "test-common"
   ),
   fork := true
+)
+
+lazy val buildSettings = Def.settings(
+  scalafmtOnCompile := true,
+  useSuperShell := false
 )
 
 lazy val itSettings: Seq[Def.Setting[_]] = Defaults.itSettings ++ Seq(
