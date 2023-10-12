@@ -16,17 +16,17 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
-import org.mockito.ArgumentMatchers.{any, anyInt}
-import uk.gov.hmrc.economiccrimelevyaccount.{ValidFinancialDataResponse, ValidFinancialDataResponseForLatestObligation}
+import org.mockito.ArgumentMatchers.any
+import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponseForLatestObligation
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.FinancialDataConnector
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, FinancialDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Due, Paid, PartiallyPaid}
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.Payment
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{FinancialViewDetails, OutstandingPayments, PaymentHistory}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, FinancialDetails}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, PartiallyPaid}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, StandardPayment}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{FinancialViewDetails, PaymentHistory}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 
-import java.time.LocalDate
 import scala.concurrent.Future
 
 class FinancialDataServiceSpec extends SpecBase {
@@ -60,10 +60,10 @@ class FinancialDataServiceSpec extends SpecBase {
     }
   }
   "getFinancialDetails"          should {
-    "return None if we receive error from financialDataConnector" in {
+    "return None if we receive None from financialDataConnector" in {
 
       when(mockFinancialDataConnector.getFinancialData()(any()))
-        .thenReturn(Future.successful(Left(any())))
+        .thenReturn(Future.successful(None))
 
       val response = await(service.getFinancialDetails)
 
@@ -73,7 +73,7 @@ class FinancialDataServiceSpec extends SpecBase {
     "return Some with FinancialViewDetails if we receive correct response from financialDataConnector" in forAll {
       validResponse: ValidFinancialDataResponseForLatestObligation =>
         when(mockFinancialDataConnector.getFinancialData()(any()))
-          .thenReturn(Future.successful(Right(validResponse.financialDataResponse)))
+          .thenReturn(Future.successful(Some(validResponse.financialDataResponse)))
 
         val response        = await(service.getFinancialDetails)
         val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
@@ -87,21 +87,83 @@ class FinancialDataServiceSpec extends SpecBase {
                 fyFrom = firstItem.periodFromDate.get,
                 fyTo = firstItem.periodToDate.get,
                 amount = documentDetails.documentOutstandingAmount.get,
-                paymentStatus = Due,
-                paymentType = Payment,
+                paymentStatus = Overdue,
+                paymentType = StandardPayment,
                 interestChargeReference = None
               )
             ),
             Seq(
               PaymentHistory(
                 paymentDate = firstItem.clearingDate.get,
-                chargeReference = documentDetails.chargeReferenceNumber.get,
-                fyFrom = firstItem.periodFromDate.get,
-                fyTo = firstItem.periodToDate.get,
+                chargeReference = documentDetails.chargeReferenceNumber,
+                fyFrom = firstItem.periodFromDate,
+                fyTo = firstItem.periodToDate,
                 amount = firstItem.amount.get,
                 paymentStatus = PartiallyPaid,
                 paymentDocument = firstItem.clearingDocument.get,
-                paymentType = Payment,
+                paymentType = StandardPayment,
+                refundAmount = BigDecimal(0)
+              )
+            )
+          )
+        )
+    }
+
+    "return Some with FinancialViewDetails with interest that is not yet formed into interest document" in forAll {
+      validResponse: ValidFinancialDataResponseForLatestObligation =>
+        val documentDetailsFirstItem = validResponse.financialDataResponse.documentDetails.get.head
+
+        val updatedDocumentDetailsFirstItem = documentDetailsFirstItem.copy(
+          interestAccruingAmount = Some(BigDecimal(15.00))
+        )
+        val xTest                           = validResponse.financialDataResponse.copy(documentDetails =
+          Some(
+            Seq(
+              updatedDocumentDetailsFirstItem
+            )
+          )
+        )
+
+        when(mockFinancialDataConnector.getFinancialData()(any()))
+          .thenReturn(Future.successful(Some(xTest)))
+
+        val response        = await(service.getFinancialDetails)
+        val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
+        val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head
+        response shouldBe Some(
+          FinancialViewDetails(
+            Seq(
+              OutstandingPayments(
+                paymentDueDate = documentDetails.paymentDueDate.get,
+                chargeReference = documentDetails.chargeReferenceNumber.get,
+                fyFrom = firstItem.periodFromDate.get,
+                fyTo = firstItem.periodToDate.get,
+                amount = documentDetails.documentOutstandingAmount.get,
+                paymentStatus = Overdue,
+                paymentType = StandardPayment,
+                interestChargeReference = None
+              ),
+              OutstandingPayments(
+                paymentDueDate = documentDetails.paymentDueDate.get,
+                chargeReference = documentDetails.chargeReferenceNumber.get,
+                fyFrom = firstItem.periodFromDate.get,
+                fyTo = firstItem.periodToDate.get,
+                amount = BigDecimal(15.00),
+                paymentStatus = Overdue,
+                paymentType = Interest,
+                interestChargeReference = None
+              )
+            ),
+            Seq(
+              PaymentHistory(
+                paymentDate = firstItem.clearingDate.get,
+                chargeReference = documentDetails.chargeReferenceNumber,
+                fyFrom = firstItem.periodFromDate,
+                fyTo = firstItem.periodToDate,
+                amount = firstItem.amount.get,
+                paymentStatus = PartiallyPaid,
+                paymentDocument = firstItem.clearingDocument.get,
+                paymentType = StandardPayment,
                 refundAmount = BigDecimal(0)
               )
             )

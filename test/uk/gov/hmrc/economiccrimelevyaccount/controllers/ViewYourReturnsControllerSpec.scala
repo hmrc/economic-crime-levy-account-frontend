@@ -17,7 +17,7 @@
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import org.mockito.ArgumentMatchers.any
-import play.api.http.Status.OK
+import play.api.http.Status.{BAD_REQUEST, INTERNAL_SERVER_ERROR, OK}
 import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, status}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
@@ -26,7 +26,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdu
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
 import uk.gov.hmrc.economiccrimelevyaccount._
-import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataErrorResponse
+import uk.gov.hmrc.http.UpstreamErrorResponse
 
 import scala.concurrent.Future
 import scala.util.{Failure, Success, Try}
@@ -56,7 +56,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
 
         when(
           mockFinancialDataConnector.getFinancialData()(any())
-        ).thenReturn(Future.successful(Right(financialData.financialDataResponse)))
+        ).thenReturn(Future.successful(Some(financialData.financialDataResponse)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         val dueReturns             = Seq(
@@ -82,7 +82,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
 
         when(
           mockFinancialDataConnector.getFinancialData()(any())
-        ).thenReturn(Future.successful(Right(financialData.financialDataResponse)))
+        ).thenReturn(Future.successful(Some(financialData.financialDataResponse)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         val dueReturns             = Seq(
@@ -108,7 +108,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
 
         when(
           mockFinancialDataConnector.getFinancialData()(any())
-        ).thenReturn(Future.successful(Right(financialData.financialDataResponse)))
+        ).thenReturn(Future.successful(Some(financialData.financialDataResponse)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         val dueReturns             = Seq(
@@ -137,7 +137,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
       contentAsString(result) shouldBe noReturnsView()(fakeRequest, messages).toString()
     }
 
-    "return Error when return is Submitted but no charge reference" in forAll {
+    "return INTERNAL_SERVER_ERROR when return is Submitted but no charge reference" in forAll { //TODO - is this the right status to return?
       (obligationData: ObligationDataWithSubmittedObligation, financialData: ValidFinancialDataResponse) =>
         when(
           mockObligationDataConnector.getObligationData()(any())
@@ -147,7 +147,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
           mockFinancialDataConnector.getFinancialData()(any())
         ).thenReturn(
           Future.successful(
-            Right(
+            Some(
               financialData.financialDataResponse.copy(
                 documentDetails = None
               )
@@ -156,27 +156,21 @@ class ViewYourReturnsControllerSpec extends SpecBase {
         )
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
-        Try(status(result)) match {
-          case Success(_) => fail
-          case Failure(_) =>
-        }
+        status(result) shouldBe INTERNAL_SERVER_ERROR
     }
 
-    "return Error when return is Submitted financial API fails" in forAll {
-      (obligationData: ObligationDataWithSubmittedObligation, financialData: ValidFinancialDataResponse) =>
+    "return INTERNAL_SERVER_ERROR when financial API fails" in forAll {
+      (obligationData: ObligationDataWithSubmittedObligation) =>
         when(
           mockObligationDataConnector.getObligationData()(any())
         ).thenReturn(Future.successful(Some(obligationData.obligationData)))
 
         when(
           mockFinancialDataConnector.getFinancialData()(any())
-        ).thenReturn(Future.successful(Left(FinancialDataErrorResponse(None, None))))
+        ).thenReturn(Future.failed(UpstreamErrorResponse("error response", BAD_REQUEST)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
-        Try(status(result)) match {
-          case Success(_) => fail
-          case Failure(_) =>
-        }
+        status(result) shouldBe INTERNAL_SERVER_ERROR
     }
   }
 }

@@ -16,11 +16,8 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
-import play.api.mvc.Result
-import play.api.mvc.Results.Redirect
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.{OpsConnector, OpsJourneyError}
-import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
 import uk.gov.hmrc.http.HeaderCarrier
 

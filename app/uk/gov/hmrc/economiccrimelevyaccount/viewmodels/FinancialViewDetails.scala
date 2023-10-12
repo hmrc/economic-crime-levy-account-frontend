@@ -33,9 +33,9 @@ case class OutstandingPayments(
 
 case class PaymentHistory(
   paymentDate: LocalDate,
-  chargeReference: String,
-  fyFrom: LocalDate,
-  fyTo: LocalDate,
+  chargeReference: Option[String],
+  fyFrom: Option[LocalDate],
+  fyTo: Option[LocalDate],
   amount: BigDecimal,
   paymentStatus: PaymentStatus,
   paymentType: PaymentType,
@@ -57,7 +57,8 @@ object PaymentStatus {
 sealed trait PaymentType
 
 object PaymentType {
-  case object Payment extends PaymentType
+  case object StandardPayment extends PaymentType
+  case object Overpayment extends PaymentType
   case object Interest extends PaymentType
   case object Unknown extends PaymentType
 
@@ -65,17 +66,19 @@ object PaymentType {
     override def reads(json: JsValue): JsResult[PaymentType] = json.validate[String] match {
       case JsSuccess(value, _) =>
         value match {
-          case "Payment"  => JsSuccess(Payment)
-          case "Interest" => JsSuccess(Interest)
-          case _          => JsSuccess(Unknown)
+          case "StandardPayment" => JsSuccess(StandardPayment)
+          case "Interest"        => JsSuccess(Interest)
+          case "Overpayment"     => JsSuccess(Overpayment)
+          case _                 => JsSuccess(Unknown)
         }
       case e: JsError          => e
     }
 
     override def writes(o: PaymentType): JsValue = o match {
-      case Payment  => JsString("Payment")
-      case Interest => JsString("Interest")
-      case Unknown  => JsString("Unknown")
+      case StandardPayment => JsString("StandardPayment")
+      case Interest        => JsString("Interest")
+      case Overpayment     => JsString("Overpayment")
+      case Unknown         => JsString("Unknown")
     }
   }
 
