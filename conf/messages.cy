@@ -79,14 +79,14 @@ account.viewPayments.table.paymentsHistory.header.2 = Math o daliad
 account.viewPayments.table.paymentsHistory.header.3 = Cyfnod talu
 account.viewPayments.table.paymentsHistory.header.4 = Rydych chi wedi talu CThEF
 account.viewPayments.table.paymentsHistory.header.5 = Statws y taliad
-account.viewPayments.table.paymentsHistory.header.6 =
-account.viewPayments.table.paymentsHistory.cell.6 =
+account.viewPayments.table.paymentsHistory.header.6 = Camau i’w cymryd
+account.viewPayments.table.paymentsHistory.cell.6 = <a href="{0}" class="govuk-link">Request a refund</a>
 account.registration.card.title = Cofrestriad
 account.registration.card.amendRegistration = Diwygio cofrestriad
 
-account.viewPayments.history.table.cell.interest.reference =
-account.viewPayments.outstanding.table.cell.interest.reference =
-account.interest.payments.subHeading = You owe an interest payment.
+account.viewPayments.history.table.cell.interest.reference = Tâl llog ar gyfer rhif datganiad ECL {0}
+account.viewPayments.outstanding.table.cell.interest.reference = Tâl llog {0} ar gyfer rhif datganiad ECL {1}
+account.interest.payments.subHeading =
 
 agentCannotAccessService.title = Ni allwch ddefnyddio’r gwasanaeth hwn
 agentCannotAccessService.heading = Ni allwch ddefnyddio’r gwasanaeth hwn
