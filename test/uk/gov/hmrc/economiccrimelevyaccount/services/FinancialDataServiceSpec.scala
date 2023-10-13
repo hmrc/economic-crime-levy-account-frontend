@@ -109,6 +109,49 @@ class FinancialDataServiceSpec extends SpecBase {
         )
     }
 
+    "return empty payment history where there is a reversal item" in forAll {
+      validResponse: ValidFinancialDataResponseForLatestObligation =>
+        val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head.copy(
+          clearingReason = Some("Reversal")
+        )
+        val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
+
+        when(mockFinancialDataConnector.getFinancialData()(any()))
+          .thenReturn(
+            Future.successful(
+              Some(
+                validResponse.financialDataResponse.copy(
+                  documentDetails = Some(
+                    Seq(
+                      documentDetails.copy(lineItemDetails = Some(Seq(firstItem)))
+                    )
+                  )
+                )
+              )
+            )
+          )
+
+        val response = await(service.getFinancialDetails)
+
+        response shouldBe Some(
+          FinancialViewDetails(
+            outstandingPayments = Seq(
+              OutstandingPayments(
+                paymentDueDate = documentDetails.paymentDueDate.get,
+                chargeReference = documentDetails.chargeReferenceNumber.get,
+                fyFrom = firstItem.periodFromDate.get,
+                fyTo = firstItem.periodToDate.get,
+                amount = documentDetails.documentOutstandingAmount.get,
+                paymentStatus = Overdue,
+                paymentType = StandardPayment,
+                interestChargeReference = None
+              )
+            ),
+            paymentHistory = Seq.empty
+          )
+        )
+    }
+
     "return Some with FinancialViewDetails with interest that is not yet formed into interest document" in forAll {
       validResponse: ValidFinancialDataResponseForLatestObligation =>
         val documentDetailsFirstItem = validResponse.financialDataResponse.documentDetails.get.head
@@ -116,7 +159,7 @@ class FinancialDataServiceSpec extends SpecBase {
         val updatedDocumentDetailsFirstItem = documentDetailsFirstItem.copy(
           interestAccruingAmount = Some(BigDecimal(15.00))
         )
-        val xTest                           = validResponse.financialDataResponse.copy(documentDetails =
+        val validFinancialDataResponse      = validResponse.financialDataResponse.copy(documentDetails =
           Some(
             Seq(
               updatedDocumentDetailsFirstItem
@@ -125,7 +168,7 @@ class FinancialDataServiceSpec extends SpecBase {
         )
 
         when(mockFinancialDataConnector.getFinancialData()(any()))
-          .thenReturn(Future.successful(Some(xTest)))
+          .thenReturn(Future.successful(Some(validFinancialDataResponse)))
 
         val response        = await(service.getFinancialDetails)
         val documentDetails = validResponse.financialDataResponse.documentDetails.get.head

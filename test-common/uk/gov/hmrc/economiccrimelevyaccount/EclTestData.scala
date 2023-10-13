@@ -231,7 +231,8 @@ trait EclTestData {
                     periodFromDate = Some(LocalDate.now),
                     periodToDate = Some(LocalDate.now),
                     periodKey = Some("21XY"),
-                    clearingDocument = Some("clearing-document")
+                    clearingDocument = Some("clearing-document"),
+                    clearingReason = Some("Incoming Payment")
                   )
                 )
               )

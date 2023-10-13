@@ -99,6 +99,7 @@ class FinancialDataService @Inject() (
       .collect(filterOutOverPayment)
       .flatMap { details =>
         extractValue(details.lineItemDetails)
+          .collect(useOnlyRegularLineItemDetails)
           .filter(item => item.isCleared)
           .map { item =>
             PaymentHistory(
@@ -205,5 +206,11 @@ class FinancialDataService @Inject() (
     case x: DocumentDetails if x.getPaymentType == StandardPayment | x.getPaymentType == Interest => x
   }
 
-  def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
+  private def useOnlyRegularLineItemDetails: PartialFunction[LineItemDetails, LineItemDetails] = {
+    case x: LineItemDetails
+        if extractValue(x.clearingReason).equalsIgnoreCase("Automatic Clearing")
+          | extractValue(x.clearingReason).equalsIgnoreCase("Incoming Payment") =>
+      x
+  }
+  def extractValue[A](value: Option[A]): A                                                     = value.getOrElse(throw new IllegalStateException())
 }
