@@ -207,10 +207,10 @@ class FinancialDataService @Inject() (
   }
 
   private def useOnlyRegularLineItemDetails: PartialFunction[LineItemDetails, LineItemDetails] = {
-    case lineItemDetail: LineItemDetails
-        if extractValue(lineItemDetail.clearingReason).equalsIgnoreCase("Automatic Clearing")
-          | extractValue(lineItemDetail.clearingReason).equalsIgnoreCase("Incoming Payment") =>
-      lineItemDetail
+    case lineItemDetails: LineItemDetails
+        if extractValue(lineItemDetails.clearingReason).equalsIgnoreCase("Automatic Clearing")
+          | extractValue(lineItemDetails.clearingReason).equalsIgnoreCase("Incoming Payment") =>
+      lineItemDetails
   }
   def extractValue[A](value: Option[A]): A                                                     = value.getOrElse(throw new IllegalStateException())
 }
