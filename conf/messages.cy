@@ -86,7 +86,7 @@ account.registration.card.amendRegistration = Diwygio cofrestriad
 
 account.viewPayments.history.table.cell.interest.reference = Tâl llog ar gyfer rhif datganiad ECL {0}
 account.viewPayments.outstanding.table.cell.interest.reference = Tâl llog {0} ar gyfer rhif datganiad ECL {1}
-account.interest.payments.subHeading =
+account.interest.payments.subHeading = Mae arnoch chi daliad llog. Bydd llog yn parhau i gael ei gronni os na chaiff ei dalu.
 
 agentCannotAccessService.title = Ni allwch ddefnyddio’r gwasanaeth hwn
 agentCannotAccessService.heading = Ni allwch ddefnyddio’r gwasanaeth hwn
