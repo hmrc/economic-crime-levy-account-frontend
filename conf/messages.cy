@@ -54,7 +54,7 @@ account.payments.howTo = Sut i wneud taliad ECL
 account.payments.viewHistory = Bwrw golwg dros eich taliadau
 account.noneDue.payments.subHeading = Nid oes gennych daliadau sy’n ddyledus.
 account.due.payments.subHeading = Mae angen i chi gwneud taliad o {0} erbyn 30 Medi {1} ar gyfer {2} i {3}.
-account.overdue.payments.subHeading.1 = Mae gennych daliad sy’n hwyr ar gyfer {0} i {1}. <br> Rydym yn codi llog arnoch ar y taliad hwn. You owe {2}.
+account.overdue.payments.subHeading.1 = Mae gennych daliad sy’n hwyr ar gyfer 1 Ebrill {0} i 31 Mawrth {1}. <br> Rydym yn codi llog arnoch ar y taliad hwn. Mae arnoch {2}.
 account.viewPayments.title = Eich taliadau Ardoll Troseddau Economaidd
 account.viewPayments.heading = Eich taliadau Ardoll Troseddau Economaidd
 account.viewPayments.table.outstandingPayments.header.title = Taliadau sydd arnoch
@@ -79,8 +79,14 @@ account.viewPayments.table.paymentsHistory.header.2 = Math o daliad
 account.viewPayments.table.paymentsHistory.header.3 = Cyfnod talu
 account.viewPayments.table.paymentsHistory.header.4 = Rydych chi wedi talu CThEF
 account.viewPayments.table.paymentsHistory.header.5 = Statws y taliad
+account.viewPayments.table.paymentsHistory.header.6 = Camau i’w cymryd
+account.viewPayments.table.paymentsHistory.cell.6 = <a href="{0}" class="govuk-link">Request a refund</a>
 account.registration.card.title = Cofrestriad
 account.registration.card.amendRegistration = Diwygio cofrestriad
+
+account.viewPayments.history.table.cell.interest.reference = Tâl llog ar gyfer rhif datganiad ECL {0}
+account.viewPayments.outstanding.table.cell.interest.reference = Tâl llog {0} ar gyfer rhif datganiad ECL {1}
+account.interest.payments.subHeading = Mae arnoch chi daliad llog. Bydd llog yn parhau i gael ei gronni os na chaiff ei dalu.
 
 agentCannotAccessService.title = Ni allwch ddefnyddio’r gwasanaeth hwn
 agentCannotAccessService.heading = Ni allwch ddefnyddio’r gwasanaeth hwn
