@@ -242,7 +242,8 @@ trait EclTestData {
       )
     )
   }
-  private val genDate: Gen[LocalDate]                          =
+
+  private val genDate: Gen[LocalDate] =
     localDateGen(currentYear - 1, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY)
 
   implicit val arbFinancialDetails: Arbitrary[FinancialDetails] = Arbitrary {

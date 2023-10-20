@@ -24,7 +24,6 @@ import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, FinancialDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, PartiallyPaid}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, StandardPayment}
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{FinancialViewDetails, PaymentHistory}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 
 import scala.concurrent.Future
@@ -113,6 +112,49 @@ class FinancialDataServiceSpec extends SpecBase {
       validResponse: ValidFinancialDataResponseForLatestObligation =>
         val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head.copy(
           clearingReason = Some("Reversal")
+        )
+        val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
+
+        when(mockFinancialDataConnector.getFinancialData()(any()))
+          .thenReturn(
+            Future.successful(
+              Some(
+                validResponse.financialDataResponse.copy(
+                  documentDetails = Some(
+                    Seq(
+                      documentDetails.copy(lineItemDetails = Some(Seq(firstItem)))
+                    )
+                  )
+                )
+              )
+            )
+          )
+
+        val response = await(service.getFinancialDetails)
+
+        response shouldBe Some(
+          FinancialViewDetails(
+            outstandingPayments = Seq(
+              OutstandingPayments(
+                paymentDueDate = documentDetails.paymentDueDate.get,
+                chargeReference = documentDetails.chargeReferenceNumber.get,
+                fyFrom = firstItem.periodFromDate.get,
+                fyTo = firstItem.periodToDate.get,
+                amount = documentDetails.documentOutstandingAmount.get,
+                paymentStatus = Overdue,
+                paymentType = StandardPayment,
+                interestChargeReference = None
+              )
+            ),
+            paymentHistory = Seq.empty
+          )
+        )
+    }
+
+    "return empty payment history where there is no clearing reason in response" in forAll {
+      validResponse: ValidFinancialDataResponseForLatestObligation =>
+        val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head.copy(
+          clearingReason = None
         )
         val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
 

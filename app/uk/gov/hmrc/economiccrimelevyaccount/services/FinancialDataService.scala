@@ -53,7 +53,10 @@ class FinancialDataService @Inject() (
               outstandingAmount,
               extractValue(firstLineItemDetailsElement.periodFromDate),
               extractValue(firstLineItemDetailsElement.periodToDate),
-              extractValue(firstLineItemDetailsElement.periodKey),
+              value.getPaymentType match {
+                case Interest => ""
+                case _        => extractValue(firstLineItemDetailsElement.periodKey)
+              },
               extractValue(value.chargeReferenceNumber),
               value.getPaymentType
             )
@@ -67,7 +70,13 @@ class FinancialDataService @Inject() (
   def getFinancialDetails(implicit hc: HeaderCarrier): Future[Option[FinancialViewDetails]] =
     retrieveFinancialData.map {
       case None           => None
-      case Some(response) => Some(prepareFinancialDetails(response))
+      case Some(response) =>
+        val preparedFinancialDetails = prepareFinancialDetails(response)
+        if (preparedFinancialDetails.paymentHistory.isEmpty & preparedFinancialDetails.outstandingPayments.isEmpty) {
+          None
+        } else {
+          Some(preparedFinancialDetails)
+        }
     }
 
   private def prepareFinancialDetails(response: FinancialDataResponse): FinancialViewDetails = {
@@ -99,7 +108,7 @@ class FinancialDataService @Inject() (
       .collect(filterOutOverPayment)
       .flatMap { details =>
         extractValue(details.lineItemDetails)
-          .collect(useOnlyRegularLineItemDetails)
+          .collect(filterOutItemsWithoutClearingReason andThen useOnlyRegularLineItemDetails)
           .filter(item => item.isCleared)
           .map { item =>
             PaymentHistory(
@@ -168,23 +177,18 @@ class FinancialDataService @Inject() (
 
   private def getPaymentReferenceNumber(documentDetails: Seq[DocumentDetails], interestReferenceNumber: String) =
     documentDetails
-      .filter(alignDataForPayments)
+      .collect(filterInPayments)
+      .filter(document => document.interestPostedChargeRef.nonEmpty)
       .filter(document => extractValue(document.interestPostedChargeRef).equalsIgnoreCase(interestReferenceNumber))
       .head
       .chargeReferenceNumber
 
-  private def filterInPayments: PartialFunction[DocumentDetails, Boolean] = {
+  private def filterInPayments: PartialFunction[DocumentDetails, DocumentDetails] = {
     case x: DocumentDetails
         if extractValue(x.documentType) == NewCharge | extractValue(x.documentType) == AmendedCharge =>
-      true
+      x
   }
 
-  private def filterOutInterest: PartialFunction[DocumentDetails, Boolean] = {
-    case x: DocumentDetails if extractValue(x.documentType) == InterestCharge => false
-  }
-
-  private def alignDataForPayments: PartialFunction[DocumentDetails, Boolean]                 =
-    filterInPayments orElse filterOutInterest
   private def filterItemsThatAreNotCleared: PartialFunction[DocumentDetails, DocumentDetails] = {
     case x: DocumentDetails if !x.isCleared => x
   }
@@ -212,5 +216,9 @@ class FinancialDataService @Inject() (
           | extractValue(lineItemDetails.clearingReason).equalsIgnoreCase("Incoming Payment") =>
       lineItemDetails
   }
-  def extractValue[A](value: Option[A]): A                                                     = value.getOrElse(throw new IllegalStateException())
+
+  private def filterOutItemsWithoutClearingReason: PartialFunction[LineItemDetails, LineItemDetails] = {
+    case lineItemDetails: LineItemDetails if lineItemDetails.clearingReason.nonEmpty => lineItemDetails
+  }
+  def extractValue[A](value: Option[A]): A                                                           = value.getOrElse(throw new IllegalStateException())
 }
