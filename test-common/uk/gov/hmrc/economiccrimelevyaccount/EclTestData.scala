@@ -39,8 +39,6 @@ case class ObligationDataWithSubmittedObligation(obligationData: ObligationData)
 case class ValidFinancialDataResponse(financialDataResponse: FinancialDataResponse)
 case class ValidFinancialDataResponseForLatestObligation(financialDataResponse: FinancialDataResponse)
 
-case class ValidFinancialDataResponseForLatestObligationWithInterest(financialDataResponse: FinancialDataResponse)
-
 case class ValidFinancialViewDetails(financialViewDetails: FinancialViewDetails)
 
 trait EclTestData {
@@ -245,80 +243,7 @@ trait EclTestData {
     )
   }
 
-  implicit val arbValidFinancialDataResponseForLatestObligationWithInterest
-    : Arbitrary[ValidFinancialDataResponseForLatestObligationWithInterest] = Arbitrary {
-    for {
-      arbTotalisationAmounts <- Arbitrary.arbitrary[Int]
-      documentDetails        <- Arbitrary.arbitrary[DocumentDetails]
-      lineItemDetails        <- Arbitrary.arbitrary[LineItemDetails]
-
-    } yield ValidFinancialDataResponseForLatestObligationWithInterest(
-      FinancialDataResponse(
-        totalisation = Some(
-          Totalisation(
-            totalAccountBalance = Some(BigDecimal(arbTotalisationAmounts)),
-            totalAccountOverdue = Some(BigDecimal(arbTotalisationAmounts.toString)),
-            totalOverdue = Some(BigDecimal(arbTotalisationAmounts.toString)),
-            totalNotYetDue = Some(BigDecimal(arbTotalisationAmounts.toString)),
-            totalBalance = Some(BigDecimal(arbTotalisationAmounts.toString)),
-            totalCredit = Some(BigDecimal(arbTotalisationAmounts.toString)),
-            totalCleared = Some(BigDecimal(arbTotalisationAmounts.toString))
-          )
-        ),
-        documentDetails = Some(
-          Seq(
-            documentDetails.copy(
-              documentType = Some(NewCharge),
-              chargeReferenceNumber = Some("test-ecl-registration-reference"),
-              documentTotalAmount = Some(BigDecimal(10000)),
-              documentClearedAmount = Some(BigDecimal(1000)),
-              documentOutstandingAmount = Some(BigDecimal(9000)),
-              interestPostedAmount = None,
-              interestAccruingAmount = None,
-              issueDate = Some(LocalDate.now.toString),
-              penaltyTotals = None,
-              lineItemDetails = Some(
-                Seq(
-                  lineItemDetails.copy(
-                    chargeDescription = Some("test-ecl-registration-reference"),
-                    amount = Some(BigDecimal(1000)),
-                    clearingDate = Some(LocalDate.now),
-                    periodFromDate = Some(LocalDate.now),
-                    periodToDate = Some(LocalDate.now),
-                    periodKey = Some("21XY"),
-                    clearingDocument = Some("clearing-document"),
-                    clearingReason = Some("Incoming payment")
-                  )
-                )
-              )
-            ),
-            documentDetails.copy(
-              documentType = Some(InterestCharge),
-              chargeReferenceNumber = Some("test-ecl-registration-reference"),
-              documentTotalAmount = Some(BigDecimal(350)),
-              documentClearedAmount = Some(BigDecimal(0)),
-              documentOutstandingAmount = Some(BigDecimal(350)),
-              interestPostedAmount = None,
-              interestAccruingAmount = None,
-              issueDate = Some(LocalDate.now.toString),
-              penaltyTotals = None,
-              lineItemDetails = Some(
-                Seq(
-                  lineItemDetails.copy(
-                    chargeDescription = Some("test-ecl-registration-reference"),
-                    amount = Some(BigDecimal(350)),
-                    periodFromDate = Some(LocalDate.now),
-                    periodToDate = Some(LocalDate.now)
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
-    )
-  }
-  private val genDate: Gen[LocalDate]                                      =
+  private val genDate: Gen[LocalDate] =
     localDateGen(currentYear - 1, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY)
 
   implicit val arbFinancialDetails: Arbitrary[FinancialDetails] = Arbitrary {
