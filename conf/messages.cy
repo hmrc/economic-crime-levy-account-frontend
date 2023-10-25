@@ -80,7 +80,7 @@ account.viewPayments.table.paymentsHistory.header.3 = Cyfnod talu
 account.viewPayments.table.paymentsHistory.header.4 = Rydych chi wedi talu CThEF
 account.viewPayments.table.paymentsHistory.header.5 = Statws y taliad
 account.viewPayments.table.paymentsHistory.header.6 = Camau i’w cymryd
-account.viewPayments.table.paymentsHistory.cell.6 = <a href="{0}" class="govuk-link">Request a refund</a>
+account.viewPayments.table.paymentsHistory.cell.6 = <a href="{0}" class="govuk-link">Gofyn am ad-daliad</a>
 account.registration.card.title = Cofrestriad
 account.registration.card.amendRegistration = Diwygio cofrestriad
 
