@@ -22,8 +22,8 @@ error.problemWithService.title = Mae’n ddrwg gennym, ond mae problem gyda’r 
 error.problemWithService.heading = Mae’n ddrwg gennym, ond mae problem gyda’r gwasanaeth
 error.problemWithService.message = Rhowch gynnig arall arni yn nes ymlaen.
 
-account.title = Manylion eich cyfrif Ardoll Troseddau Economaidd
-account.heading = Manylion eich cyfrif Ardoll Troseddau Economaidd
+account.title = Eich cyfrif Ardoll Troseddau Economaidd
+account.heading = Eich cyfrif Ardoll Troseddau Economaidd
 account.eclReferenceNumber = Cyfeirnod ECL: {0}
 account.submitEcl = Cyflwyno datganiad Ardoll Troseddau Economaidd
 account.howToComplete = Sut i lenwi a chyflwyno datganiad
