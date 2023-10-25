@@ -35,6 +35,7 @@ account.viewReturns.table.column.1 = Datganiad a thaliad yn ddyledus erbyn
 account.viewReturns.table.column.1.fulfilled = Dyddiad cyflawni
 account.viewReturns.table.column.2 = Statws datganiad
 account.viewReturns.table.column.3 = Rhif datganiad ECL
+account.viewReturns.table.column.4 = Gweithredoedd
 account.viewReturns.table.link = <a href="{0}" class="govuk-link">Cyflwyno datganiad</a>
 account.viewReturns.table.amend.link = <a href="{0}" class="govuk-link">Diwygio’ch datganiad</a>
 account.viewReturns.table.placeholder = Cyflwyno datganiad
