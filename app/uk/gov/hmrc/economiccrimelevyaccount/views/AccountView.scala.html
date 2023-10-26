@@ -138,8 +138,12 @@
 
 <div class="container govuk-grid-row">
     <div class="flex-container govuk-grid-row">
-        @card("returns", messages("account.return.card.title"), Some(returnsSubHeading), returnsActions)
-        @card("payments", messages("account.payments.card.title"), Some(paymentsSubHeading), paymentsActions)
+        @if(appConfig.returnsEnabled) {
+            @card("returns", messages("account.return.card.title"), Some(returnsSubHeading), returnsActions)
+        }
+        @if(appConfig.paymentsEnabled) {
+            @card("payments", messages("account.payments.card.title"), Some(paymentsSubHeading), paymentsActions)
+        }
         @if(appConfig.amendRegistrationEnabled) {
             @card("registration", messages("account.registration.card.title"), None, registrationAction)
         }
