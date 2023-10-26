@@ -35,6 +35,7 @@ account.viewReturns.table.column.1 = Return and payment due by
 account.viewReturns.table.column.1.fulfilled = Date of fulfilment
 account.viewReturns.table.column.2 = Return status
 account.viewReturns.table.column.3 = ECL return number
+account.viewReturns.table.column.4 = Actions
 account.viewReturns.table.link = <a href="{0}" class="govuk-link">Submit return</a>
 account.viewReturns.table.amend.link = <a href="{0}" class="govuk-link">Amend return</a>
 account.viewReturns.table.placeholder = Submit return
