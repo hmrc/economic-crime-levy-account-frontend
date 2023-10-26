@@ -50,23 +50,19 @@ To check if there are any scalastyle errors, warnings or infos:
 The following features can be turned on or off by changing configuration flags as follows.
 These flags must have a value of 'true' or 'false'.
 
-> `welsh-translation`
+> `amendRegistrationEnabled`
 
-Enabled/disables Welsh translations.
-
-> `enrolmentStoreProxyStubEnabled`
-
-Enables/disables the stub used for enrolments.
-Should be set to 'true' in LOCAL and DEV environments only.
+Enables/disables the amend registration feature.
+If this is disabled then the registration tile on the My ECL Account home page will not be visible.
 
 > `amendReturnsEnabled`
 
 Enables/disables the amend returns feature.
 
-> `amendRegistrationEnabled`
+> `enrolmentStoreProxyStubEnabled`
 
-Enables/disables the amend registration feature.
-If this is disabled then the registration tile on the My ECL Account home page will not be visible.
+Enables/disables the stub used for enrolments.
+Should be set to 'true' in LOCAL and DEV environments only.
 
 > `paymentsEnabled`
 
@@ -82,6 +78,10 @@ If this is disabled then users will not be able to request a refund.
 
 Enables/disables the returns feature.
 If this is disabled then the returns tile on the My ECL Account home page will not be visible.
+
+> `welsh-translation`
+
+Enabled/disables Welsh translations.
 
 ### License
 
