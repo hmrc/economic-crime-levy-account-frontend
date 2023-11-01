@@ -23,6 +23,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.models.errors.ResponseError
 
 import scala.concurrent.{ExecutionContext, Future}
 import cats.data.EitherT
+
 trait BaseController {
 
   implicit class ResponseHandler[R](value: EitherT[Future, ResponseError, R]) {

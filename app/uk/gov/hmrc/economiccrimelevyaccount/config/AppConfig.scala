@@ -53,14 +53,29 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
 
   val enrolmentStoreProxyBaseUrl: String = servicesConfig.baseUrl("enrolment-store-proxy")
 
+  val enrolmentsUrl: String =
+    enrolmentStoreProxyBaseUrl + servicesConfig.getString(
+      "microservice.services.enrolment-store-proxy.endpoints.enrolments"
+    )
+
   val economicCrimeLevyAccountBaseUrl: String = servicesConfig.baseUrl("economic-crime-levy-account")
 
-  val opsServiceUrl: String = servicesConfig.baseUrl("pay-api")
+  val financialDataUrl: String =
+    economicCrimeLevyAccountBaseUrl + servicesConfig.getString(
+      "microservice.services.economic-crime-levy-account.endpoints.financialData"
+    )
 
-  val opsStartJourneyUrl =
+  val obligationDataUrl: String =
+    economicCrimeLevyAccountBaseUrl + servicesConfig.getString(
+      "microservice.services.economic-crime-levy-account.endpoints.obligationData"
+    )
+
+  private val opsServiceUrl: String = servicesConfig.baseUrl("pay-api")
+
+  val opsStartJourneyUrl: String =
     opsServiceUrl + servicesConfig.getString("microservice.services.pay-api.endpoints.startJourney")
 
-  val dashboardUrl = servicesConfig.getString("urls.dashboard")
+  val dashboardUrl: String = servicesConfig.getString("urls.dashboard")
 
   val amendReturnsEnabled: Boolean = configuration.get[Boolean]("features.amendReturnsEnabled")
 

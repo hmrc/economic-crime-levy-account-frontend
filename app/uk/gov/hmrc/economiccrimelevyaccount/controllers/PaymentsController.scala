@@ -44,7 +44,7 @@ class PaymentsController @Inject() (
           case Left(r) => Redirect(r.nextUrl)
           case _       => Redirect(routes.AccountController.onPageLoad())
         }
-      case _           => Future.successful(Redirect(routes.AccountController.onPageLoad()))
+      case None        => Future.successful(Redirect(routes.AccountController.onPageLoad()))
     }
   }
 

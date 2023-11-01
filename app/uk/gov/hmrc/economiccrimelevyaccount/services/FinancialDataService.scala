@@ -16,10 +16,11 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
+import cats.data.EitherT
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.FinancialDataConnector
-import uk.gov.hmrc.economiccrimelevyaccount.models
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse.findLatestFinancialObligation
 import uk.gov.hmrc.economiccrimelevyaccount.models._
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.FinancialDataError
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, Overpayment, StandardPayment, Unknown}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
@@ -34,7 +35,7 @@ class FinancialDataService @Inject() (
 
   def retrieveFinancialData(implicit
     hc: HeaderCarrier
-  ): Future[Option[FinancialDataResponse]] =
+  ): EitherT[Future, FinancialDataError, Option[FinancialDataResponse]] =
     financialDataConnector.getFinancialData()
 
   def getLatestFinancialObligation(financialData: FinancialDataResponse): Option[FinancialDetails] = {
@@ -67,17 +68,17 @@ class FinancialDataService @Inject() (
     }
   }
 
-  def getFinancialDetails(implicit hc: HeaderCarrier): Future[Option[FinancialViewDetails]] =
-    retrieveFinancialData.map {
-      case None           => None
-      case Some(response) =>
-        val preparedFinancialDetails = prepareFinancialDetails(response)
-        if (preparedFinancialDetails.paymentHistory.isEmpty & preparedFinancialDetails.outstandingPayments.isEmpty) {
-          None
-        } else {
-          Some(preparedFinancialDetails)
-        }
+  def getFinancialDetails(implicit hc: HeaderCarrier): Future[Option[FinancialViewDetails]] = {
+    retrieveFinancialData.map { response =>
+      response.
+      val preparedFinancialDetails = prepareFinancialDetails(response)
+      if (preparedFinancialDetails.paymentHistory.isEmpty & preparedFinancialDetails.outstandingPayments.isEmpty) {
+        None
+      } else {
+        Some(preparedFinancialDetails)
+      }
     }
+  }
 
   private def prepareFinancialDetails(response: FinancialDataResponse): FinancialViewDetails = {
     val documentDetails = extractValue(response.documentDetails)

@@ -21,7 +21,7 @@ import org.mockito.ArgumentMatchers.any
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EnrolmentStoreProxyConnector
 import uk.gov.hmrc.economiccrimelevyaccount.models.KeyValue
-import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, Enrolment, QueryKnownFactsResponse}
+import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, Enrolment, EnrolmentResponse}
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -33,7 +33,7 @@ class EnrolmentStoreProxyServiceSpec extends SpecBase {
   "getEclRegistrationDate" should {
     "return the ECL registration date from the query known facts response" in forAll {
       eclRegistrationReference: String =>
-        val queryKnownFactsResponse = QueryKnownFactsResponse(
+        val queryKnownFactsResponse = EnrolmentResponse(
           service = EclEnrolment.ServiceName,
           enrolments = Seq(
             Enrolment(
@@ -43,7 +43,7 @@ class EnrolmentStoreProxyServiceSpec extends SpecBase {
           )
         )
 
-        when(mockEnrolmentStoreProxyConnector.queryKnownFacts(ArgumentMatchers.eq(eclRegistrationReference))(any()))
+        when(mockEnrolmentStoreProxyConnector.getEnrolments(ArgumentMatchers.eq(eclRegistrationReference))(any()))
           .thenReturn(Future.successful(queryKnownFactsResponse))
 
         val result = await(service.getEclRegistrationDate(eclRegistrationReference))
@@ -53,12 +53,12 @@ class EnrolmentStoreProxyServiceSpec extends SpecBase {
 
     "throw an IllegalStateException if the ECL registration date could not be found in the enrolment" in forAll {
       eclRegistrationReference: String =>
-        val queryKnownFactsResponse = QueryKnownFactsResponse(
+        val queryKnownFactsResponse = EnrolmentResponse(
           service = EclEnrolment.ServiceName,
           enrolments = Seq.empty
         )
 
-        when(mockEnrolmentStoreProxyConnector.queryKnownFacts(ArgumentMatchers.eq(eclRegistrationReference))(any()))
+        when(mockEnrolmentStoreProxyConnector.getEnrolments(ArgumentMatchers.eq(eclRegistrationReference))(any()))
           .thenReturn(Future.successful(queryKnownFactsResponse))
 
         val result = intercept[IllegalStateException] {

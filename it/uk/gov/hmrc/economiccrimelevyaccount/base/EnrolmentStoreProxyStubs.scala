@@ -6,7 +6,7 @@ import play.api.http.Status.OK
 import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.base.WireMockHelper._
 import uk.gov.hmrc.economiccrimelevyaccount.models.KeyValue
-import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, Enrolment, QueryKnownFactsRequest, QueryKnownFactsResponse}
+import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, Enrolment, QueryKnownFactsRequest, EnrolmentResponse}
 
 trait EnrolmentStoreProxyStubs { self: WireMockStubs =>
 
@@ -29,7 +29,7 @@ trait EnrolmentStoreProxyStubs { self: WireMockStubs =>
         .withBody(
           Json
             .toJson(
-              QueryKnownFactsResponse(
+              EnrolmentResponse(
                 service = EclEnrolment.ServiceName,
                 enrolments = Seq(
                   Enrolment(

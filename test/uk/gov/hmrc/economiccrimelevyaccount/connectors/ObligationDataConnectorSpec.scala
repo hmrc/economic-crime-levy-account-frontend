@@ -18,46 +18,50 @@ package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
+import play.api.http.Status.OK
+import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.ObligationDataWithObligation
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationData
-import uk.gov.hmrc.http.HttpClient
+import uk.gov.hmrc.http.{HttpResponse, StringContextOps}
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 
 import scala.concurrent.Future
 
 class ObligationDataConnectorSpec extends SpecBase {
 
-  val mockHttpClient: HttpClient = mock[HttpClient]
+  val mockHttpClient: HttpClientV2       = mock[HttpClientV2]
+  val mockRequestBuilder: RequestBuilder = mock[RequestBuilder]
 
   val connector = new ObligationDataConnector(
     appConfig,
     mockHttpClient
   )
 
+  override def beforeEach(): Unit = {
+    reset(mockRequestBuilder)
+    reset(mockHttpClient)
+  }
+
   "getObligationData" should {
     "return obligationData when the http client returns a successful http response" in forAll {
       val eclAccountObligationUrl: String =
         s"${appConfig.economicCrimeLevyAccountBaseUrl}/economic-crime-levy-account/obligation-data"
       (obligationDataWithObligation: ObligationDataWithObligation) =>
-        when(
-          mockHttpClient.GET[Option[ObligationData]](
-            ArgumentMatchers.eq(eclAccountObligationUrl),
-            any(),
-            any()
-          )(any(), any(), any())
-        ).thenReturn(Future.successful(Some(obligationDataWithObligation.obligationData)))
+        when(mockHttpClient.get(ArgumentMatchers.eq(url"$eclAccountObligationUrl"))(any()))
+          .thenReturn(mockRequestBuilder)
+        when(mockRequestBuilder.setHeader(any()))
+          .thenReturn(mockRequestBuilder)
+        when(mockRequestBuilder.execute[HttpResponse](any(), any()))
+          .thenReturn(
+            Future.successful(
+              HttpResponse.apply(OK, Json.stringify(Json.toJson(obligationDataWithObligation.obligationData)))
+            )
+          )
 
         val result = await(connector.getObligationData())
 
         result shouldBe Some(obligationDataWithObligation.obligationData)
-
-        verify(mockHttpClient, times(1)).GET[Option[ObligationData]](
-          ArgumentMatchers.eq(eclAccountObligationUrl),
-          any(),
-          any()
-        )(any(), any(), any())
-
-        reset(mockHttpClient)
     }
   }
 }

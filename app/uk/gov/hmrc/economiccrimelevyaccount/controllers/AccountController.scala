@@ -50,10 +50,7 @@ class AccountController @Inject() (
       obligationDataConnector
         .getObligationData()
         .flatMap { obligationData =>
-          val latestObligationData = obligationData match {
-            case Some(o) => getLatestObligation(o)
-            case None    => None
-          }
+          val latestObligationData = getLatestObligation(obligationData)
 
           financialDataService.retrieveFinancialData.map {
             case None               =>
@@ -84,14 +81,14 @@ class AccountController @Inject() (
     }
   }
 
-  private def auditAccountViewed(obligationData: Option[ObligationData], financialData: Option[FinancialDataResponse])(
-    implicit request: AuthorisedRequest[_]
+  private def auditAccountViewed(obligationData: ObligationData, financialData: Option[FinancialDataResponse])(implicit
+    request: AuthorisedRequest[_]
   ): Unit =
     auditConnector.sendExtendedEvent(
       AccountViewedAuditEvent(
         internalId = request.internalId,
         eclReference = request.eclRegistrationReference,
-        obligationDetails = obligationData.map(_.obligations.flatMap(_.obligationDetails)).toSeq.flatten,
+        obligationDetails = obligationData.obligations.flatMap(_.obligationDetails),
         financialDetails = financialData match {
           case Some(details) => mapAccountViewedAuditFinancialDetails(details)
           case None          => None

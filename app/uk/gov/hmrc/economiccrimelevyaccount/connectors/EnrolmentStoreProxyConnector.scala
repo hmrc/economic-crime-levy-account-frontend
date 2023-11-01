@@ -16,35 +16,38 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
+import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.models.KeyValue
-import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, QueryKnownFactsRequest, QueryKnownFactsResponse}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, QueryKnownFactsRequest, EnrolmentResponse}
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 trait EnrolmentStoreProxyConnector {
-  def queryKnownFacts(eclRegistrationReference: String)(implicit hc: HeaderCarrier): Future[QueryKnownFactsResponse]
+  def getEnrolments(eclRegistrationReference: String)(implicit hc: HeaderCarrier): Future[EnrolmentResponse]
 }
 
-class EnrolmentStoreProxyConnectorImpl @Inject() (appConfig: AppConfig, httpClient: HttpClient)(implicit
+class EnrolmentStoreProxyConnectorImpl @Inject() (appConfig: AppConfig, httpClient: HttpClientV2)(implicit
   ec: ExecutionContext
-) extends EnrolmentStoreProxyConnector {
+) extends EnrolmentStoreProxyConnector
+    with BaseConnector {
 
-  private val enrolmentStoreUrl: String =
-    s"${appConfig.enrolmentStoreProxyBaseUrl}/enrolment-store-proxy/enrolment-store/enrolments"
-
-  def queryKnownFacts(eclRegistrationReference: String)(implicit hc: HeaderCarrier): Future[QueryKnownFactsResponse] =
-    httpClient.POST[QueryKnownFactsRequest, QueryKnownFactsResponse](
-      s"$enrolmentStoreUrl",
-      QueryKnownFactsRequest(
-        EclEnrolment.ServiceName,
-        knownFacts = Seq(
-          KeyValue(key = EclEnrolment.IdentifierKey, value = eclRegistrationReference)
-        )
+  def getEnrolments(eclRegistrationReference: String)(implicit hc: HeaderCarrier): Future[EnrolmentResponse] = {
+    val queryKnownFactsRequest = QueryKnownFactsRequest(
+      EclEnrolment.ServiceName,
+      knownFacts = Seq(
+        KeyValue(key = EclEnrolment.IdentifierKey, value = eclRegistrationReference)
       )
     )
+
+    httpClient
+      .post(url"${appConfig.enrolmentsUrl}")
+      .withBody(Json.toJson(queryKnownFactsRequest))
+      .executeAndDeserialise[EnrolmentResponse]
+  }
 
 }

@@ -17,10 +17,11 @@
 package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
 import com.google.inject.Singleton
-import play.api.http.Status.CREATED
+import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient, HttpResponse}
+import uk.gov.hmrc.http.client.HttpClientV2
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -28,34 +29,16 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class OpsConnector @Inject() (
   appConfig: AppConfig,
-  httpClient: HttpClient
-)(implicit ec: ExecutionContext) {
-
-  private val opsServiceUrl: String = s"${appConfig.opsStartJourneyUrl}"
-
+  httpClient: HttpClientV2
+)(implicit ec: ExecutionContext)
+    extends BaseConnector {
   def createOpsJourney(opsJourneyRequest: OpsJourneyRequest)(implicit
     hc: HeaderCarrier
-  ): Future[Either[OpsJourneyResponse, OpsJourneyError]] =
+  ): Future[OpsJourneyResponse] =
     httpClient
-      .POST[OpsJourneyRequest, HttpResponse](
-        s"$opsServiceUrl",
-        opsJourneyRequest,
-        Seq(("x-session-id", opsJourneyRequest.chargeReference))
-      )
-      .map {
-        case response if response.status == CREATED =>
-          response.json
-            .validate[OpsJourneyResponse]
-            .fold(
-              invalid => Right(OpsJourneyError(response.status, "Invalid Json")),
-              valid => Left(valid)
-            )
-        case response                               =>
-          Right(OpsJourneyError(response.status, response.body))
-      }
-}
+      .post(url"${appConfig.opsStartJourneyUrl}")
+      .withBody(Json.toJson(opsJourneyRequest))
+      .setHeader(("x-session-id", opsJourneyRequest.chargeReference))
+      .executeAndDeserialise[OpsJourneyResponse]
 
-case class OpsJourneyError(
-  status: Int,
-  message: String
-)
+}

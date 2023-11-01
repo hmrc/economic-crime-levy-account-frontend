@@ -18,8 +18,8 @@ package uk.gov.hmrc.economiccrimelevyaccount.models.eacd
 
 import play.api.libs.json.{Json, OFormat}
 
-final case class QueryKnownFactsResponse(service: String, enrolments: Seq[Enrolment])
+final case class EnrolmentResponse(service: String, enrolments: Seq[Enrolment])
 
-object QueryKnownFactsResponse {
-  implicit val format: OFormat[QueryKnownFactsResponse] = Json.format[QueryKnownFactsResponse]
+object EnrolmentResponse {
+  implicit val format: OFormat[EnrolmentResponse] = Json.format[EnrolmentResponse]
 }

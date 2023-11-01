@@ -16,23 +16,21 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
-import play.api.Logging
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationData
 import uk.gov.hmrc.http.HttpReads.Implicits._
-import uk.gov.hmrc.http.{HeaderCarrier, HttpClient}
+import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
+import uk.gov.hmrc.http.client.HttpClientV2
 
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ObligationDataConnector @Inject() (appConfig: AppConfig, httpClient: HttpClient)(implicit ec: ExecutionContext)
-    extends Logging {
+class ObligationDataConnector @Inject() (appConfig: AppConfig, httpClient: HttpClientV2)(implicit ec: ExecutionContext)
+    extends BaseConnector {
 
-  private val eclAccountUrl: String = s"${appConfig.economicCrimeLevyAccountBaseUrl}/economic-crime-levy-account"
-
-  def getObligationData()(implicit hc: HeaderCarrier): Future[Option[ObligationData]] =
-    httpClient.GET[Option[ObligationData]](
-      s"$eclAccountUrl/obligation-data"
-    )
+  def getObligationData()(implicit hc: HeaderCarrier): Future[ObligationData] =
+    httpClient
+      .get(url"${appConfig.obligationDataUrl}")
+      .executeAndDeserialise[ObligationData]
 }
