@@ -38,7 +38,7 @@ class EnrolmentStoreProxyServiceSpec extends SpecBase {
           enrolments = Seq(
             Enrolment(
               identifiers = Seq(KeyValue(key = EclEnrolment.IdentifierKey, value = eclRegistrationReference)),
-              verifiers = Seq(KeyValue(key = EclEnrolment.VerifierKey, value = "20230131"))
+              verifiers = Seq(KeyValue(key = EclEnrolment.RegistrationDateKey, value = "20230131"))
             )
           )
         )

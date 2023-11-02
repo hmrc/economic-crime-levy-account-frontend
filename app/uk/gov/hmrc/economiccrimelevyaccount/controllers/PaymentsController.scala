@@ -20,7 +20,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.OpsData
-import uk.gov.hmrc.economiccrimelevyaccount.services.{FinancialDataService, OpsService}
+import uk.gov.hmrc.economiccrimelevyaccount.services.{ECLAccountService, OpsService}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
@@ -31,7 +31,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class PaymentsController @Inject() (
   val controllerComponents: MessagesControllerComponents,
   authorise: AuthorisedAction,
-  financialDataService: FinancialDataService,
+  financialDataService: ECLAccountService,
   opsService: OpsService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController

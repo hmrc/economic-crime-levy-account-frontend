@@ -33,7 +33,7 @@ class StubEnrolmentStoreProxyConnector @Inject() extends EnrolmentStoreProxyConn
         enrolments = Seq(
           Enrolment(
             identifiers = Seq(KeyValue(EclEnrolment.IdentifierKey, eclRegistrationReference)),
-            verifiers = Seq(KeyValue(EclEnrolment.VerifierKey, "20230901"))
+            verifiers = Seq(KeyValue(EclEnrolment.RegistrationDateKey, "20230901"))
           )
         )
       )

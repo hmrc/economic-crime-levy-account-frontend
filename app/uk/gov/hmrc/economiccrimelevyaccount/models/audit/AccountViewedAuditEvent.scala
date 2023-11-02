@@ -17,7 +17,7 @@
 package uk.gov.hmrc.economiccrimelevyaccount.models.audit
 
 import play.api.libs.json.{JsValue, Json, OFormat}
-import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationDetails
+import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialData, LineItemDetails, ObligationDetails, PenaltyTotals}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType
 
 import java.time.LocalDate
@@ -49,6 +49,18 @@ case class AccountViewedAuditFinancialDetails(
 
 object AccountViewedAuditFinancialDetails {
   implicit val format: OFormat[AccountViewedAuditFinancialDetails] = Json.format[AccountViewedAuditFinancialDetails]
+
+  def apply(response: FinancialData): AccountViewedAuditFinancialDetails =
+    AccountViewedAuditFinancialDetails(
+      response.totalisation.flatMap(_.totalAccountBalance),
+      response.totalisation.flatMap(_.totalAccountOverdue),
+      response.totalisation.flatMap(_.totalOverdue),
+      response.totalisation.flatMap(_.totalNotYetDue),
+      response.totalisation.flatMap(_.totalBalance),
+      response.totalisation.flatMap(_.totalCredit),
+      response.totalisation.flatMap(_.totalCleared),
+      response.documentDetails.map(details => details.map(AccountViewedAuditDocumentDetails.apply))
+    )
 }
 
 case class AccountViewedAuditDocumentDetails(
@@ -63,6 +75,19 @@ case class AccountViewedAuditDocumentDetails(
 
 object AccountViewedAuditDocumentDetails {
   implicit val format: OFormat[AccountViewedAuditDocumentDetails] = Json.format[AccountViewedAuditDocumentDetails]
+
+  def apply(detail: DocumentDetails): AccountViewedAuditDocumentDetails =
+    AccountViewedAuditDocumentDetails(
+      detail.chargeReferenceNumber,
+      detail.issueDate,
+      detail.interestPostedAmount,
+      detail.postingDate,
+      detail.getPaymentType,
+      detail.penaltyTotals.map(penaltyTotalsList => penaltyTotalsList.map(AccountViewedAuditPenaltyTotals.apply)),
+      detail.lineItemDetails.map(lineItemDetailsList =>
+        lineItemDetailsList.map(lineItem => AccountViewedAuditLineItem.apply(lineItem))
+      )
+    )
 }
 
 case class AccountViewedAuditPenaltyTotals(
@@ -73,6 +98,13 @@ case class AccountViewedAuditPenaltyTotals(
 
 object AccountViewedAuditPenaltyTotals {
   implicit val format: OFormat[AccountViewedAuditPenaltyTotals] = Json.format[AccountViewedAuditPenaltyTotals]
+
+  def apply(penaltyTotal: PenaltyTotals): AccountViewedAuditPenaltyTotals =
+    AccountViewedAuditPenaltyTotals(
+      penaltyType = penaltyTotal.penaltyType,
+      penaltyStatus = penaltyTotal.penaltyStatus,
+      penaltyAmount = penaltyTotal.penaltyAmount
+    )
 }
 
 case class AccountViewedAuditLineItem(
@@ -86,4 +118,14 @@ case class AccountViewedAuditLineItem(
 
 object AccountViewedAuditLineItem {
   implicit val format: OFormat[AccountViewedAuditLineItem] = Json.format[AccountViewedAuditLineItem]
+
+  def apply(lineItem: LineItemDetails): AccountViewedAuditLineItem =
+    AccountViewedAuditLineItem(
+      lineItem.chargeDescription,
+      lineItem.clearingReason,
+      lineItem.clearingDocument,
+      lineItem.periodFromDate,
+      lineItem.periodToDate,
+      lineItem.periodKey
+    )
 }

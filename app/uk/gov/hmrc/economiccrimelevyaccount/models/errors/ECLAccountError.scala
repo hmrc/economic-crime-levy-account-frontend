@@ -18,10 +18,9 @@ package uk.gov.hmrc.economiccrimelevyaccount.models.errors
 
 import uk.gov.hmrc.economiccrimelevyaccount.models.EclReference
 
-trait FinancialDataError
+trait ECLAccountError
 
-object FinancialDataError {
-  case class InternalUnexpectedError(message: String, cause: Option[Throwable]) extends FinancialDataError
-  case class BadGateway(reason: String, code: Int) extends FinancialDataError
-  case class NotFound(eclReference: EclReference) extends FinancialDataError
+object ECLAccountError {
+  case class InternalUnexpectedError(message: String, cause: Option[Throwable]) extends ECLAccountError
+  case class BadGateway(reason: String, code: Int) extends ECLAccountError
 }

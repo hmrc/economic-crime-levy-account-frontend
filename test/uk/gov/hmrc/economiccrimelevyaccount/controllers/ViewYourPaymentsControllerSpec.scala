@@ -23,7 +23,7 @@ import play.api.test.Helpers.{contentAsString, status}
 import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialViewDetails
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
-import uk.gov.hmrc.economiccrimelevyaccount.services.FinancialDataService
+import uk.gov.hmrc.economiccrimelevyaccount.services.ECLAccountService
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.FinancialViewDetails
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoPaymentsView, PaymentsView}
 
@@ -31,9 +31,9 @@ import scala.concurrent.Future
 
 class ViewYourPaymentsControllerSpec extends SpecBase {
 
-  val mockFinancialDataService: FinancialDataService = mock[FinancialDataService]
-  val paymentsView                                   = app.injector.instanceOf[PaymentsView]
-  val noPaymentsView                                 = app.injector.instanceOf[NoPaymentsView]
+  val mockFinancialDataService: ECLAccountService = mock[ECLAccountService]
+  val paymentsView                                = app.injector.instanceOf[PaymentsView]
+  val noPaymentsView                              = app.injector.instanceOf[NoPaymentsView]
 
   val controller = new ViewYourPaymentsController(
     mcc,

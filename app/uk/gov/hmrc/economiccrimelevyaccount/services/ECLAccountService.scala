@@ -17,28 +17,52 @@
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import cats.data.EitherT
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.FinancialDataConnector
-import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse.findLatestFinancialObligation
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.ECLAccountConnector
+import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialData.findLatestFinancialObligation
 import uk.gov.hmrc.economiccrimelevyaccount.models._
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.FinancialDataError
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.ECLAccountError
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, Overpayment, StandardPayment, Unknown}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, Overpayment, StandardPayment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
-class FinancialDataService @Inject() (
-  financialDataConnector: FinancialDataConnector
+class ECLAccountService @Inject() (
+  eclAccountConnector: ECLAccountConnector
 )(implicit ec: ExecutionContext) {
 
   def retrieveFinancialData(implicit
     hc: HeaderCarrier
-  ): EitherT[Future, FinancialDataError, Option[FinancialDataResponse]] =
-    financialDataConnector.getFinancialData()
+  ): EitherT[Future, ECLAccountError, Option[FinancialData]] =
+    EitherT {
+      eclAccountConnector.getFinancialData.map(Right(_)).recover {
+        case error @ UpstreamErrorResponse(message, code, _, _)
+            if UpstreamErrorResponse.Upstream5xxResponse
+              .unapply(error)
+              .isDefined || UpstreamErrorResponse.Upstream4xxResponse.unapply(error).isDefined =>
+          Left(ECLAccountError.BadGateway(reason = message, code = code))
+        case NonFatal(thr) => Left(ECLAccountError.InternalUnexpectedError(thr.getMessage, Some(thr)))
+      }
+    }
 
-  def getLatestFinancialObligation(financialData: FinancialDataResponse): Option[FinancialDetails] = {
+  def retrieveObligationData(implicit
+    hc: HeaderCarrier
+  ): EitherT[Future, ECLAccountError, Option[ObligationData]] =
+    EitherT {
+      eclAccountConnector.getObligationData.map(Right(_)).recover {
+        case error @ UpstreamErrorResponse(message, code, _, _)
+            if UpstreamErrorResponse.Upstream5xxResponse
+              .unapply(error)
+              .isDefined || UpstreamErrorResponse.Upstream4xxResponse.unapply(error).isDefined =>
+          Left(ECLAccountError.BadGateway(reason = message, code = code))
+        case NonFatal(thr) => Left(ECLAccountError.InternalUnexpectedError(thr.getMessage, Some(thr)))
+      }
+    }
+
+  def getLatestFinancialObligation(financialData: FinancialData): Option[FinancialDetails] = {
     val latestObligationDetails = findLatestFinancialObligation(financialData)
 
     latestObligationDetails match {
@@ -68,19 +92,19 @@ class FinancialDataService @Inject() (
     }
   }
 
-  def getFinancialDetails(implicit hc: HeaderCarrier): Future[Option[FinancialViewDetails]] = {
-    retrieveFinancialData.map { response =>
-      response.
-      val preparedFinancialDetails = prepareFinancialDetails(response)
-      if (preparedFinancialDetails.paymentHistory.isEmpty & preparedFinancialDetails.outstandingPayments.isEmpty) {
-        None
-      } else {
-        Some(preparedFinancialDetails)
-      }
+  def getFinancialDetails(implicit hc: HeaderCarrier): Future[Option[FinancialViewDetails]] =
+    eclAccountConnector.getFinancialData.map {
+      case None           => None
+      case Some(response) =>
+        val preparedFinancialDetails = prepareFinancialDetails(response)
+        if (preparedFinancialDetails.paymentHistory.isEmpty & preparedFinancialDetails.outstandingPayments.isEmpty) {
+          None
+        } else {
+          Some(preparedFinancialDetails)
+        }
     }
-  }
 
-  private def prepareFinancialDetails(response: FinancialDataResponse): FinancialViewDetails = {
+  private def prepareFinancialDetails(response: FinancialData): FinancialViewDetails = {
     val documentDetails = extractValue(response.documentDetails)
 
     val outstandingPayments = documentDetails

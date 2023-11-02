@@ -16,21 +16,32 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
+import com.google.inject.Singleton
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationData
-import uk.gov.hmrc.http.HttpReads.Implicits._
+import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, ObligationData}
 import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
+import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 
-import javax.inject.{Inject, Singleton}
+import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ObligationDataConnector @Inject() (appConfig: AppConfig, httpClient: HttpClientV2)(implicit ec: ExecutionContext)
+class ECLAccountConnector @Inject() (
+  appConfig: AppConfig,
+  httpClient: HttpClientV2
+)(implicit ec: ExecutionContext)
     extends BaseConnector {
 
-  def getObligationData()(implicit hc: HeaderCarrier): Future[ObligationData] =
+  def getFinancialData(implicit
+    hc: HeaderCarrier
+  ): Future[Option[FinancialData]] =
+    httpClient
+      .get(url"${appConfig.financialDataUrl}")
+      .executeAndDeserialiseOption[FinancialData]
+
+  def getObligationData()(implicit hc: HeaderCarrier): Future[Option[ObligationData]] =
     httpClient
       .get(url"${appConfig.obligationDataUrl}")
-      .executeAndDeserialise[ObligationData]
+      .executeAndDeserialiseOption[ObligationData]
 }

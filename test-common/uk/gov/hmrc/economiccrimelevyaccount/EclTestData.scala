@@ -36,8 +36,8 @@ case class ObligationDataWithObligation(obligationData: ObligationData)
 case class ObligationDataWithOverdueObligation(obligationData: ObligationData)
 case class ObligationDataWithSubmittedObligation(obligationData: ObligationData)
 
-case class ValidFinancialDataResponse(financialDataResponse: FinancialDataResponse)
-case class ValidFinancialDataResponseForLatestObligation(financialDataResponse: FinancialDataResponse)
+case class ValidFinancialDataResponse(financialDataResponse: FinancialData)
+case class ValidFinancialDataResponseForLatestObligation(financialDataResponse: FinancialData)
 
 case class ValidFinancialViewDetails(financialViewDetails: FinancialViewDetails)
 
@@ -140,7 +140,7 @@ trait EclTestData {
       lineItemDetails        <- Arbitrary.arbitrary[LineItemDetails]
 
     } yield ValidFinancialDataResponse(
-      FinancialDataResponse(
+      FinancialData(
         totalisation = Some(
           Totalisation(
             totalAccountBalance = Some(BigDecimal(arbTotalisationAmounts)),
@@ -198,7 +198,7 @@ trait EclTestData {
       lineItemDetails        <- Arbitrary.arbitrary[LineItemDetails]
 
     } yield ValidFinancialDataResponseForLatestObligation(
-      FinancialDataResponse(
+      FinancialData(
         totalisation = Some(
           Totalisation(
             totalAccountBalance = Some(BigDecimal(arbTotalisationAmounts)),

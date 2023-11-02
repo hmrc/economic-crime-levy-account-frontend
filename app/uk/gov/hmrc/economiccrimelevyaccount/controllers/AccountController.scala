@@ -17,18 +17,18 @@
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.i18n.I18nSupport
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
+import play.api.libs.json.Json
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.audit._
 import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, ObligationData, ObligationDetails, Open}
-import uk.gov.hmrc.economiccrimelevyaccount.services.{EnrolmentStoreProxyService, FinancialDataService}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, ObligationData, ObligationDetails, Open}
+import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, ECLAccountService, EnrolmentStoreProxyService}
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
-import uk.gov.hmrc.play.audit.http.connector.AuditConnector
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
+import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
@@ -38,63 +38,61 @@ class AccountController @Inject() (
   authorise: AuthorisedAction,
   enrolmentStoreProxyService: EnrolmentStoreProxyService,
   view: AccountView,
-  obligationDataConnector: ObligationDataConnector,
-  financialDataService: FinancialDataService,
-  auditConnector: AuditConnector
+  eclAccountService: ECLAccountService,
+  auditService: AuditService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with BaseController
+    with ErrorHandler {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    enrolmentStoreProxyService.getEclRegistrationDate(request.eclRegistrationReference).flatMap { registrationDate =>
-      obligationDataConnector
-        .getObligationData()
-        .flatMap { obligationData =>
-          val latestObligationData = getLatestObligation(obligationData)
-
-          financialDataService.retrieveFinancialData.map {
-            case None               =>
-              auditAccountViewed(obligationData, None)
-              Ok(
-                view(
-                  request.eclRegistrationReference,
-                  ViewUtils.formatLocalDate(registrationDate),
-                  latestObligationData,
-                  None
-                )
-              )
-            case Some(dataResponse) =>
-              auditAccountViewed(obligationData, Some(dataResponse))
-              Ok(
-                view(
-                  request.eclRegistrationReference,
-                  ViewUtils.formatLocalDate(registrationDate),
-                  latestObligationData,
-                  dataResponse.documentDetails match {
-                    case Some(_) => financialDataService.getLatestFinancialObligation(dataResponse)
-                    case None    => None
-                  }
-                )
-              )
-          }
-        }
-    }
+    (for {
+      registrationDate             <-
+        enrolmentStoreProxyService.getEclRegistrationDate(request.eclReference).asResponseError
+      obligationDataOption         <- eclAccountService.retrieveObligationData.asResponseError
+      latestObligationDetailsOption = obligationDataOption.flatMap(getLatestObligation)
+      financialDataOption          <- eclAccountService.retrieveFinancialData.asResponseError
+      response                     <-
+        determineResponse(registrationDate, latestObligationDetailsOption, financialDataOption)
+      _                             =
+        auditService
+          .auditAccountViewed(request.internalId, request.eclReference, obligationDataOption, financialDataOption)
+    } yield response).fold(
+      presentationError => Status(presentationError.code.statusCode)(Json.toJson(presentationError)),
+      result => result
+    )
   }
 
-  private def auditAccountViewed(obligationData: ObligationData, financialData: Option[FinancialDataResponse])(implicit
-    request: AuthorisedRequest[_]
-  ): Unit =
-    auditConnector.sendExtendedEvent(
-      AccountViewedAuditEvent(
-        internalId = request.internalId,
-        eclReference = request.eclRegistrationReference,
-        obligationDetails = obligationData.obligations.flatMap(_.obligationDetails),
-        financialDetails = financialData match {
-          case Some(details) => mapAccountViewedAuditFinancialDetails(details)
-          case None          => None
-        }
-      ).extendedDataEvent
-    )
+  private def determineResponse(
+    registrationDate: LocalDate,
+    latestObligationDetailsOption: Option[ObligationDetails],
+    financialDataOption: Option[FinancialData]
+  )(implicit request: AuthorisedRequest[_]): Result =
+    financialDataOption
+      .map(financialData =>
+        Ok(
+          view(
+            request.eclReference.value,
+            ViewUtils.formatLocalDate(registrationDate),
+            latestObligationDetailsOption,
+            financialData.documentDetails match {
+              case Some(_) => eclAccountService.getLatestFinancialObligation(financialData)
+              case None    => None
+            }
+          )
+        )
+      )
+      .getOrElse(
+        Ok(
+          view(
+            request.eclReference.value,
+            ViewUtils.formatLocalDate(registrationDate),
+            latestObligationDetailsOption,
+            None
+          )
+        )
+      )
 
   private def getLatestObligation(obligationData: ObligationData): Option[ObligationDetails] =
     obligationData.obligations
@@ -105,62 +103,4 @@ class AccountController @Inject() (
       )
       .headOption
 
-  private def mapAccountViewedAuditFinancialDetails(
-    response: FinancialDataResponse
-  ): Option[AccountViewedAuditFinancialDetails] =
-    Some(
-      AccountViewedAuditFinancialDetails(
-        response.totalisation.flatMap(_.totalAccountBalance),
-        response.totalisation.flatMap(_.totalAccountOverdue),
-        response.totalisation.flatMap(_.totalOverdue),
-        response.totalisation.flatMap(_.totalNotYetDue),
-        response.totalisation.flatMap(_.totalBalance),
-        response.totalisation.flatMap(_.totalCredit),
-        response.totalisation.flatMap(_.totalCleared),
-        response.documentDetails match {
-          case Some(details) =>
-            Some(
-              details.map(detail =>
-                AccountViewedAuditDocumentDetails(
-                  detail.chargeReferenceNumber,
-                  detail.issueDate,
-                  detail.interestPostedAmount,
-                  detail.postingDate,
-                  detail.getPaymentType,
-                  detail.penaltyTotals match {
-                    case Some(penaltyTotals) =>
-                      Some(
-                        penaltyTotals.map(penaltyTotal =>
-                          AccountViewedAuditPenaltyTotals(
-                            penaltyType = penaltyTotal.penaltyType,
-                            penaltyStatus = penaltyTotal.penaltyStatus,
-                            penaltyAmount = penaltyTotal.penaltyAmount
-                          )
-                        )
-                      )
-                    case None                => None
-                  },
-                  detail.lineItemDetails match {
-                    case Some(lineItems) =>
-                      Some(
-                        lineItems.map(lineItem =>
-                          AccountViewedAuditLineItem(
-                            lineItem.chargeDescription,
-                            lineItem.clearingReason,
-                            lineItem.clearingDocument,
-                            lineItem.periodFromDate,
-                            lineItem.periodToDate,
-                            lineItem.periodKey
-                          )
-                        )
-                      )
-                    case None            => None
-                  }
-                )
-              )
-            )
-          case None          => None
-        }
-      )
-    )
 }

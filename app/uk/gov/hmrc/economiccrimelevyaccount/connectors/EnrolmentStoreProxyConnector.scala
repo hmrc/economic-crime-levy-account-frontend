@@ -18,8 +18,8 @@ package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
 import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-import uk.gov.hmrc.economiccrimelevyaccount.models.KeyValue
-import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, QueryKnownFactsRequest, EnrolmentResponse}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, KeyValue}
+import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, EnrolmentResponse, QueryKnownFactsRequest}
 import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -28,7 +28,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 trait EnrolmentStoreProxyConnector {
-  def getEnrolments(eclRegistrationReference: String)(implicit hc: HeaderCarrier): Future[EnrolmentResponse]
+  def getEnrolments(eclReference: EclReference)(implicit hc: HeaderCarrier): Future[EnrolmentResponse]
 }
 
 class EnrolmentStoreProxyConnectorImpl @Inject() (appConfig: AppConfig, httpClient: HttpClientV2)(implicit
@@ -36,11 +36,11 @@ class EnrolmentStoreProxyConnectorImpl @Inject() (appConfig: AppConfig, httpClie
 ) extends EnrolmentStoreProxyConnector
     with BaseConnector {
 
-  def getEnrolments(eclRegistrationReference: String)(implicit hc: HeaderCarrier): Future[EnrolmentResponse] = {
+  def getEnrolments(eclReference: EclReference)(implicit hc: HeaderCarrier): Future[EnrolmentResponse] = {
     val queryKnownFactsRequest = QueryKnownFactsRequest(
       EclEnrolment.ServiceName,
       knownFacts = Seq(
-        KeyValue(key = EclEnrolment.IdentifierKey, value = eclRegistrationReference)
+        KeyValue(key = EclEnrolment.IdentifierKey, value = eclReference.value)
       )
     )
 

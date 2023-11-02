@@ -21,9 +21,8 @@ import org.mockito.ArgumentMatchers.any
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, FinancialDetails}
-import uk.gov.hmrc.economiccrimelevyaccount.services.{EnrolmentStoreProxyService, FinancialDataService}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, FinancialDetails}
+import uk.gov.hmrc.economiccrimelevyaccount.services.{ECLAccountService, EnrolmentStoreProxyService}
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
 import uk.gov.hmrc.economiccrimelevyaccount._
@@ -35,7 +34,7 @@ import scala.concurrent.Future
 class AccountControllerSpec extends SpecBase {
 
   val mockEnrolmentStoreProxyService: EnrolmentStoreProxyService = mock[EnrolmentStoreProxyService]
-  val mockFinancialDataService: FinancialDataService             = mock[FinancialDataService]
+  val mockFinancialDataService: ECLAccountService                = mock[ECLAccountService]
   val mockObligationDataConnector: ObligationDataConnector       = mock[ObligationDataConnector]
   val mockAuditConnector: AuditConnector                         = mock[AuditConnector]
 
@@ -206,7 +205,7 @@ class AccountControllerSpec extends SpecBase {
         validFinancialDataResponse: ValidFinancialDataResponse
       ) =>
         val invalidFinancialDataResponse =
-          validFinancialDataResponse.copy(financialDataResponse = FinancialDataResponse(None, None))
+          validFinancialDataResponse.copy(financialDataResponse = FinancialData(None, None))
 
         when(
           mockEnrolmentStoreProxyService.getEclRegistrationDate(ArgumentMatchers.eq(eclRegistrationReference))(any())

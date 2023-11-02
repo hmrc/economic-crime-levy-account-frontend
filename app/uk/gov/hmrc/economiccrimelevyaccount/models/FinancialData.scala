@@ -18,14 +18,14 @@ package uk.gov.hmrc.economiccrimelevyaccount.models
 
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json._
-import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDataResponse.extractValue
+import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialData.extractValue
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
 import java.time.LocalDate
 
-case class FinancialDataResponse(totalisation: Option[Totalisation], documentDetails: Option[Seq[DocumentDetails]]) {
+case class FinancialData(totalisation: Option[Totalisation], documentDetails: Option[Seq[DocumentDetails]]) {
   private def getDocumentsByContractObject(
     contractObjectNumber: String,
     contractObjectType: String
@@ -46,11 +46,11 @@ case class FinancialDataResponse(totalisation: Option[Totalisation], documentDet
   }
 }
 
-object FinancialDataResponse {
+object FinancialData {
 
-  implicit val format: OFormat[FinancialDataResponse] = Json.format[FinancialDataResponse]
+  implicit val format: OFormat[FinancialData] = Json.format[FinancialData]
 
-  def findLatestFinancialObligation(financialData: FinancialDataResponse): Option[DocumentDetails] =
+  def findLatestFinancialObligation(financialData: FinancialData): Option[DocumentDetails] =
     financialData.documentDetails match {
       case Some(value) =>
         val eligiblePayments = value

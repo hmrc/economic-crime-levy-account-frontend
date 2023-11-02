@@ -17,7 +17,7 @@
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.Logging
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{BadGateway, FinancialDataError, InternalServiceError, ResponseError}
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{BadGateway, ECLAccountError, EnrolmentStoreError, InternalServiceError, ResponseError}
 
 import scala.concurrent.{ExecutionContext, Future}
 import cats.data.EitherT
@@ -59,15 +59,28 @@ trait ErrorHandler extends Logging {
     def convert(error: E): ResponseError
   }
 
-  implicit val FinancialDataErrorConverter: Converter[FinancialDataError] =
-    new Converter[FinancialDataError] {
-      override def convert(error: FinancialDataError): ResponseError = error match {
-        case FinancialDataError.NotFound(eclReference)                  =>
-          ResponseError.notFoundError(s"Unable to find record with id: ${eclReference.value}")
-        case FinancialDataError.BadGateway(message, code)               =>
+  implicit val enrolmentStoreErrorConverter: Converter[EnrolmentStoreError] = {
+    import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EnrolmentStoreError._
+    new Converter[EnrolmentStoreError] {
+      override def convert(error: EnrolmentStoreError): ResponseError = error match {
+        case EnrolmentStoreError.BadGateway(message, code)               =>
           ResponseError.badGateway(message = message, code = code)
-        case FinancialDataError.InternalUnexpectedError(message, cause) =>
+        case EnrolmentStoreError.InternalUnexpectedError(message, cause) =>
           ResponseError.internalServiceError(message = message, cause = cause)
       }
     }
+  }
+
+  implicit val eclAccountErrorConverter: Converter[ECLAccountError] = {
+    import uk.gov.hmrc.economiccrimelevyaccount.models.errors.ECLAccountError._
+    new Converter[ECLAccountError] {
+      import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EnrolmentStoreError._
+      override def convert(error: ECLAccountError): ResponseError = error match {
+        case ECLAccountError.BadGateway(message, code)               =>
+          ResponseError.badGateway(message = message, code = code)
+        case ECLAccountError.InternalUnexpectedError(message, cause) =>
+          ResponseError.internalServiceError(message = message, cause = cause)
+      }
+    }
+  }
 }

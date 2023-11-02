@@ -19,7 +19,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.controllers
 import play.api.Logging
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.{FinancialDataConnector, ObligationDataConnector}
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.ECLAccountConnector
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
 import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, Fulfilled, ObligationData, ObligationDetails, Open}
@@ -37,8 +37,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class ViewYourReturnsController @Inject() (
   val controllerComponents: MessagesControllerComponents,
   authorise: AuthorisedAction,
-  obligationDataConnector: ObligationDataConnector,
-  financialDataConnector: FinancialDataConnector,
+  eclAccountConnector: ECLAccountConnector,
   returnsView: ReturnsView,
   noReturnsView: NoReturnsView
 )(implicit ec: ExecutionContext)
@@ -47,7 +46,7 @@ class ViewYourReturnsController @Inject() (
     with Logging {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    obligationDataConnector.getObligationData().flatMap {
+    eclAccountConnector.getObligationData().flatMap {
       case Some(obligationData) =>
         assembleReturnsViewData(obligationData)
       case None                 => Future.successful(Ok(noReturnsView()))
@@ -57,8 +56,7 @@ class ViewYourReturnsController @Inject() (
   private def assembleReturnsViewData(
     obligationData: ObligationData
   )(implicit hc: HeaderCarrier, request: AuthorisedRequest[_]) =
-    financialDataConnector
-      .getFinancialData()
+    eclAccountConnector.getFinancialData
       .map {
         case None                        =>
           Ok(noReturnsView())

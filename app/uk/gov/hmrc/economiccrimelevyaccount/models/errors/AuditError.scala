@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.economiccrimelevyaccount.models.eacd
+package uk.gov.hmrc.economiccrimelevyaccount.models.errors
 
-object EclEnrolment {
-  val ServiceName: String         = "HMRC-ECL-ORG"
-  val IdentifierKey: String       = "EclRegistrationReference"
-  val RegistrationDateKey: String = "EclRegistrationDate"
+trait AuditError
+
+object AuditError {
+  case class InternalUnexpectedError(message: String, cause: Option[Throwable]) extends AuditError
+  case class BadGateway(reason: String, code: Int) extends AuditError
 }

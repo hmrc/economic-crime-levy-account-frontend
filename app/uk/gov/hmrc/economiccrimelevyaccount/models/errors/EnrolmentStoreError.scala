@@ -16,12 +16,9 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.models.errors
 
-import uk.gov.hmrc.economiccrimelevyaccount.models.EclReference
-
 trait EnrolmentStoreError
 
 object EnrolmentStoreError {
   case class InternalUnexpectedError(message: String, cause: Option[Throwable]) extends OpsError
   case class BadGateway(reason: String, code: Int) extends OpsError
-  case class NotFound(eclReference: EclReference) extends OpsError
 }

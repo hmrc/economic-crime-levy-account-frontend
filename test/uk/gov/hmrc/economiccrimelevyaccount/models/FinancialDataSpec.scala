@@ -20,7 +20,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponse
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
 
-class FinancialDataResponseSpec extends SpecBase {
+class FinancialDataSpec extends SpecBase {
 
   "FinancialDataResponse refundAmount" should {
 
@@ -32,7 +32,7 @@ class FinancialDataResponseSpec extends SpecBase {
       contractObjectNumberParam: String,
       regime: String,
       secondRecordDocumentType: FinancialDataDocumentType
-    ): FinancialDataResponse = {
+    ): FinancialData = {
       val documentDetails = dataResponse.financialDataResponse.documentDetails.get.head
       dataResponse.financialDataResponse.copy(
         documentDetails = Some(

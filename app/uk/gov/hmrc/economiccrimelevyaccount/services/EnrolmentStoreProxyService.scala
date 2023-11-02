@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
-import cats.data.EitherT
+import cats.data.{EitherT, NonEmptyMap}
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EnrolmentStoreProxyConnector
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, Enrolment}
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EnrolmentStoreError
@@ -33,16 +33,19 @@ class EnrolmentStoreProxyService @Inject() (enrolmentStoreProxyConnector: Enrolm
 ) {
 
   def getEclRegistrationDate(
-    eclRegistrationReference: String
-  )(implicit hc: HeaderCarrier): EitherT[Future, EnrolmentStoreError, Option[LocalDate]] =
+    eclReference: EclReference
+  )(implicit hc: HeaderCarrier): EitherT[Future, EnrolmentStoreError, LocalDate] =
     EitherT {
       enrolmentStoreProxyConnector
-        .getEnrolments(eclRegistrationReference)
-        .map { enrolmentResponse =>
-          enrolmentResponse.enrolments.headOption
-            .flatMap(_.verifiers.find(_.key == EclEnrolment.VerifierKey))
-            .map(keyValue => Right(Some(LocalDate.parse(keyValue.value, DateTimeFormatter.BASIC_ISO_DATE))))
-        }
+        .getEnrolments(eclReference)
+        .map(enrolmentResponse => enrolmentResponse.enrolments.headOption)
+        .map(enrolment => enrolment.flatMap(_.verifiers.find(_.key == EclEnrolment.RegistrationDateKey)))
+        .map(
+          _.map(
+            LocalDate.parse(registrationDateKeyValue.value, DateTimeFormatter.BASIC_ISO_DATE)
+          )
+        )
+        .map(Right(_))
         .recover {
           case error @ UpstreamErrorResponse(message, code, _, _)
               if UpstreamErrorResponse.Upstream5xxResponse

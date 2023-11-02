@@ -21,7 +21,7 @@ import play.api.http.Status.{BAD_REQUEST, INTERNAL_SERVER_ERROR, OK}
 import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, status}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.{FinancialDataConnector, ObligationDataConnector}
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.ECLAccountConnector
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
@@ -36,7 +36,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
   val returnsView: ReturnsView                             = app.injector.instanceOf[ReturnsView]
   val noReturnsView: NoReturnsView                         = app.injector.instanceOf[NoReturnsView]
   val mockObligationDataConnector: ObligationDataConnector = mock[ObligationDataConnector]
-  val mockFinancialDataConnector: FinancialDataConnector   = mock[FinancialDataConnector]
+  val mockFinancialDataConnector: ECLAccountConnector      = mock[ECLAccountConnector]
 
   val controller = new ViewYourReturnsController(
     mcc,

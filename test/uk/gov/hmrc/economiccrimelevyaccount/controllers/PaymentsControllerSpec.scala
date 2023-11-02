@@ -21,8 +21,8 @@ import org.mockito.ArgumentMatchers.any
 import play.api.http.Status.CREATED
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.OpsJourneyError
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, FinancialDetails, OpsJourneyResponse}
-import uk.gov.hmrc.economiccrimelevyaccount.services.{FinancialDataService, OpsService}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, FinancialDetails, OpsJourneyResponse}
+import uk.gov.hmrc.economiccrimelevyaccount.services.{ECLAccountService, OpsService}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.StandardPayment
 
 import java.time.LocalDate
@@ -30,8 +30,8 @@ import scala.concurrent.Future
 
 class PaymentsControllerSpec extends SpecBase {
 
-  val mockOpsService: OpsService                     = mock[OpsService]
-  val mockFinancialDataService: FinancialDataService = mock[FinancialDataService]
+  val mockOpsService: OpsService                  = mock[OpsService]
+  val mockFinancialDataService: ECLAccountService = mock[ECLAccountService]
 
   val date                = LocalDate.now()
   val expectedUrl: String = "http://www.bbc.co.uk"
@@ -58,7 +58,7 @@ class PaymentsControllerSpec extends SpecBase {
           expectedUrl
         )
 
-        val response = FinancialDataResponse(
+        val response = FinancialData(
           None,
           None
         )
@@ -101,7 +101,7 @@ class PaymentsControllerSpec extends SpecBase {
         chargeReference: String,
         amount: BigDecimal
       ) =>
-        val response = FinancialDataResponse(
+        val response = FinancialData(
           None,
           None
         )

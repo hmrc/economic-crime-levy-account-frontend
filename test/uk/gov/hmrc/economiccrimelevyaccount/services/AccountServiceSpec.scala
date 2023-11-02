@@ -19,23 +19,23 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 import org.mockito.ArgumentMatchers.any
 import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponseForLatestObligation
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.FinancialDataConnector
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.ECLAccountConnector
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, FinancialDetails}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, FinancialDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, PartiallyPaid}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, StandardPayment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 
 import scala.concurrent.Future
 
-class FinancialDataServiceSpec extends SpecBase {
+class AccountServiceSpec extends SpecBase {
 
-  private val mockFinancialDataConnector = mock[FinancialDataConnector]
+  private val mockFinancialDataConnector = mock[ECLAccountConnector]
 
-  val service = new FinancialDataService(mockFinancialDataConnector)
+  val service = new ECLAccountService(mockFinancialDataConnector)
 
   "getLatestFinancialObligation" should {
-    "return None if documentDetails are not present" in forAll { financialDataResponse: FinancialDataResponse =>
+    "return None if documentDetails are not present" in forAll { financialDataResponse: FinancialData =>
       val response = service.getLatestFinancialObligation(financialDataResponse.copy(documentDetails = None))
 
       response shouldBe None

@@ -35,6 +35,12 @@ trait BaseConnector {
         .validate[A]
         .map(result => Future.successful(result))
         .recoverTotal(error => Future.failed(JsResult.Exception(error)))
+
+    def asOption[A](implicit reads: Reads[A]): Future[Option[A]] =
+      response.json
+        .validateOpt[A]
+        .map(result => Future.successful(result))
+        .recoverTotal(error => Future.failed(JsResult.Exception(error)))
   }
 
   implicit class RequestBuilderHelpers(requestBuilder: RequestBuilder) {
@@ -44,6 +50,17 @@ trait BaseConnector {
         .flatMap { response =>
           response.status match {
             case OK | CREATED | ACCEPTED => response.as[T]
+            case _                       =>
+              response.error
+          }
+        }
+
+    def executeAndDeserialiseOption[T](implicit ec: ExecutionContext, reads: Reads[T]): Future[Option[T]] =
+      requestBuilder
+        .execute[HttpResponse]
+        .flatMap { response =>
+          response.status match {
+            case OK | CREATED | ACCEPTED => response.asOption[T]
             case _                       =>
               response.error
           }
