@@ -40,6 +40,9 @@ account.viewReturns.table.link = <a href="{0}" class="govuk-link">Cyflwyno datga
 account.viewReturns.table.amend.link = <a href="{0}" class="govuk-link">Diwygio’ch datganiad</a>
 account.viewReturns.table.placeholder = Cyflwyno datganiad
 account.viewReturns.table.status = <strong class="govuk-tag govuk-tag--{0}">{1}</strong>
+account.viewReturns.table.cell.status.due = I’W GYFLWYNO
+account.viewReturns.table.cell.status.submitted = WEDI’I GYFLWYNO
+account.viewReturns.table.cell.status.overdue = HWYR
 account.viewReturns.noReturnsFound.title = Eich datganiadau Ardoll Troseddau Economaidd
 account.viewReturns.noReturnsFound.heading = Eich datganiadau Ardoll Troseddau Economaidd
 account.viewReturns.noReturnsFound.p1 = Nid ydych wedi cyflwyno unrhyw ddatganiadau Ardoll Troseddau Economaidd.
@@ -80,7 +83,7 @@ account.viewPayments.table.paymentsHistory.header.2 = Math o daliad
 account.viewPayments.table.paymentsHistory.header.3 = Cyfnod talu
 account.viewPayments.table.paymentsHistory.header.4 = Rydych chi wedi talu CThEF
 account.viewPayments.table.paymentsHistory.header.5 = Statws y taliad
-account.viewPayments.table.paymentsHistory.header.6 = Camau i’w cymryd
+account.viewPayments.table.paymentsHistory.header.6 = Gweithredoedd
 account.viewPayments.table.paymentsHistory.cell.6 = <a href="{0}" class="govuk-link">Gofyn am ad-daliad</a>
 account.registration.card.title = Cofrestriad
 account.registration.card.amendRegistration = Diwygio cofrestriad
