@@ -30,14 +30,6 @@
 
 @(returnData: Seq[ReturnsOverview])(implicit request: Request[_], messages: Messages)
 
-@resolveStatusColour(status: ReturnStatus) = @{
-    status match {
-        case Due => "blue"
-        case Submitted => "green"
-        case Overdue => "red"
-    }
-}
-
 @thirdCellResolve(status: ReturnStatus, periodKey: String) = @{
     status match {
         case Due | Overdue => messages("account.viewReturns.table.link", s"${appConfig.returnsUrl}/period/$periodKey")
