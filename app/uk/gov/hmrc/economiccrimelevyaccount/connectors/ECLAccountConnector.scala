@@ -40,7 +40,7 @@ class ECLAccountConnector @Inject() (
       .get(url"${appConfig.financialDataUrl}")
       .executeAndDeserialiseOption[FinancialData]
 
-  def getObligationData()(implicit hc: HeaderCarrier): Future[Option[ObligationData]] =
+  def getObligationData(implicit hc: HeaderCarrier): Future[Option[ObligationData]] =
     httpClient
       .get(url"${appConfig.obligationDataUrl}")
       .executeAndDeserialiseOption[ObligationData]

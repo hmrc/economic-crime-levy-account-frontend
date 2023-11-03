@@ -17,10 +17,10 @@
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.Logging
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{BadGateway, ECLAccountError, EnrolmentStoreError, InternalServiceError, ResponseError}
 
 import scala.concurrent.{ExecutionContext, Future}
 import cats.data.EitherT
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{BadGateway, ECLAccountError, EnrolmentStoreError, InternalServiceError, ResponseError}
 
 trait ErrorHandler extends Logging {
 
@@ -59,28 +59,22 @@ trait ErrorHandler extends Logging {
     def convert(error: E): ResponseError
   }
 
-  implicit val enrolmentStoreErrorConverter: Converter[EnrolmentStoreError] = {
-    import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EnrolmentStoreError._
+  implicit val enrolmentStoreErrorConverter: Converter[EnrolmentStoreError] =
     new Converter[EnrolmentStoreError] {
       override def convert(error: EnrolmentStoreError): ResponseError = error match {
-        case EnrolmentStoreError.BadGateway(message, code)               =>
-          ResponseError.badGateway(message = message, code = code)
+        case EnrolmentStoreError.BadGateway(cause, statusCode)           => ResponseError.badGateway(cause, statusCode)
         case EnrolmentStoreError.InternalUnexpectedError(message, cause) =>
           ResponseError.internalServiceError(message = message, cause = cause)
       }
     }
-  }
 
-  implicit val eclAccountErrorConverter: Converter[ECLAccountError] = {
-    import uk.gov.hmrc.economiccrimelevyaccount.models.errors.ECLAccountError._
+  implicit val eclAccountErrorConverter: Converter[ECLAccountError] =
     new Converter[ECLAccountError] {
-      import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EnrolmentStoreError._
       override def convert(error: ECLAccountError): ResponseError = error match {
-        case ECLAccountError.BadGateway(message, code)               =>
-          ResponseError.badGateway(message = message, code = code)
+        case ECLAccountError.BadGateway(cause, statusCode)           => ResponseError.badGateway(cause, statusCode)
         case ECLAccountError.InternalUnexpectedError(message, cause) =>
           ResponseError.internalServiceError(message = message, cause = cause)
       }
     }
-  }
+
 }

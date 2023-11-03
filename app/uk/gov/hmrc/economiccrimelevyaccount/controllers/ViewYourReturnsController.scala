@@ -46,7 +46,7 @@ class ViewYourReturnsController @Inject() (
     with Logging {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    eclAccountConnector.getObligationData().flatMap {
+    eclAccountConnector.getObligationData.flatMap {
       case Some(obligationData) =>
         assembleReturnsViewData(obligationData)
       case None                 => Future.successful(Ok(noReturnsView()))

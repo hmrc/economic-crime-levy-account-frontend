@@ -49,7 +49,7 @@ class AuditService @Inject() (auditConnector: AuditConnector)(implicit ec: Execu
             financialDetails = financialData.map(AccountViewedAuditFinancialDetails.apply)
           ).extendedDataEvent
         )
-        .map(Right(_))
+        .map(_ => Right(()))
         .recover {
           case error @ UpstreamErrorResponse(message, code, _, _)
               if UpstreamErrorResponse.Upstream5xxResponse

@@ -21,6 +21,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.OpsData
 import uk.gov.hmrc.economiccrimelevyaccount.services.{ECLAccountService, OpsService}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.FinancialViewDetails
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
@@ -31,39 +32,48 @@ import scala.concurrent.{ExecutionContext, Future}
 class PaymentsController @Inject() (
   val controllerComponents: MessagesControllerComponents,
   authorise: AuthorisedAction,
-  financialDataService: ECLAccountService,
+  eclAccountService: ECLAccountService,
   opsService: OpsService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with BaseController
+    with ErrorHandler {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    getFinancialDetails.flatMap {
-      case Some(value) =>
-        opsService.startOpsJourney(value.chargeReference, value.amount, value.dueDate).map {
-          case Left(r) => Redirect(r.nextUrl)
-          case _       => Redirect(routes.AccountController.onPageLoad())
-        }
-      case None        => Future.successful(Redirect(routes.AccountController.onPageLoad()))
-    }
+    (for {
+      financialDataOption <- eclAccountService.retrieveFinancialData.asResponseError
+    } yield financialDataOption).convertToResultWithJsonBody(OK)
   }
 
-  private def getFinancialDetails()(implicit
-    hc: HeaderCarrier
-  ): Future[Option[OpsData]] =
-    financialDataService.retrieveFinancialData.map {
-      case None           => None
-      case Some(response) =>
-        financialDataService.getLatestFinancialObligation(response) match {
-          case Some(value) =>
-            Some(
-              OpsData(
-                value.chargeReference,
-                value.amount,
-                Some(value.dueDate)
-              )
-            )
-          case None        => None
-        }
-    }
+//  def getFinancialDetails(implicit hc: HeaderCarrier): Future[Option[FinancialViewDetails]] =
+//    eclAccountService.getFinancialDetails.map {
+//      case None           => None
+//      case Some(response) =>
+//        val preparedFinancialDetails = prepareFinancialDetails(response)
+//        if (preparedFinancialDetails.paymentHistory.isEmpty & preparedFinancialDetails.outstandingPayments.isEmpty) {
+//          None
+//        } else {
+//          Some(preparedFinancialDetails)
+//        }
+//    }
+
+//  private def getFinancialDetails()(implicit
+//    hc: HeaderCarrier
+//  ): Future[Option[OpsData]] =
+//    financialDataService.retrieveFinancialData.map {
+//      case None           => None
+//      case Some(response) =>
+//        financialDataService.getLatestFinancialObligation(response) match {
+//          case Some(value) =>
+//            Some(
+//              OpsData(
+//                value.chargeReference,
+//                value.amount,
+//                Some(value.dueDate)
+//              )
+//            )
+//          case None        => None
+//        }
+//    }
 }

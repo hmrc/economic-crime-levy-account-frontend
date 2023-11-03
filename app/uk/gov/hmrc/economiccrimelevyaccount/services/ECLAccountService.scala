@@ -204,13 +204,13 @@ class ECLAccountService @Inject() (
     documentDetails
       .collect(filterInPayments)
       .filter(document => document.interestPostedChargeRef.nonEmpty)
-      .filter(document => extractValue(document.interestPostedChargeRef).equalsIgnoreCase(interestReferenceNumber))
+      .filter(document => containsString(document.interestPostedChargeRef, interestReferenceNumber))
       .head
       .chargeReferenceNumber
 
   private def filterInPayments: PartialFunction[DocumentDetails, DocumentDetails] = {
     case x: DocumentDetails
-        if extractValue(x.documentType) == NewCharge | extractValue(x.documentType) == AmendedCharge =>
+        if containsValue(x.documentType, NewCharge) | containsValue(x.documentType, AmendedCharge) =>
       x
   }
 
@@ -237,13 +237,20 @@ class ECLAccountService @Inject() (
 
   private def useOnlyRegularLineItemDetails: PartialFunction[LineItemDetails, LineItemDetails] = {
     case lineItemDetails: LineItemDetails
-        if extractValue(lineItemDetails.clearingReason).equalsIgnoreCase("Automatic Clearing")
-          | extractValue(lineItemDetails.clearingReason).equalsIgnoreCase("Incoming Payment") =>
+        if containsString(lineItemDetails.clearingReason, "automatic clearing")
+          | containsString(lineItemDetails.clearingReason, "incoming payment") =>
       lineItemDetails
   }
 
   private def filterOutItemsWithoutClearingReason: PartialFunction[LineItemDetails, LineItemDetails] = {
     case lineItemDetails: LineItemDetails if lineItemDetails.clearingReason.nonEmpty => lineItemDetails
   }
-  def extractValue[A](value: Option[A]): A                                                           = value.getOrElse(throw new IllegalStateException())
+
+  private def containsString(value: Option[String], expectedMatch: String) =
+    value.exists(str => expectedMatch.equalsIgnoreCase(str))
+
+  private def containsValue[T](value: Option[T], expectedMatch: T) =
+    value.contains(expectedMatch)
+
+  private def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
 }

@@ -19,9 +19,10 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 import cats.data.{EitherT, NonEmptyMap}
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EnrolmentStoreProxyConnector
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, Enrolment}
+import uk.gov.hmrc.economiccrimelevyaccount.models.EclReference
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EnrolmentStoreError
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
-
+import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.EnrolmentResponse
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
@@ -38,14 +39,7 @@ class EnrolmentStoreProxyService @Inject() (enrolmentStoreProxyConnector: Enrolm
     EitherT {
       enrolmentStoreProxyConnector
         .getEnrolments(eclReference)
-        .map(enrolmentResponse => enrolmentResponse.enrolments.headOption)
-        .map(enrolment => enrolment.flatMap(_.verifiers.find(_.key == EclEnrolment.RegistrationDateKey)))
-        .map(
-          _.map(
-            LocalDate.parse(registrationDateKeyValue.value, DateTimeFormatter.BASIC_ISO_DATE)
-          )
-        )
-        .map(Right(_))
+        .map(getRegistrationDate)
         .recover {
           case error @ UpstreamErrorResponse(message, code, _, _)
               if UpstreamErrorResponse.Upstream5xxResponse
@@ -55,5 +49,21 @@ class EnrolmentStoreProxyService @Inject() (enrolmentStoreProxyConnector: Enrolm
           case NonFatal(thr) => Left(EnrolmentStoreError.InternalUnexpectedError(thr.getMessage, Some(thr)))
         }
     }
+
+  private def getRegistrationDate(enrolmentResponse: EnrolmentResponse): Either[EnrolmentStoreError, LocalDate] = {
+    val enrolmentOption = enrolmentResponse.enrolments.headOption
+
+    val keyValueOption =
+      enrolmentOption.flatMap(enrolment => enrolment.verifiers.find(_.key == EclEnrolment.RegistrationDateKey))
+
+    val registrationDateOption = keyValueOption.map(registrationDateKeyValue =>
+      LocalDate.parse(registrationDateKeyValue.value, DateTimeFormatter.BASIC_ISO_DATE)
+    )
+
+    registrationDateOption match {
+      case Some(x) => Right(x)
+      case None    => Left(EnrolmentStoreError.InternalUnexpectedError("Missing registrationDate", None))
+    }
+  }
 
 }
