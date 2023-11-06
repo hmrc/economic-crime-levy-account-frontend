@@ -20,20 +20,17 @@ import play.api.Logging
 import play.api.i18n.I18nSupport
 import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.ECLAccountConnector
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
-import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
 import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialData, Fulfilled, ObligationData, ObligationDetails, Open}
 import uk.gov.hmrc.economiccrimelevyaccount.services.ECLAccountService
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
-import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class ViewYourReturnsController @Inject() (
@@ -56,8 +53,8 @@ class ViewYourReturnsController @Inject() (
       .fold(
         err => Status(err.code.statusCode)(Json.toJson(err)),
         {
-          case (Some(obligationData), financialDataOption) =>
-            val returns = deriveReturnsOverview(obligationData, financialDataOption)
+          case (Some(obligationData), Some(financialData)) =>
+            val returns = deriveReturnsOverview(obligationData, financialData)
             Ok(returnsView(returns))
           case _                                           => Ok(noReturnsView())
         }
@@ -67,7 +64,7 @@ class ViewYourReturnsController @Inject() (
 
   private def deriveReturnsOverview(
     obligationData: ObligationData,
-    financialDataOption: Option[FinancialData]
+    financialData: FinancialData
   ): Seq[ReturnsOverview] =
     obligationData.obligations
       .flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate))
@@ -76,7 +73,7 @@ class ViewYourReturnsController @Inject() (
         val reference = getChargeReference(
           status = status,
           dueDate = details.inboundCorrespondenceDueDate,
-          documentDetails = financialDataOption.flatMap(_.documentDetails),
+          documentDetails = financialData.documentDetails,
           periodKey = details.periodKey
         )
 
@@ -106,11 +103,13 @@ class ViewYourReturnsController @Inject() (
   ): Option[String] =
     status match {
       case Submitted =>
-        documentDetails.flatMap {
-          case Seq(DocumentDetails(_, chargeReferenceNumber, _, _, _, _, _, Some(lineItemDetails), _, _, _, _, _, _))
-              if lineItemDetails.exists(_.periodKey.contains(periodKey)) =>
-            chargeReferenceNumber
-        }
+        documentDetails.flatMap(details =>
+          details.collectFirst {
+            case DocumentDetails(_, Some(chargeReferenceNumber), _, _, _, _, _, Some(lineItemDetails), _, _, _, _, _, _)
+                if lineItemDetails.exists(_.periodKey.contains(periodKey)) =>
+              chargeReferenceNumber
+          }
+        )
       case _         => None
     }
 
