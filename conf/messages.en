@@ -40,6 +40,9 @@ account.viewReturns.table.link = <a href="{0}" class="govuk-link">Submit return<
 account.viewReturns.table.amend.link = <a href="{0}" class="govuk-link">Amend return</a>
 account.viewReturns.table.placeholder = Submit return
 account.viewReturns.table.status = <strong class="govuk-tag govuk-tag--{0}">{1}</strong>
+account.viewReturns.table.cell.status.due = DUE
+account.viewReturns.table.cell.status.submitted = SUBMITTED
+account.viewReturns.table.cell.status.overdue = OVERDUE
 account.viewReturns.noReturnsFound.title = Your Economic Crime Levy returns
 account.viewReturns.noReturnsFound.heading = Your Economic Crime Levy returns
 account.viewReturns.noReturnsFound.p1 = You have not submitted any Economic Crime Levy returns.
