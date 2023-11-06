@@ -63,7 +63,7 @@ class PaymentsController @Inject() (
   )(implicit hc: HeaderCarrier): EitherT[Future, OpsError, Option[OpsJourneyResponse]] =
     financialDataOption
       .map { financialData =>
-        financialData.latestFinancialObligation match {
+        financialData.latestFinancialObligationOption match {
           case Some(
                 DocumentDetails(
                   _,

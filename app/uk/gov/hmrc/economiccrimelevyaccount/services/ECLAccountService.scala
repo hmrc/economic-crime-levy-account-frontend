@@ -18,7 +18,6 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import cats.data.EitherT
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.ECLAccountConnector
-import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialData.findLatestFinancialObligation
 import uk.gov.hmrc.economiccrimelevyaccount.models._
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.ECLAccountError
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
@@ -60,35 +59,6 @@ class ECLAccountService @Inject() (
           Left(ECLAccountError.BadGateway(reason = message, code = code))
         case NonFatal(thr) => Left(ECLAccountError.InternalUnexpectedError(thr.getMessage, Some(thr)))
       }
-    }
-
-  def getLatestFinancialObligation(financialData: FinancialData): Option[FinancialDetails] =
-    findLatestFinancialObligation(financialData).map {
-      case documentDetails @ DocumentDetails(
-            _,
-            _,
-            _,
-            _,
-            _,
-            _,
-            outstandingAmount,
-            Some(lineItemDetails),
-            _,
-            _,
-            _,
-            _,
-            _,
-            _
-          ) if outstandingAmount.exists(x => x > BigDecimal(0)) =>
-        val firstLineItemDetailsElement = lineItemDetails.head
-        FinancialDetails(
-          outstandingAmount.getOrElse(BigDecimal(0)),
-          extractValue(firstLineItemDetailsElement.periodFromDate),
-          extractValue(firstLineItemDetailsElement.periodToDate),
-          firstLineItemDetailsElement.periodKey,
-          documentDetails.chargeReferenceNumber,
-          documentDetails.getPaymentType
-        )
     }
 
   def getFinancialDetails(implicit hc: HeaderCarrier): Future[Option[FinancialViewDetails]] =

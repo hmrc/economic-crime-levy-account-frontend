@@ -18,6 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.models
 
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.Interest
 
 import java.time.LocalDate
 
@@ -33,9 +34,24 @@ case class FinancialDetails(
   private val dueDay             = 30
   val dueDate: Option[LocalDate] = toDate.map(date => LocalDate.of(date.getYear, dueMonth, dueDay))
   def isOverdue: Option[Boolean] = dueDate.map(date => LocalDate.now().isAfter(date))
-
 }
 
 object FinancialDetails {
   implicit val format: OFormat[FinancialDetails] = Json.format[FinancialDetails]
+
+  def applyOptional(documentDetails: DocumentDetails): Option[FinancialDetails] =
+    documentDetails.documentOutstandingAmount.map { outstandingAmount =>
+      //   val paymentType                    = value.getPaymentType
+      val optionalFirstItemInItemDetails = documentDetails.lineItemDetails.flatMap(_.headOption)
+      //    val periodKey                      = if (paymentType == Interest) { None }
+      //    else { optionalFirstItemInItemDetails.flatMap(_.periodKey) }
+      FinancialDetails(
+        outstandingAmount,
+        optionalFirstItemInItemDetails.flatMap(_.periodFromDate),
+        optionalFirstItemInItemDetails.flatMap(_.periodToDate),
+        optionalFirstItemInItemDetails.flatMap(_.periodKey),
+        documentDetails.chargeReferenceNumber,
+        documentDetails.getPaymentType
+      )
+    }
 }

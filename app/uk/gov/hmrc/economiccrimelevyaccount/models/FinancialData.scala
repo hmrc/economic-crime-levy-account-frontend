@@ -45,7 +45,7 @@ case class FinancialData(totalisation: Option[Totalisation], documentDetails: Op
     case document: DocumentDetails if document.getPaymentType == Overpayment => document
   }
 
-  val latestFinancialObligation: Option[DocumentDetails] =
+  val latestFinancialObligationOption: Option[DocumentDetails] =
     documentDetails
       .flatMap(
         _.collect {

@@ -38,43 +38,37 @@
 
 @returnsSubHeading = @{
     optOpenObligation match {
-        case Some(o) =>
-            if(o.isOverdue) {
+        case Some(o) if (o.isOverdue) =>
                 Html(messages("account.overdue.return.subHeading",
                     ViewUtils.formatLocalDate(o.inboundCorrespondenceFromDate),
                     ViewUtils.formatLocalDate(o.inboundCorrespondenceToDate)))
-            } else {
+        case Some(o) =>
                 Html(messages("account.due.return.subHeading",
                     ViewUtils.formatLocalDate(o.inboundCorrespondenceFromDate),
                     ViewUtils.formatLocalDate(o.inboundCorrespondenceToDate),
                     ViewUtils.formatLocalDate(o.inboundCorrespondenceDueDate)))
-            }
-        case None => Html(messages("account.noneDue.return.subHeading"))
+        case _ => Html(messages("account.noneDue.return.subHeading"))
     }
 }
 
 @paymentsSubHeading = @{
     optFinancialDetails match {
-        case Some(financialData) =>
-          if(financialData.paymentType == StandardPayment) {
-              if(financialData.isOverdue) {
-                  Html(messages("account.overdue.payments.subHeading.1",
-                      ViewUtils.formatLocalDate(financialData.fromDate).takeRight(4),
-                      ViewUtils.formatLocalDate(financialData.toDate).takeRight(4),
-                      ViewUtils.formatMoney(financialData.amount)
-                  ))
-              } else {
-                      Html(messages("account.due.payments.subHeading",
-                          ViewUtils.formatMoney(financialData.amount),
-                          ViewUtils.formatLocalDate(financialData.dueDate).takeRight(4),
-                          ViewUtils.formatLocalDate(financialData.fromDate).takeRight(4),
-                          ViewUtils.formatLocalDate(financialData.toDate).takeRight(4)))
-                  }
-              } else {
+        case financialData @ Some(FinancialDetails(amount,Some(fromDate), Some(toDate), _,_,paymentType)) if(paymentType == StandardPayment) =>
+            if(financialData.get.isOverdue) {
+                Html(messages("account.overdue.payments.subHeading.1",
+                      ViewUtils.formatLocalDate(fromDate).takeRight(4),
+                      ViewUtils.formatLocalDate(toDate).takeRight(4),
+                      ViewUtils.formatMoney(amount)))
+            } else {
+                Html(messages("account.due.payments.subHeading",
+                    ViewUtils.formatMoney(amount),
+                    ViewUtils.formatLocalDate(financialData.get.dueDate.get).takeRight(4),
+                    ViewUtils.formatLocalDate(fromDate).takeRight(4),
+                    ViewUtils.formatLocalDate(toDate).takeRight(4)))
+            }
+        case Some(financialDetails) if (financialDetails.paymentType != StandardPayment) =>
               Html(messages("account.interest.payments.subHeading"))
-
-          }
-        case None => Html(messages("account.noneDue.payments.subHeading"))
+        case _ => Html(messages("account.noneDue.payments.subHeading"))
     }
 }
 

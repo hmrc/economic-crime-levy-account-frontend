@@ -21,7 +21,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, ObligationData, ObligationDetails, Open}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, FinancialDetails, ObligationData, ObligationDetails, Open}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, ECLAccountService, EnrolmentStoreProxyService}
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
@@ -75,10 +75,7 @@ class AccountController @Inject() (
             request.eclReference.value,
             ViewUtils.formatLocalDate(registrationDate),
             latestObligationDetailsOption,
-            financialData.documentDetails match {
-              case Some(_) => eclAccountService.getLatestFinancialObligation(financialData)
-              case None    => None
-            }
+            financialData.latestFinancialObligationOption.flatMap(FinancialDetails.applyOptional)
           )
         )
       )
