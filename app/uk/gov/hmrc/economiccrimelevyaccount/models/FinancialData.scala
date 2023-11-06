@@ -44,34 +44,26 @@ case class FinancialData(totalisation: Option[Totalisation], documentDetails: Op
   def outOverPaymentPredicate: PartialFunction[DocumentDetails, DocumentDetails] = {
     case document: DocumentDetails if document.getPaymentType == Overpayment => document
   }
+
+  val latestFinancialObligation: Option[DocumentDetails] =
+    documentDetails
+      .flatMap(
+        _.collect {
+          case docDetails
+              if docDetails.documentType.contains(NewCharge)
+                || docDetails.documentType.contains(AmendedCharge)
+                || docDetails.documentType.contains(InterestCharge) =>
+            docDetails
+        }
+          .filter(!_.isCleared)
+          .sortBy(_.postingDate)
+          .headOption
+      )
 }
 
 object FinancialData {
 
   implicit val format: OFormat[FinancialData] = Json.format[FinancialData]
-
-  def findLatestFinancialObligation(financialData: FinancialData): Option[DocumentDetails] =
-    financialData.documentDetails match {
-      case Some(value) =>
-        val eligiblePayments = value
-          .filter(docDetails =>
-            extractValue(docDetails.documentType) == NewCharge || extractValue(
-              docDetails.documentType
-            ) == AmendedCharge
-          )
-          .filter(!_.isCleared)
-
-        if (eligiblePayments.nonEmpty) {
-          eligiblePayments.sortBy(_.postingDate).headOption
-        } else {
-          value
-            .filter(docDetails => extractValue(docDetails.documentType) == InterestCharge)
-            .filter(!_.isCleared)
-            .sortBy(_.postingDate)
-            .headOption
-        }
-      case None        => None
-    }
 
   private def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
 }
@@ -124,7 +116,7 @@ case class DocumentDetails(
     case None           => None
   }
 
-  val hasClearedAmount: Boolean = documentClearedAmount match {
+  private val hasClearedAmount: Boolean = documentClearedAmount match {
     case Some(amount) => amount > 0
     case None         => false
   }

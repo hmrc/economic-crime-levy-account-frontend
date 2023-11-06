@@ -33,10 +33,15 @@ class OpsService @Inject() (
   appConfig: AppConfig
 )(implicit ec: ExecutionContext) {
 
-  def startOpsJourney(chargeReference: String, amount: BigDecimal, dueDate: Option[LocalDate] = None)(implicit
+  private val dueMonth = 9
+  private val dueDay   = 30
+
+  def startOpsJourney(chargeReference: String, amount: BigDecimal, toDate: Option[LocalDate])(implicit
     hc: HeaderCarrier
   ): EitherT[Future, OpsError, OpsJourneyResponse] =
     EitherT {
+      val dueDate = toDate.map(date => LocalDate.of(date.getYear, dueMonth, dueDay))
+
       val opsJourneyRequest = OpsJourneyRequest(
         chargeReference,
         amount * 100,

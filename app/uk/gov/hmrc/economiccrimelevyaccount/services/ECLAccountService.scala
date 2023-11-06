@@ -62,35 +62,34 @@ class ECLAccountService @Inject() (
       }
     }
 
-  def getLatestFinancialObligation(financialData: FinancialData): Option[FinancialDetails] = {
-    val latestObligationDetails = findLatestFinancialObligation(financialData)
-
-    latestObligationDetails match {
-      case None        => None
-      case Some(value) =>
-        val outstandingAmount           = value.documentOutstandingAmount.getOrElse(BigDecimal(0))
-        val lineItemDetails             = extractValue(value.lineItemDetails)
+  def getLatestFinancialObligation(financialData: FinancialData): Option[FinancialDetails] =
+    findLatestFinancialObligation(financialData).map {
+      case documentDetails @ DocumentDetails(
+            _,
+            _,
+            _,
+            _,
+            _,
+            _,
+            outstandingAmount,
+            Some(lineItemDetails),
+            _,
+            _,
+            _,
+            _,
+            _,
+            _
+          ) if outstandingAmount.exists(x => x > BigDecimal(0)) =>
         val firstLineItemDetailsElement = lineItemDetails.head
-
-        if (outstandingAmount > 0) {
-          Some(
-            FinancialDetails(
-              outstandingAmount,
-              extractValue(firstLineItemDetailsElement.periodFromDate),
-              extractValue(firstLineItemDetailsElement.periodToDate),
-              value.getPaymentType match {
-                case Interest => ""
-                case _        => extractValue(firstLineItemDetailsElement.periodKey)
-              },
-              extractValue(value.chargeReferenceNumber),
-              value.getPaymentType
-            )
-          )
-        } else {
-          None
-        }
+        FinancialDetails(
+          outstandingAmount.getOrElse(BigDecimal(0)),
+          extractValue(firstLineItemDetailsElement.periodFromDate),
+          extractValue(firstLineItemDetailsElement.periodToDate),
+          firstLineItemDetailsElement.periodKey,
+          documentDetails.chargeReferenceNumber,
+          documentDetails.getPaymentType
+        )
     }
-  }
 
   def getFinancialDetails(implicit hc: HeaderCarrier): Future[Option[FinancialViewDetails]] =
     eclAccountConnector.getFinancialData.map {

@@ -19,7 +19,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.models
 import java.time.LocalDate
 
 case class OpsData(
-  chargeReference: String,
+  chargeReference: Option[String],
   amount: BigDecimal,
   dueDate: Option[LocalDate]
 )
