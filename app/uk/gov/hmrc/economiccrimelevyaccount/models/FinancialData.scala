@@ -47,18 +47,15 @@ case class FinancialData(totalisation: Option[Totalisation], documentDetails: Op
 
   val latestFinancialObligationOption: Option[DocumentDetails] =
     documentDetails
-      .flatMap(
-        _.collect {
-          case docDetails
-              if docDetails.documentType.contains(NewCharge)
-                || docDetails.documentType.contains(AmendedCharge)
-                || docDetails.documentType.contains(InterestCharge) =>
-            docDetails
-        }
-          .filter(!_.isCleared)
-          .sortBy(_.postingDate)
-          .headOption
-      )
+      .map(_.collect {
+        case docDetails
+            if (docDetails.documentType.contains(NewCharge)
+              || docDetails.documentType.contains(AmendedCharge)
+              || docDetails.documentType.contains(InterestCharge)) && !docDetails.isCleared =>
+          docDetails
+      })
+      .flatMap(_.sortBy(_.postingDate).headOption)
+
 }
 
 object FinancialData {
