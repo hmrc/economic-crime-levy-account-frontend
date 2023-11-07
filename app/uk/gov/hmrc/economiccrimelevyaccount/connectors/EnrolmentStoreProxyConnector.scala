@@ -16,11 +16,13 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
+import akka.actor.ActorSystem
+import com.typesafe.config.Config
 import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, KeyValue}
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, EnrolmentResponse, QueryKnownFactsRequest}
-import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, Retries, StringContextOps}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 
@@ -31,10 +33,16 @@ trait EnrolmentStoreProxyConnector {
   def getEnrolments(eclReference: EclReference)(implicit hc: HeaderCarrier): Future[EnrolmentResponse]
 }
 
-class EnrolmentStoreProxyConnectorImpl @Inject() (appConfig: AppConfig, httpClient: HttpClientV2)(implicit
+class EnrolmentStoreProxyConnectorImpl @Inject() (
+  appConfig: AppConfig,
+  httpClient: HttpClientV2,
+  override val configuration: Config,
+  override val actorSystem: ActorSystem
+)(implicit
   ec: ExecutionContext
 ) extends EnrolmentStoreProxyConnector
-    with BaseConnector {
+    with BaseConnector
+    with Retries {
 
   def getEnrolments(eclReference: EclReference)(implicit hc: HeaderCarrier): Future[EnrolmentResponse] = {
     val queryKnownFactsRequest = QueryKnownFactsRequest(
@@ -44,10 +52,12 @@ class EnrolmentStoreProxyConnectorImpl @Inject() (appConfig: AppConfig, httpClie
       )
     )
 
-    httpClient
-      .post(url"${appConfig.enrolmentsUrl}")
-      .withBody(Json.toJson(queryKnownFactsRequest))
-      .executeAndDeserialise[EnrolmentResponse]
+    retryFor[EnrolmentResponse]("DES - obligation data")(retryCondition) {
+      httpClient
+        .post(url"${appConfig.enrolmentsUrl}")
+        .withBody(Json.toJson(queryKnownFactsRequest))
+        .executeAndDeserialise[EnrolmentResponse]
+    }
   }
 
 }

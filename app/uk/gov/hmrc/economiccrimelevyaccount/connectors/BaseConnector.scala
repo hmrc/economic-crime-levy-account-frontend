@@ -24,6 +24,9 @@ import uk.gov.hmrc.http.{HttpResponse, UpstreamErrorResponse}
 import scala.concurrent.{ExecutionContext, Future}
 
 trait BaseConnector {
+  def retryCondition: PartialFunction[Exception, Boolean] = {
+    case e: UpstreamErrorResponse if UpstreamErrorResponse.Upstream5xxResponse.unapply(e).isDefined => true
+  }
 
   implicit class HttpResponseHelpers(response: HttpResponse) {
 

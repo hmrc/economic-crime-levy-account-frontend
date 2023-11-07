@@ -16,12 +16,14 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
+import akka.actor.ActorSystem
 import com.google.inject.Singleton
+import com.typesafe.config.Config
 import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
 import uk.gov.hmrc.http.client.HttpClientV2
-import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, Retries, StringContextOps}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -29,16 +31,21 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class OpsConnector @Inject() (
   appConfig: AppConfig,
-  httpClient: HttpClientV2
+  httpClient: HttpClientV2,
+  override val configuration: Config,
+  override val actorSystem: ActorSystem
 )(implicit ec: ExecutionContext)
-    extends BaseConnector {
+    extends BaseConnector
+    with Retries {
   def createOpsJourney(opsJourneyRequest: OpsJourneyRequest)(implicit
     hc: HeaderCarrier
   ): Future[OpsJourneyResponse] =
-    httpClient
-      .post(url"${appConfig.opsStartJourneyUrl}")
-      .withBody(Json.toJson(opsJourneyRequest))
-      .setHeader(("x-session-id", opsJourneyRequest.chargeReference))
-      .executeAndDeserialise[OpsJourneyResponse]
+    retryFor[OpsJourneyResponse]("DES - obligation data")(retryCondition) {
+      httpClient
+        .post(url"${appConfig.opsStartJourneyUrl}")
+        .withBody(Json.toJson(opsJourneyRequest))
+        .setHeader(("x-session-id", opsJourneyRequest.chargeReference))
+        .executeAndDeserialise[OpsJourneyResponse]
+    }
 
 }

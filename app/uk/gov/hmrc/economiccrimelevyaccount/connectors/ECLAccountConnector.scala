@@ -16,10 +16,12 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
+import akka.actor.ActorSystem
 import com.google.inject.Singleton
+import com.typesafe.config.Config
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, ObligationData}
-import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
+import uk.gov.hmrc.http.{HeaderCarrier, Retries, StringContextOps}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 
@@ -29,19 +31,26 @@ import scala.concurrent.{ExecutionContext, Future}
 @Singleton
 class ECLAccountConnector @Inject() (
   appConfig: AppConfig,
-  httpClient: HttpClientV2
+  httpClient: HttpClientV2,
+  override val configuration: Config,
+  override val actorSystem: ActorSystem
 )(implicit ec: ExecutionContext)
-    extends BaseConnector {
+    extends BaseConnector
+    with Retries {
 
   def getFinancialData(implicit
     hc: HeaderCarrier
   ): Future[Option[FinancialData]] =
-    httpClient
-      .get(url"${appConfig.financialDataUrl}")
-      .executeAndDeserialiseOption[FinancialData]
+    retryFor[Option[FinancialData]]("DES - obligation data")(retryCondition) {
+      httpClient
+        .get(url"${appConfig.financialDataUrl}")
+        .executeAndDeserialiseOption[FinancialData]
+    }
 
   def getObligationData(implicit hc: HeaderCarrier): Future[Option[ObligationData]] =
-    httpClient
-      .get(url"${appConfig.obligationDataUrl}")
-      .executeAndDeserialiseOption[ObligationData]
+    retryFor[Option[ObligationData]]("DES - obligation data")(retryCondition) {
+      httpClient
+        .get(url"${appConfig.obligationDataUrl}")
+        .executeAndDeserialiseOption[ObligationData]
+    }
 }
