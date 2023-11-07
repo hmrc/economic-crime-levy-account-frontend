@@ -59,7 +59,6 @@ class ViewYourReturnsController @Inject() (
           case _                                           => Ok(noReturnsView())
         }
       )
-
   }
 
   private def deriveReturnsOverview(

@@ -61,8 +61,8 @@ class PaymentsController @Inject() (
   private def startOpsJourneyWithLatestFinancialDetails(
     financialDataOption: Option[FinancialData]
   )(implicit hc: HeaderCarrier): EitherT[Future, OpsError, Option[OpsJourneyResponse]] =
-    financialDataOption
-      .map { financialData =>
+    financialDataOption match {
+      case Some(financialData) =>
         financialData.latestFinancialObligationOption match {
           case Some(
                 DocumentDetails(
@@ -73,7 +73,7 @@ class PaymentsController @Inject() (
                   _,
                   _,
                   outstandingAmount,
-                  Some(lineItemDetails),
+                  lineItemDetails,
                   _,
                   _,
                   _,
@@ -82,7 +82,7 @@ class PaymentsController @Inject() (
                   _
                 )
               ) =>
-            val periodToDate = lineItemDetails.headOption.flatMap(_.periodToDate)
+            val periodToDate = lineItemDetails.flatMap(details => details.headOption.flatMap(_.periodToDate))
             opsService.startOpsJourney(chargeReference, outstandingAmount.getOrElse(0), periodToDate).map(Option(_))
           case _ =>
             EitherT[Future, OpsError, Option[OpsJourneyResponse]](
@@ -96,6 +96,6 @@ class PaymentsController @Inject() (
               )
             )
         }
-      }
-      .getOrElse(EitherT[Future, OpsError, Option[OpsJourneyResponse]](Future.successful(Right(None))))
+      case None                => EitherT[Future, OpsError, Option[OpsJourneyResponse]](Future.successful(Right(None)))
+    }
 }
