@@ -19,20 +19,23 @@ package uk.gov.hmrc.economiccrimelevyaccount.connectors
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
-import play.api.http.Status.CREATED
+import play.api.http.Status.{CREATED, INTERNAL_SERVER_ERROR}
 import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
-import uk.gov.hmrc.http.{HttpClient, HttpResponse}
+import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
+import uk.gov.hmrc.http.{HttpClient, HttpResponse, StringContextOps, UpstreamErrorResponse}
 
 import scala.concurrent.Future
+import scala.util.{Failure, Try}
 
 class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
 
-  val mockHttpClient: HttpClient = mock[HttpClient]
-  val connector                  = new OpsConnector(appConfig, mockHttpClient)
-  val url                        = "http://google.co.uk"
-  val expectedUrl: String        = "http://www.bbc.co.uk"
+  val mockHttpClient: HttpClientV2       = mock[HttpClientV2]
+  val mockRequestBuilder: RequestBuilder = mock[RequestBuilder]
+  val connector                          = new OpsConnector(appConfig, mockHttpClient, config, actorSystem)
+  val url                                = "http://google.co.uk"
+  val expectedUrl: String                = "http://www.bbc.co.uk"
 
   override def beforeEach(): Unit =
     reset(mockHttpClient)
@@ -53,42 +56,18 @@ class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
         expectedUrl
       )
 
-      when(
-        mockHttpClient.POST[OpsJourneyRequest, HttpResponse](
-          any(),
-          ArgumentMatchers.eq(opsJourneyRequest),
-          any()
-        )(
-          any(),
-          any(),
-          any(),
-          any()
-        )
-      ).thenReturn(
-        Future.successful(
-          HttpResponse(
-            CREATED,
-            Json.toJson[OpsJourneyResponse](opsJourneyResponse),
-            Map()
-          )
-        )
-      )
+      when(mockHttpClient.post(ArgumentMatchers.eq(url"${appConfig.opsStartJourneyUrl}"))(any()))
+        .thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.setHeader(any()))
+        .thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.withBody(ArgumentMatchers.eq(opsJourneyRequest))(any(), any(), any()))
+        .thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.execute[HttpResponse](any(), any()))
+        .thenReturn(Future.successful(HttpResponse.apply(CREATED, Json.stringify(Json.toJson(opsJourneyResponse)))))
 
       val result = await(connector.createOpsJourney(opsJourneyRequest))
 
       result shouldBe Left(opsJourneyResponse)
-
-      verify(mockHttpClient, times(1))
-        .POST(
-          any(),
-          ArgumentMatchers.eq(opsJourneyRequest),
-          any()
-        )(
-          any(),
-          any(),
-          any(),
-          any()
-        )
     }
 
     "return an error if OPS journey creation fails" in forAll { (chargeReference: String, amount: BigDecimal) =>
@@ -100,42 +79,19 @@ class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
         None
       )
 
-      when(
-        mockHttpClient.POST[OpsJourneyRequest, HttpResponse](
-          any(),
-          ArgumentMatchers.eq(opsJourneyRequest),
-          any()
-        )(
-          any(),
-          any(),
-          any(),
-          any()
-        )
-      ).thenReturn(
-        Future.successful(
-          HttpResponse(
-            500,
-            "",
-            Map()
-          )
-        )
-      )
+      val errorMessage = "internal server error"
+      when(mockHttpClient.get(any())(any())).thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.setHeader(any())).thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.withBody(any())(any(), any(), any())).thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.execute[HttpResponse](any(), any()))
+        .thenReturn(Future.successful(HttpResponse.apply(INTERNAL_SERVER_ERROR, "internal server error")))
 
-      val result = await(connector.createOpsJourney(opsJourneyRequest))
+      Try(await(connector.createOpsJourney(opsJourneyRequest))) match {
+        case Failure(UpstreamErrorResponse(msg, _, _, _)) =>
+          msg shouldEqual errorMessage
+        case _                                            => fail("expected UpstreamErrorResponse when an error is received from DES")
+      }
 
-      result shouldBe Right(OpsJourneyError(500, ""))
-
-      verify(mockHttpClient, times(1))
-        .POST(
-          any(),
-          ArgumentMatchers.eq(opsJourneyRequest),
-          any()
-        )(
-          any(),
-          any(),
-          any(),
-          any()
-        )
     }
   }
 
@@ -148,41 +104,16 @@ class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
       None
     )
 
-    when(
-      mockHttpClient.POST[OpsJourneyRequest, HttpResponse](
-        any(),
-        ArgumentMatchers.eq(opsJourneyRequest),
-        any()
-      )(
-        any(),
-        any(),
-        any(),
-        any()
-      )
-    ).thenReturn(
-      Future.successful(
-        HttpResponse(
-          CREATED,
-          "{}",
-          Map()
-        )
-      )
-    )
+    when(mockHttpClient.get(any())(any())).thenReturn(mockRequestBuilder)
+    when(mockRequestBuilder.setHeader(any())).thenReturn(mockRequestBuilder)
+    when(mockRequestBuilder.withBody(any())(any(), any(), any())).thenReturn(mockRequestBuilder)
+    when(mockRequestBuilder.execute[HttpResponse](any(), any()))
+      .thenReturn(Future.successful(HttpResponse.apply(CREATED, "{}")))
 
-    val result = await(connector.createOpsJourney(opsJourneyRequest))
-
-    result shouldBe Right(OpsJourneyError(CREATED, "Invalid Json"))
-
-    verify(mockHttpClient, times(1))
-      .POST(
-        any(),
-        ArgumentMatchers.eq(opsJourneyRequest),
-        any()
-      )(
-        any(),
-        any(),
-        any(),
-        any()
-      )
+    Try(await(connector.createOpsJourney(opsJourneyRequest))) match {
+      case Failure(UpstreamErrorResponse(msg, _, _, _)) =>
+        msg shouldEqual "invalid json"
+      case _                                            => fail("expected UpstreamErrorResponse when an error is received from DES")
+    }
   }
 }

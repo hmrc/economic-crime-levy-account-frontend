@@ -52,7 +52,7 @@ class EnrolmentStoreProxyConnectorImpl @Inject() (
       )
     )
 
-    retryFor[EnrolmentResponse]("DES - obligation data")(retryCondition) {
+    retryFor[EnrolmentResponse]("Enrolment Store Proxy - Enrolment data")(retryCondition) {
       httpClient
         .post(url"${appConfig.enrolmentsUrl}")
         .withBody(Json.toJson(queryKnownFactsRequest))

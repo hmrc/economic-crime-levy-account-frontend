@@ -23,11 +23,13 @@ import uk.gov.hmrc.economiccrimelevyaccount.models.EclReference
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EnrolmentStoreError
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.EnrolmentResponse
+
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
+import scala.util.{Success, Try}
 
 class EnrolmentStoreProxyService @Inject() (enrolmentStoreProxyConnector: EnrolmentStoreProxyConnector)(implicit
   ec: ExecutionContext
@@ -56,14 +58,15 @@ class EnrolmentStoreProxyService @Inject() (enrolmentStoreProxyConnector: Enrolm
     val keyValueOption =
       enrolmentOption.flatMap(enrolment => enrolment.verifiers.find(_.key == EclEnrolment.RegistrationDateKey))
 
-    val registrationDateOption = keyValueOption.map(registrationDateKeyValue =>
-      LocalDate.parse(registrationDateKeyValue.value, DateTimeFormatter.BASIC_ISO_DATE)
-    )
-
-    registrationDateOption match {
-      case Some(x) => Right(x)
-      case None    => Left(EnrolmentStoreError.InternalUnexpectedError("Missing registrationDate", None))
-    }
+    keyValueOption
+      .map { registrationDateKeyValue =>
+        Try(LocalDate.parse(registrationDateKeyValue.value, DateTimeFormatter.BASIC_ISO_DATE)) match {
+          case Success(registrationDate) => Right(registrationDate)
+          case _                         =>
+            Left(EnrolmentStoreError.InternalUnexpectedError("Unable to parse registrationDate", None))
+        }
+      }
+      .getOrElse(Left(EnrolmentStoreError.InternalUnexpectedError("Missing registrationDate", None)))
   }
 
 }

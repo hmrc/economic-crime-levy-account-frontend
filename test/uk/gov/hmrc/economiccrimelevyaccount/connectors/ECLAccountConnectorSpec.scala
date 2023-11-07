@@ -28,14 +28,16 @@ import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 
 import scala.concurrent.Future
 
-class ObligationDataConnectorSpec extends SpecBase {
+class ECLAccountConnectorSpec extends SpecBase {
 
   val mockHttpClient: HttpClientV2       = mock[HttpClientV2]
   val mockRequestBuilder: RequestBuilder = mock[RequestBuilder]
 
-  val connector = new ObligationDataConnector(
+  val connector = new ECLAccountConnector(
     appConfig,
-    mockHttpClient
+    mockHttpClient,
+    config,
+    actorSystem
   )
 
   override def beforeEach(): Unit = {
@@ -45,10 +47,8 @@ class ObligationDataConnectorSpec extends SpecBase {
 
   "getObligationData" should {
     "return obligationData when the http client returns a successful http response" in forAll {
-      val eclAccountObligationUrl: String =
-        s"${appConfig.economicCrimeLevyAccountBaseUrl}/economic-crime-levy-account/obligation-data"
       (obligationDataWithObligation: ObligationDataWithObligation) =>
-        when(mockHttpClient.get(ArgumentMatchers.eq(url"$eclAccountObligationUrl"))(any()))
+        when(mockHttpClient.get(ArgumentMatchers.eq(url"${appConfig.obligationDataUrl}"))(any()))
           .thenReturn(mockRequestBuilder)
         when(mockRequestBuilder.setHeader(any()))
           .thenReturn(mockRequestBuilder)
@@ -59,7 +59,7 @@ class ObligationDataConnectorSpec extends SpecBase {
             )
           )
 
-        val result = await(connector.getObligationData())
+        val result = await(connector.getObligationData)
 
         result shouldBe Some(obligationDataWithObligation.obligationData)
     }

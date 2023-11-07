@@ -17,6 +17,7 @@
 package uk.gov.hmrc.economiccrimelevyaccount.controllers.actions
 
 import play.api.mvc._
+import uk.gov.hmrc.economiccrimelevyaccount.models.EclReference
 import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
 
 import javax.inject.Inject
@@ -27,7 +28,7 @@ class FakeAuthorisedAction @Inject() (bodyParsers: PlayBodyParsers) extends Auth
   override def parser: BodyParser[AnyContent] = bodyParsers.defaultBodyParser
 
   override def invokeBlock[A](request: Request[A], block: AuthorisedRequest[A] => Future[Result]): Future[Result] =
-    block(AuthorisedRequest(request, "test-internal-id", "test-ecl-registration-reference"))
+    block(AuthorisedRequest(request, "test-internal-id", EclReference("test-ecl-registration-reference")))
 
   override protected def executionContext: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
 

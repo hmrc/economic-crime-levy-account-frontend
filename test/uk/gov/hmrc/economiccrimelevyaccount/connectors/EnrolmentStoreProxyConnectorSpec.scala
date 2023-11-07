@@ -21,7 +21,7 @@ import org.mockito.ArgumentMatchers.any
 import play.api.http.Status.OK
 import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.models.KeyValue
+import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, KeyValue}
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, EnrolmentResponse, QueryKnownFactsRequest}
 import uk.gov.hmrc.http.{HttpResponse, StringContextOps}
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
@@ -33,7 +33,7 @@ class EnrolmentStoreProxyConnectorSpec extends SpecBase {
 
   val mockHttpClient: HttpClientV2       = mock[HttpClientV2]
   val mockRequestBuilder: RequestBuilder = mock[RequestBuilder]
-  val connector                          = new EnrolmentStoreProxyConnectorImpl(appConfig, mockHttpClient)
+  val connector                          = new EnrolmentStoreProxyConnectorImpl(appConfig, mockHttpClient, config, actorSystem)
   val enrolmentStoreUrl: String          = s"${appConfig.enrolmentStoreProxyBaseUrl}/enrolment-store-proxy/enrolment-store"
 
   override def beforeEach(): Unit = {
@@ -44,12 +44,12 @@ class EnrolmentStoreProxyConnectorSpec extends SpecBase {
   "queryKnownFacts" should {
 
     "return known facts when the http client returns known facts" in forAll {
-      (eclRegistrationReference: String, queryKnownFactsResponse: EnrolmentResponse) =>
+      (eclRegistrationReference: EclReference, queryKnownFactsResponse: EnrolmentResponse) =>
         val expectedUrl                    = s"$enrolmentStoreUrl/enrolments"
         val expectedQueryKnownFactsRequest = QueryKnownFactsRequest(
           service = EclEnrolment.ServiceName,
           knownFacts = Seq(
-            KeyValue(EclEnrolment.IdentifierKey, eclRegistrationReference)
+            KeyValue(EclEnrolment.IdentifierKey, eclRegistrationReference.value)
           )
         )
 

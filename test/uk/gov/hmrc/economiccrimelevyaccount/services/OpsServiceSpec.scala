@@ -18,10 +18,12 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
-import play.api.http.Status.CREATED
+import play.api.http.Status.{BAD_REQUEST, CREATED}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.{OpsConnector, OpsJourneyError}
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.OpsConnector
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.OpsError
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
+import uk.gov.hmrc.http.UpstreamErrorResponse
 
 import scala.concurrent.Future
 
@@ -29,10 +31,6 @@ class OpsServiceSpec extends SpecBase {
   val mockOpsConnector: OpsConnector = mock[OpsConnector]
   val service                        = new OpsService(mockOpsConnector, appConfig)
   val expectedUrl: String            = "http://www.bbc.co.uk"
-  val opsJourneyError                = OpsJourneyError(
-    CREATED,
-    "Invalid Json"
-  )
 
   "startOpsJourney" should {
     "redirect to returned URL if successful" in forAll { (chargeReference: String, amount: BigDecimal) =>
@@ -56,9 +54,9 @@ class OpsServiceSpec extends SpecBase {
           ArgumentMatchers.eq(opsJourneyRequest)
         )(any())
       )
-        .thenReturn(Future.successful(Left(opsJourneyResponse)))
+        .thenReturn(Future.successful(opsJourneyResponse))
 
-      val result = await(service.startOpsJourney(chargeReference, amount.abs, None))
+      val result = await(service.startOpsJourney(chargeReference, amount.abs, None).value)
 
       result shouldBe Left(opsJourneyResponse)
     }
@@ -79,10 +77,10 @@ class OpsServiceSpec extends SpecBase {
       mockOpsConnector.createOpsJourney(
         ArgumentMatchers.eq(opsJourneyRequest)
       )(any())
-    ).thenReturn(Future.successful(Right(opsJourneyError)))
+    ).thenReturn(Future.failed(UpstreamErrorResponse("invalid request", BAD_REQUEST)))
 
-    val result = await(service.startOpsJourney(chargeReference, amount.abs, None))
+    val result = await(service.startOpsJourney(chargeReference, amount.abs, None).value)
 
-    result shouldBe Right(opsJourneyError)
+    result shouldBe Left(OpsError.BadGateway("invalid request", BAD_REQUEST))
   }
 }

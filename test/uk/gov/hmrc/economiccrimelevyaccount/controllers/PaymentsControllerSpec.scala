@@ -16,12 +16,13 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
+import cats.data.EitherT
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
-import play.api.http.Status.CREATED
+import play.api.http.Status.INTERNAL_SERVER_ERROR
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.OpsJourneyError
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, FinancialDetails, OpsJourneyResponse}
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{ECLAccountError, EnrolmentStoreError, OpsError}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, OpsJourneyResponse}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{ECLAccountService, OpsService}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.StandardPayment
 
@@ -30,20 +31,16 @@ import scala.concurrent.Future
 
 class PaymentsControllerSpec extends SpecBase {
 
-  val mockOpsService: OpsService                  = mock[OpsService]
-  val mockFinancialDataService: ECLAccountService = mock[ECLAccountService]
+  val mockOpsService: OpsService               = mock[OpsService]
+  val mockECLAccountService: ECLAccountService = mock[ECLAccountService]
 
   val date                = LocalDate.now()
   val expectedUrl: String = "http://www.bbc.co.uk"
-  val opsJourneyError     = OpsJourneyError(
-    CREATED,
-    "Invalid Json"
-  )
 
   val controller = new PaymentsController(
     mcc,
     fakeAuthorisedAction,
-    mockFinancialDataService,
+    mockECLAccountService,
     mockOpsService
   )
 
@@ -66,30 +63,13 @@ class PaymentsControllerSpec extends SpecBase {
         when(
           mockOpsService.startOpsJourney(
             ArgumentMatchers.eq(chargeReference),
-            ArgumentMatchers.eq(amount)
+            ArgumentMatchers.eq(amount),
+            any()
           )(any())
-        )
-          .thenReturn(Future.successful(Left(opsJourneyResponse)))
+        ).thenReturn(EitherT.rightT[Future, OpsError](opsJourneyResponse))
 
-        when(mockFinancialDataService.retrieveFinancialData(any()))
-          .thenReturn(Future.successful(Some(response)))
-
-        when(
-          mockFinancialDataService.getLatestFinancialObligation(
-            ArgumentMatchers.eq(response)
-          )
-        ).thenReturn(
-          Some(
-            FinancialDetails(
-              amount,
-              date,
-              date,
-              "",
-              chargeReference,
-              StandardPayment
-            )
-          )
-        )
+        when(mockECLAccountService.retrieveFinancialData(any()))
+          .thenReturn(EitherT.rightT[Future, ECLAccountError](Some(response)))
 
         val result = await(controller.onPageLoad()(fakeRequest))
 
@@ -109,19 +89,15 @@ class PaymentsControllerSpec extends SpecBase {
         when(
           mockOpsService.startOpsJourney(
             ArgumentMatchers.eq(chargeReference),
-            ArgumentMatchers.eq(amount)
+            ArgumentMatchers.eq(amount),
+            any()
           )(any())
+        ).thenReturn(
+          EitherT.leftT[Future, OpsJourneyResponse](OpsError.BadGateway("Internal server error", INTERNAL_SERVER_ERROR))
         )
-          .thenReturn(Future.successful(Right(opsJourneyError)))
 
-        when(mockFinancialDataService.retrieveFinancialData(any()))
-          .thenReturn(Future.successful(Some(response)))
-
-        when(
-          mockFinancialDataService.getLatestFinancialObligation(
-            ArgumentMatchers.eq(response)
-          )
-        ).thenReturn(None)
+        when(mockECLAccountService.retrieveFinancialData(any()))
+          .thenReturn(EitherT.rightT[Future, ECLAccountError](Some(response)))
 
         val result = await(controller.onPageLoad()(fakeRequest))
 

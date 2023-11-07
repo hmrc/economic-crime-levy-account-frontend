@@ -255,10 +255,10 @@ trait EclTestData {
 
     } yield FinancialDetails(
       amount = BigDecimal(amount),
-      fromDate = fromDate,
-      toDate = toDate,
-      periodKey = periodKey,
-      chargeReference = "",
+      fromDate = Some(fromDate),
+      toDate = Some(toDate),
+      periodKey = Some(periodKey),
+      chargeReference = None,
       paymentType = StandardPayment
     )
   }
@@ -299,7 +299,12 @@ trait EclTestData {
       )
     )
   }
-  def alphaNumericString: String                                             = Gen.alphaNumStr.sample.get
+
+  implicit val arbEclReference: Arbitrary[EclReference] = Arbitrary {
+    EclReference(alphaNumericString)
+  }
+
+  def alphaNumericString: String = Gen.alphaNumStr.sample.get
 
   val testInternalId: String               = alphaNumericString
   val testEclRegistrationReference: String = alphaNumericString

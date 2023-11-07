@@ -31,14 +31,14 @@ import scala.concurrent.Future
 
 class ViewYourPaymentsControllerSpec extends SpecBase {
 
-  val mockFinancialDataService: ECLAccountService = mock[ECLAccountService]
-  val paymentsView                                = app.injector.instanceOf[PaymentsView]
-  val noPaymentsView                              = app.injector.instanceOf[NoPaymentsView]
+  val mockECLAccountService: ECLAccountService = mock[ECLAccountService]
+  val paymentsView                             = app.injector.instanceOf[PaymentsView]
+  val noPaymentsView                           = app.injector.instanceOf[NoPaymentsView]
 
   val controller = new ViewYourPaymentsController(
     mcc,
     fakeAuthorisedAction,
-    mockFinancialDataService,
+    mockECLAccountService,
     paymentsView,
     noPaymentsView,
     appConfig
@@ -47,7 +47,7 @@ class ViewYourPaymentsControllerSpec extends SpecBase {
   "onPageLoad" should {
     "return OK and the correct view when financialData is present" in forAll {
       (financialViewDetails: ValidFinancialViewDetails) =>
-        when(mockFinancialDataService.getFinancialDetails(any()))
+        when(mockECLAccountService.getFinancialDetails(any()))
           .thenReturn(Future.successful(Some(financialViewDetails.financialViewDetails)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
@@ -60,7 +60,7 @@ class ViewYourPaymentsControllerSpec extends SpecBase {
           .toString()
     }
     "return OK and the correct view when financialData is missing" in {
-      when(mockFinancialDataService.getFinancialDetails(any()))
+      when(mockECLAccountService.getFinancialDetails(any()))
         .thenReturn(Future.successful(None))
 
       val result: Future[Result] = controller.onPageLoad()(fakeRequest)

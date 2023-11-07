@@ -40,7 +40,7 @@ class OpsConnector @Inject() (
   def createOpsJourney(opsJourneyRequest: OpsJourneyRequest)(implicit
     hc: HeaderCarrier
   ): Future[OpsJourneyResponse] =
-    retryFor[OpsJourneyResponse]("DES - obligation data")(retryCondition) {
+    retryFor[OpsJourneyResponse]("OPS - Journey data")(retryCondition) {
       httpClient
         .post(url"${appConfig.opsStartJourneyUrl}")
         .withBody(Json.toJson(opsJourneyRequest))

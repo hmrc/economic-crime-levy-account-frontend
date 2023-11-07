@@ -41,14 +41,14 @@ class ECLAccountConnector @Inject() (
   def getFinancialData(implicit
     hc: HeaderCarrier
   ): Future[Option[FinancialData]] =
-    retryFor[Option[FinancialData]]("DES - obligation data")(retryCondition) {
+    retryFor[Option[FinancialData]]("ECL Account - financial data")(retryCondition) {
       httpClient
         .get(url"${appConfig.financialDataUrl}")
         .executeAndDeserialiseOption[FinancialData]
     }
 
   def getObligationData(implicit hc: HeaderCarrier): Future[Option[ObligationData]] =
-    retryFor[Option[ObligationData]]("DES - obligation data")(retryCondition) {
+    retryFor[Option[ObligationData]]("ECL Account - obligation data")(retryCondition) {
       httpClient
         .get(url"${appConfig.obligationDataUrl}")
         .executeAndDeserialiseOption[ObligationData]
