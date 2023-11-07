@@ -30,14 +30,6 @@
 
 @(returnData: Seq[ReturnsOverview])(implicit request: Request[_], messages: Messages)
 
-@resolveStatusColour(status: ReturnStatus) = @{
-    status match {
-        case Due => "blue"
-        case Submitted => "green"
-        case Overdue => "red"
-    }
-}
-
 @thirdCellResolve(status: ReturnStatus, periodKey: String) = @{
     status match {
         case Due | Overdue => messages("account.viewReturns.table.link", s"${appConfig.returnsUrl}/period/$periodKey")
@@ -58,29 +50,35 @@
         case None => ""
     }
 
-   val amendLink = rowData.chargeReference match {
+    val amendLink = rowData.chargeReference match {
         case None => Empty
         case Some(reference) => HtmlContent(resolveAmmendLink(rowData.status, reference, rowData.periodKey))
     }
 
+    val rowStatus = rowData.status match {
+        case Due => ("blue", "account.viewReturns.table.cell.status.due")
+        case Submitted => ("green", "account.viewReturns.table.cell.status.submitted")
+        case Overdue => ("red", "account.viewReturns.table.cell.status.overdue")
+    }
+
     Seq(TableRow(content = ViewUtils.formatLocalDate(rowData.dueDate), classes = "govuk-table__header govuk-!-width-one-half"),
-        TableRow(content = HtmlContent(messages("account.viewReturns.table.status", resolveStatusColour(rowData.status), rowData.status)), classes = "govuk-table__cell"),
+        TableRow(content = HtmlContent(messages("account.viewReturns.table.status", rowStatus._1, messages(rowStatus._2))), classes = "govuk-table__cell"),
         TableRow(content = chargeReference, classes = "govuk-table__cell"),
         rowData.chargeReference match {
             case Some(_) =>
-                if (rowData.dueDate.plusYears(1).isAfter(LocalDate.now()) && appConfig.amendReturnsEnabled) {
+                if(rowData.dueDate.plusYears(1).isAfter(LocalDate.now()) && appConfig.amendReturnsEnabled) {
                     (TableRow(content = amendLink))
                 } else {
                     TableRow(content = Empty)
                 }
-            case None =>  TableRow(content = HtmlContent(tableLinkInfo))
+            case None => TableRow(content = HtmlContent(tableLinkInfo))
         })
 }
 
 @getChargeReferenceHeader(data: ReturnsOverview) = @{
-    if(data.chargeReference.isDefined){
+    if(data.chargeReference.isDefined) {
         HeadCell(content = Text(messages("account.viewReturns.table.column.3")), classes = "govuk-table__header govuk-!-width-one-quarter")
-    }else{
+    } else {
         HeadCell(content = Empty)
     }
 }
