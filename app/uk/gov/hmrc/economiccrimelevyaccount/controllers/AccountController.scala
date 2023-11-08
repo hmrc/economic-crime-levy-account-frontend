@@ -48,7 +48,6 @@ class AccountController @Inject() (
     with ErrorHandler {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationID(request)
     (for {
       registrationDate             <-
         enrolmentStoreProxyService.getEclRegistrationDate(request.eclReference).asResponseError

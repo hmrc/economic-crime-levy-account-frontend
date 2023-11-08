@@ -43,7 +43,6 @@ class ViewYourPaymentsController @Inject() (
     with I18nSupport {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationID(request)
     financialDataService.getFinancialDetails.map {
       case Some(financialViewDetails) =>
         Ok(view(financialViewDetails, appConfig.refundBaseUrl, appConfig.disableRefund))

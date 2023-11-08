@@ -117,7 +117,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Submitted,
             "21XY",
-            Some(eclRegistrationReference)
+            Some(eclRegistrationReference.value)
           )
         )
         status(result)          shouldBe OK

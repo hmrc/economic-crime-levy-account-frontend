@@ -24,27 +24,25 @@ import java.util.UUID
 
 object CorrelationIdHelper {
 
-  val HEADER_X_CORRELATION_ID: String = "X-Correlation-Id"
+  private val HEADER_X_CORRELATION_ID: String = "X-Correlation-Id"
 
   def getOrCreateCorrelationID(request: Request[_]): HeaderCarrier = {
     val hcFromRequest: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
-    val hc: HeaderCarrier            =
-      hcFromRequest
-        .headers(scala.Seq(HEADER_X_CORRELATION_ID)) match {
-        case Nil =>
-          hcFromRequest
-            .withExtraHeaders(
-              (
-                HEADER_X_CORRELATION_ID,
-                UUID
-                  .randomUUID()
-                  .toString
-              )
+    hcFromRequest
+      .headers(scala.Seq(HEADER_X_CORRELATION_ID)) match {
+      case Nil =>
+        hcFromRequest
+          .withExtraHeaders(
+            (
+              HEADER_X_CORRELATION_ID,
+              UUID
+                .randomUUID()
+                .toString
             )
-        case _   =>
-          hcFromRequest
-      }
-    hc
+          )
+      case _   =>
+        hcFromRequest
+    }
   }
 
 }

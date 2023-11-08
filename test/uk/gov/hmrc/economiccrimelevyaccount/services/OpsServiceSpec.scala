@@ -58,7 +58,7 @@ class OpsServiceSpec extends SpecBase {
 
       val result = await(service.startOpsJourney(chargeReference, amount.abs, None).value)
 
-      result shouldBe Left(opsJourneyResponse)
+      result shouldBe Right(opsJourneyResponse)
     }
   }
 

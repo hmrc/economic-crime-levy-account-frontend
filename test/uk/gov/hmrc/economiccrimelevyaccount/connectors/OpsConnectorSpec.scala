@@ -20,14 +20,14 @@ import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import org.scalatest.BeforeAndAfterEach
 import play.api.http.Status.{CREATED, INTERNAL_SERVER_ERROR}
-import play.api.libs.json.Json
+import play.api.libs.json.{JsResult, Json}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HttpClient, HttpResponse, StringContextOps, UpstreamErrorResponse}
 
 import scala.concurrent.Future
-import scala.util.{Failure, Try}
+import scala.util.{Failure, Success, Try}
 
 class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
 
@@ -58,16 +58,16 @@ class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
 
       when(mockHttpClient.post(ArgumentMatchers.eq(url"${appConfig.opsStartJourneyUrl}"))(any()))
         .thenReturn(mockRequestBuilder)
-      when(mockRequestBuilder.setHeader(any()))
+      when(mockRequestBuilder.setHeader(ArgumentMatchers.eq(("x-session-id", opsJourneyRequest.chargeReference))))
         .thenReturn(mockRequestBuilder)
-      when(mockRequestBuilder.withBody(ArgumentMatchers.eq(opsJourneyRequest))(any(), any(), any()))
+      when(mockRequestBuilder.withBody(ArgumentMatchers.eq(Json.toJson(opsJourneyRequest)))(any(), any(), any()))
         .thenReturn(mockRequestBuilder)
       when(mockRequestBuilder.execute[HttpResponse](any(), any()))
         .thenReturn(Future.successful(HttpResponse.apply(CREATED, Json.stringify(Json.toJson(opsJourneyResponse)))))
 
       val result = await(connector.createOpsJourney(opsJourneyRequest))
 
-      result shouldBe Left(opsJourneyResponse)
+      result shouldBe opsJourneyResponse
     }
 
     "return an error if OPS journey creation fails" in forAll { (chargeReference: String, amount: BigDecimal) =>
@@ -80,9 +80,12 @@ class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
       )
 
       val errorMessage = "internal server error"
-      when(mockHttpClient.get(any())(any())).thenReturn(mockRequestBuilder)
-      when(mockRequestBuilder.setHeader(any())).thenReturn(mockRequestBuilder)
-      when(mockRequestBuilder.withBody(any())(any(), any(), any())).thenReturn(mockRequestBuilder)
+      when(mockHttpClient.post(ArgumentMatchers.eq(url"${appConfig.opsStartJourneyUrl}"))(any()))
+        .thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.setHeader(ArgumentMatchers.eq(("x-session-id", opsJourneyRequest.chargeReference))))
+        .thenReturn(mockRequestBuilder)
+      when(mockRequestBuilder.withBody(ArgumentMatchers.eq(Json.toJson(opsJourneyRequest)))(any(), any(), any()))
+        .thenReturn(mockRequestBuilder)
       when(mockRequestBuilder.execute[HttpResponse](any(), any()))
         .thenReturn(Future.successful(HttpResponse.apply(INTERNAL_SERVER_ERROR, "internal server error")))
 
@@ -104,16 +107,19 @@ class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
       None
     )
 
-    when(mockHttpClient.get(any())(any())).thenReturn(mockRequestBuilder)
-    when(mockRequestBuilder.setHeader(any())).thenReturn(mockRequestBuilder)
-    when(mockRequestBuilder.withBody(any())(any(), any(), any())).thenReturn(mockRequestBuilder)
+    when(mockHttpClient.post(ArgumentMatchers.eq(url"${appConfig.opsStartJourneyUrl}"))(any()))
+      .thenReturn(mockRequestBuilder)
+    when(mockRequestBuilder.setHeader(ArgumentMatchers.eq(("x-session-id", opsJourneyRequest.chargeReference))))
+      .thenReturn(mockRequestBuilder)
+    when(mockRequestBuilder.withBody(ArgumentMatchers.eq(Json.toJson(opsJourneyRequest)))(any(), any(), any()))
+      .thenReturn(mockRequestBuilder)
     when(mockRequestBuilder.execute[HttpResponse](any(), any()))
       .thenReturn(Future.successful(HttpResponse.apply(CREATED, "{}")))
 
     Try(await(connector.createOpsJourney(opsJourneyRequest))) match {
-      case Failure(UpstreamErrorResponse(msg, _, _, _)) =>
-        msg shouldEqual "invalid json"
-      case _                                            => fail("expected UpstreamErrorResponse when an error is received from DES")
+      case Failure(thr) =>
+        thr.isInstanceOf[JsResult.Exception] shouldEqual true
+      case _            => fail("expected UpstreamErrorResponse when an error is received from DES")
     }
   }
 }

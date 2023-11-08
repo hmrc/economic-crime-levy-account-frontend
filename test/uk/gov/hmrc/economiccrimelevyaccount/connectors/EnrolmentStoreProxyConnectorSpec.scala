@@ -45,7 +45,6 @@ class EnrolmentStoreProxyConnectorSpec extends SpecBase {
 
     "return known facts when the http client returns known facts" in forAll {
       (eclRegistrationReference: EclReference, queryKnownFactsResponse: EnrolmentResponse) =>
-        val expectedUrl                    = s"$enrolmentStoreUrl/enrolments"
         val expectedQueryKnownFactsRequest = QueryKnownFactsRequest(
           service = EclEnrolment.ServiceName,
           knownFacts = Seq(
@@ -53,10 +52,14 @@ class EnrolmentStoreProxyConnectorSpec extends SpecBase {
           )
         )
 
-        when(mockHttpClient.post(ArgumentMatchers.eq(url"$expectedUrl"))(any())).thenReturn(mockRequestBuilder)
+        when(mockHttpClient.post(ArgumentMatchers.eq(url"${appConfig.enrolmentsUrl}"))(any()))
+          .thenReturn(mockRequestBuilder)
         when(mockRequestBuilder.setHeader(any()))
           .thenReturn(mockRequestBuilder)
-        when(mockRequestBuilder.withBody(ArgumentMatchers.eq(expectedQueryKnownFactsRequest))(any(), any(), any()))
+        when(
+          mockRequestBuilder
+            .withBody(ArgumentMatchers.eq(Json.toJson(expectedQueryKnownFactsRequest)))(any(), any(), any())
+        )
           .thenReturn(mockRequestBuilder)
         when(mockRequestBuilder.execute[HttpResponse](any(), any()))
           .thenReturn(Future.successful(HttpResponse.apply(OK, Json.stringify(Json.toJson(queryKnownFactsResponse)))))
