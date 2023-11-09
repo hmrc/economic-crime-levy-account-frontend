@@ -53,20 +53,20 @@ trait SpecBase
     with ScalaCheckPropertyChecks
     with EclTestData {
 
-  val internalId: String                               = "test-internal-id"
-  val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
-  val requestWithEclReference                          = AuthorisedRequest(
+  val internalId: String                                                 = "test-internal-id"
+  val fakeRequest: FakeRequest[AnyContentAsEmpty.type]                   = FakeRequest()
+  val eclRegistrationReference: EclReference                             = EclReference("test-ecl-registration-reference")
+  val requestWithEclReference: AuthorisedRequest[AnyContentAsEmpty.type] = AuthorisedRequest(
     FakeRequest(),
     internalId,
     eclRegistrationReference
   )
-  val appConfig: AppConfig                             = app.injector.instanceOf[AppConfig]
-  val messagesApi: MessagesApi                         = app.injector.instanceOf[MessagesApi]
-  val messages: Messages                               = messagesApi.preferred(fakeRequest)
-  val bodyParsers: PlayBodyParsers                     = app.injector.instanceOf[PlayBodyParsers]
-  val eclRegistrationReference: EclReference           = EclReference("test-ecl-registration-reference")
-  val actorSystem: ActorSystem                         = ActorSystem("test")
-  val config: Config                                   = app.injector.instanceOf[Config]
+  val appConfig: AppConfig                                               = app.injector.instanceOf[AppConfig]
+  val messagesApi: MessagesApi                                           = app.injector.instanceOf[MessagesApi]
+  val messages: Messages                                                 = messagesApi.preferred(fakeRequest)
+  val bodyParsers: PlayBodyParsers                                       = app.injector.instanceOf[PlayBodyParsers]
+  val actorSystem: ActorSystem                                           = ActorSystem("test")
+  val config: Config                                                     = app.injector.instanceOf[Config]
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()

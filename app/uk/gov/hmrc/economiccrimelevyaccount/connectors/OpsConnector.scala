@@ -37,6 +37,9 @@ class OpsConnector @Inject() (
 )(implicit ec: ExecutionContext)
     extends BaseConnector
     with Retries {
+
+  private val sessionIdHeaderName = "x-session-id"
+
   def createOpsJourney(opsJourneyRequest: OpsJourneyRequest)(implicit
     hc: HeaderCarrier
   ): Future[OpsJourneyResponse] =
@@ -44,7 +47,7 @@ class OpsConnector @Inject() (
       httpClient
         .post(url"${appConfig.opsStartJourneyUrl}")
         .withBody(Json.toJson(opsJourneyRequest))
-        .setHeader(("x-session-id", opsJourneyRequest.chargeReference))
+        .transform(_.addHttpHeaders((sessionIdHeaderName, opsJourneyRequest.chargeReference)))
         .executeAndDeserialise[OpsJourneyResponse]
     }
 

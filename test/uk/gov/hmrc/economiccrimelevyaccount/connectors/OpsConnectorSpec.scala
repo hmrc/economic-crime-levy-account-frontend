@@ -24,10 +24,10 @@ import play.api.libs.json.{JsResult, Json}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
-import uk.gov.hmrc.http.{HttpClient, HttpResponse, StringContextOps, UpstreamErrorResponse}
+import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
+import scala.util.{Failure, Try}
 
 class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
 
@@ -37,8 +37,10 @@ class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
   val url                                = "http://google.co.uk"
   val expectedUrl: String                = "http://www.bbc.co.uk"
 
-  override def beforeEach(): Unit =
+  override def beforeEach(): Unit = {
+    reset(mockRequestBuilder)
     reset(mockHttpClient)
+  }
 
   "createJourney" should {
 
@@ -58,7 +60,7 @@ class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
 
       when(mockHttpClient.post(ArgumentMatchers.eq(url"${appConfig.opsStartJourneyUrl}"))(any()))
         .thenReturn(mockRequestBuilder)
-      when(mockRequestBuilder.setHeader(ArgumentMatchers.eq(("x-session-id", opsJourneyRequest.chargeReference))))
+      when(mockRequestBuilder.transform(any()))
         .thenReturn(mockRequestBuilder)
       when(mockRequestBuilder.withBody(ArgumentMatchers.eq(Json.toJson(opsJourneyRequest)))(any(), any(), any()))
         .thenReturn(mockRequestBuilder)
@@ -71,6 +73,8 @@ class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
     }
 
     "return an error if OPS journey creation fails" in forAll { (chargeReference: String, amount: BigDecimal) =>
+      beforeEach()
+
       val opsJourneyRequest = OpsJourneyRequest(
         chargeReference,
         amount * 100,
@@ -82,19 +86,21 @@ class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
       val errorMessage = "internal server error"
       when(mockHttpClient.post(ArgumentMatchers.eq(url"${appConfig.opsStartJourneyUrl}"))(any()))
         .thenReturn(mockRequestBuilder)
-      when(mockRequestBuilder.setHeader(ArgumentMatchers.eq(("x-session-id", opsJourneyRequest.chargeReference))))
+      when(mockRequestBuilder.transform(any()))
         .thenReturn(mockRequestBuilder)
       when(mockRequestBuilder.withBody(ArgumentMatchers.eq(Json.toJson(opsJourneyRequest)))(any(), any(), any()))
         .thenReturn(mockRequestBuilder)
       when(mockRequestBuilder.execute[HttpResponse](any(), any()))
-        .thenReturn(Future.successful(HttpResponse.apply(INTERNAL_SERVER_ERROR, "internal server error")))
+        .thenReturn(Future.successful(HttpResponse.apply(INTERNAL_SERVER_ERROR, errorMessage)))
 
       Try(await(connector.createOpsJourney(opsJourneyRequest))) match {
         case Failure(UpstreamErrorResponse(msg, _, _, _)) =>
           msg shouldEqual errorMessage
-        case _                                            => fail("expected UpstreamErrorResponse when an error is received from DES")
+        case _                                            => fail("expected UpstreamErrorResponse when an error is received from OPS")
       }
 
+      verify(mockRequestBuilder, times(2))
+        .execute(any(), any())
     }
   }
 
@@ -109,7 +115,7 @@ class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
 
     when(mockHttpClient.post(ArgumentMatchers.eq(url"${appConfig.opsStartJourneyUrl}"))(any()))
       .thenReturn(mockRequestBuilder)
-    when(mockRequestBuilder.setHeader(ArgumentMatchers.eq(("x-session-id", opsJourneyRequest.chargeReference))))
+    when(mockRequestBuilder.transform(any()))
       .thenReturn(mockRequestBuilder)
     when(mockRequestBuilder.withBody(ArgumentMatchers.eq(Json.toJson(opsJourneyRequest)))(any(), any(), any()))
       .thenReturn(mockRequestBuilder)
@@ -119,7 +125,7 @@ class OpsConnectorSpec extends SpecBase with BeforeAndAfterEach {
     Try(await(connector.createOpsJourney(opsJourneyRequest))) match {
       case Failure(thr) =>
         thr.isInstanceOf[JsResult.Exception] shouldEqual true
-      case _            => fail("expected UpstreamErrorResponse when an error is received from DES")
+      case _            => fail("expected JsResult.Exception when response is received from OPS cannot be deserialized")
     }
   }
 }

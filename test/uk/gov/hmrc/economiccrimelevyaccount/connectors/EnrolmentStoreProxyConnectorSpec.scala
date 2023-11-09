@@ -18,16 +18,17 @@ package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
-import play.api.http.Status.OK
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, KeyValue}
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, EnrolmentResponse, QueryKnownFactsRequest}
-import uk.gov.hmrc.http.{HttpResponse, StringContextOps}
+import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 
 import scala.concurrent.Future
+import scala.util.{Failure, Try}
 
 class EnrolmentStoreProxyConnectorSpec extends SpecBase {
 
@@ -45,7 +46,7 @@ class EnrolmentStoreProxyConnectorSpec extends SpecBase {
 
     "return known facts when the http client returns known facts" in forAll {
       (eclRegistrationReference: EclReference, queryKnownFactsResponse: EnrolmentResponse) =>
-        val expectedQueryKnownFactsRequest = QueryKnownFactsRequest(
+        val queryKnownFactsRequest = QueryKnownFactsRequest(
           service = EclEnrolment.ServiceName,
           knownFacts = Seq(
             KeyValue(EclEnrolment.IdentifierKey, eclRegistrationReference.value)
@@ -54,11 +55,9 @@ class EnrolmentStoreProxyConnectorSpec extends SpecBase {
 
         when(mockHttpClient.post(ArgumentMatchers.eq(url"${appConfig.enrolmentsUrl}"))(any()))
           .thenReturn(mockRequestBuilder)
-        when(mockRequestBuilder.setHeader(any()))
-          .thenReturn(mockRequestBuilder)
         when(
           mockRequestBuilder
-            .withBody(ArgumentMatchers.eq(Json.toJson(expectedQueryKnownFactsRequest)))(any(), any(), any())
+            .withBody(ArgumentMatchers.eq(Json.toJson(queryKnownFactsRequest)))(any(), any(), any())
         )
           .thenReturn(mockRequestBuilder)
         when(mockRequestBuilder.execute[HttpResponse](any(), any()))
@@ -67,6 +66,39 @@ class EnrolmentStoreProxyConnectorSpec extends SpecBase {
         val result = await(connector.getEnrolments(eclRegistrationReference))
 
         result shouldBe queryKnownFactsResponse
+    }
+
+    "retries when a 500x error is returned from Enrolment Store Proxy" in forAll {
+      (eclRegistrationReference: EclReference) =>
+        beforeEach()
+
+        val queryKnownFactsRequest = QueryKnownFactsRequest(
+          service = EclEnrolment.ServiceName,
+          knownFacts = Seq(
+            KeyValue(EclEnrolment.IdentifierKey, eclRegistrationReference.value)
+          )
+        )
+
+        val errorMessage = "internal server error"
+        when(mockHttpClient.post(ArgumentMatchers.eq(url"${appConfig.enrolmentsUrl}"))(any()))
+          .thenReturn(mockRequestBuilder)
+        when(
+          mockRequestBuilder
+            .withBody(ArgumentMatchers.eq(Json.toJson(queryKnownFactsRequest)))(any(), any(), any())
+        )
+          .thenReturn(mockRequestBuilder)
+        when(mockRequestBuilder.execute[HttpResponse](any(), any()))
+          .thenReturn(Future.successful(HttpResponse.apply(INTERNAL_SERVER_ERROR, errorMessage)))
+
+        Try(await(connector.getEnrolments(eclRegistrationReference))) match {
+          case Failure(UpstreamErrorResponse(msg, _, _, _)) =>
+            msg shouldEqual errorMessage
+          case x                                            => x shouldEqual "x"
+          //fail("expected UpstreamErrorResponse when an error is received from Enrolment Store Proxy")
+        }
+
+        verify(mockRequestBuilder, times(2))
+          .execute(any(), any())
     }
   }
 }

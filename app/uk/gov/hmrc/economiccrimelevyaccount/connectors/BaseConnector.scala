@@ -20,6 +20,7 @@ import play.api.http.Status._
 import play.api.libs.json.{JsResult, Reads}
 import uk.gov.hmrc.http.client.RequestBuilder
 import uk.gov.hmrc.http.{HttpResponse, UpstreamErrorResponse}
+import uk.gov.hmrc.http.HttpReads.Implicits._
 
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -66,16 +67,6 @@ trait BaseConnector {
             case OK | CREATED | ACCEPTED => response.asOption[T]
             case _                       =>
               response.error
-          }
-        }
-
-    def executeAndExpect(expected: Int)(implicit ec: ExecutionContext): Future[Unit] =
-      requestBuilder
-        .execute[HttpResponse]
-        .flatMap { response =>
-          response.status match {
-            case `expected` => Future.successful(())
-            case _          => response.error
           }
         }
   }
