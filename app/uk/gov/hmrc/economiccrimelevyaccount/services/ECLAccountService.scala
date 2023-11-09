@@ -27,6 +27,7 @@ import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
 class ECLAccountService @Inject() (
@@ -61,97 +62,96 @@ class ECLAccountService @Inject() (
       }
     }
 
-  def getFinancialDetails(implicit hc: HeaderCarrier): Future[Option[FinancialViewDetails]] =
-    eclAccountConnector.getFinancialData.map {
-      case None           => None
-      case Some(response) =>
-        val preparedFinancialDetails = prepareFinancialDetails(response)
-        if (preparedFinancialDetails.paymentHistory.isEmpty & preparedFinancialDetails.outstandingPayments.isEmpty) {
-          None
-        } else {
-          Some(preparedFinancialDetails)
-        }
-    }
+  def prepareFinancialDetails(
+    financialDataOption: Option[FinancialData]
+  ): EitherT[Future, ECLAccountError, Option[FinancialViewDetails]] =
+    Try {
+      financialDataOption.map { response =>
+        val documentDetails = extractValue(response.documentDetails)
 
-  private def prepareFinancialDetails(response: FinancialData): FinancialViewDetails = {
-    val documentDetails = extractValue(response.documentDetails)
-
-    val outstandingPayments = documentDetails
-      .filter(document =>
-        !document.isCleared && !document.documentType
-          .contains(Payment) && !document.documentType.forall(_.isInstanceOf[Other])
-      )
-      .map { document =>
-        OutstandingPayments(
-          paymentDueDate = extractValue(document.paymentDueDate),
-          chargeReference = if (document.getPaymentType == Interest) {
-            extractValue(getPaymentReferenceNumber(documentDetails, extractValue(document.chargeReferenceNumber)))
-          } else {
-            extractValue(document.chargeReferenceNumber)
-          },
-          fyFrom = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head,
-          fyTo = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head,
-          amount = document.documentOutstandingAmount.getOrElse(0),
-          paymentStatus = getOutstandingPaymentStatus(document),
-          paymentType = document.getPaymentType,
-          interestChargeReference = document.getInterestChargeReference
-        )
-      }
-
-    val paymentsHistory = documentDetails
-      .collect(filterOutOverPayment)
-      .flatMap { details =>
-        extractValue(details.lineItemDetails)
-          .collect(filterOutItemsWithoutClearingReason andThen useOnlyRegularLineItemDetails)
-          .filter(item => item.isCleared)
-          .map { item =>
-            PaymentHistory(
-              paymentDate = extractValue(item.clearingDate),
-              chargeReference = details.getPaymentType match {
-                case Interest    =>
-                  Some(
-                    extractValue(
-                      getPaymentReferenceNumber(documentDetails, extractValue(details.chargeReferenceNumber))
-                    )
-                  )
-                case Overpayment => None
-                case _           => Some(extractValue(details.chargeReferenceNumber))
+        val outstandingPayments = documentDetails
+          .filter(document =>
+            !document.isCleared && !document.documentType
+              .contains(Payment) && !document.documentType.forall(_.isInstanceOf[Other])
+          )
+          .map { document =>
+            OutstandingPayments(
+              paymentDueDate = extractValue(document.paymentDueDate),
+              chargeReference = if (document.getPaymentType == Interest) {
+                extractValue(getPaymentReferenceNumber(documentDetails, extractValue(document.chargeReferenceNumber)))
+              } else {
+                extractValue(document.chargeReferenceNumber)
               },
-              fyFrom = if (details.getPaymentType == Overpayment) None else Some(extractValue(item.periodFromDate)),
-              fyTo = if (details.getPaymentType == Overpayment) None else Some(extractValue(item.periodToDate)),
-              amount = extractValue(item.amount),
-              paymentStatus = getHistoricalPaymentStatus(item, details),
-              paymentDocument = extractValue(item.clearingDocument),
-              paymentType = details.getPaymentType,
-              refundAmount = (details.documentType, details.contractObjectNumber) match {
-                case (Some(NewCharge), Some(contractObjectNumber)) =>
-                  response.refundAmount(contractObjectNumber).abs
-                case _                                             => BigDecimal(0)
-              }
+              fyFrom = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head,
+              fyTo = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head,
+              amount = document.documentOutstandingAmount.getOrElse(0),
+              paymentStatus = getOutstandingPaymentStatus(document),
+              paymentType = document.getPaymentType,
+              interestChargeReference = document.getInterestChargeReference
             )
           }
-      }
 
-    val accruingInterestOutstandingPayments = documentDetails
-      .collect(filterItemsThatHaveAccruingInterest)
-      .map { document =>
-        OutstandingPayments(
-          paymentDueDate = extractValue(document.paymentDueDate),
-          chargeReference = extractValue(document.chargeReferenceNumber),
-          fyFrom = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head,
-          fyTo = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head,
-          amount = extractValue(document.interestAccruingAmount),
-          paymentStatus = getOutstandingPaymentStatus(document),
-          paymentType = Interest,
-          interestChargeReference = None
+        val paymentsHistory = documentDetails
+          .collect(filterOutOverPayment)
+          .flatMap { details =>
+            extractValue(details.lineItemDetails)
+              .collect(filterOutItemsWithoutClearingReason andThen useOnlyRegularLineItemDetails)
+              .filter(item => item.isCleared)
+              .map { item =>
+                PaymentHistory(
+                  paymentDate = extractValue(item.clearingDate),
+                  chargeReference = details.getPaymentType match {
+                    case Interest    =>
+                      Some(
+                        extractValue(
+                          getPaymentReferenceNumber(documentDetails, extractValue(details.chargeReferenceNumber))
+                        )
+                      )
+                    case Overpayment => None
+                    case _           => Some(extractValue(details.chargeReferenceNumber))
+                  },
+                  fyFrom = if (details.getPaymentType == Overpayment) None else Some(extractValue(item.periodFromDate)),
+                  fyTo = if (details.getPaymentType == Overpayment) None else Some(extractValue(item.periodToDate)),
+                  amount = extractValue(item.amount),
+                  paymentStatus = getHistoricalPaymentStatus(item, details),
+                  paymentDocument = extractValue(item.clearingDocument),
+                  paymentType = details.getPaymentType,
+                  refundAmount = (details.documentType, details.contractObjectNumber) match {
+                    case (Some(NewCharge), Some(contractObjectNumber)) =>
+                      response.refundAmount(contractObjectNumber).abs
+                    case _                                             => BigDecimal(0)
+                  }
+                )
+              }
+          }
+
+        val accruingInterestOutstandingPayments = documentDetails
+          .collect(filterItemsThatHaveAccruingInterest)
+          .map { document =>
+            OutstandingPayments(
+              paymentDueDate = extractValue(document.paymentDueDate),
+              chargeReference = extractValue(document.chargeReferenceNumber),
+              fyFrom = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head,
+              fyTo = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head,
+              amount = extractValue(document.interestAccruingAmount),
+              paymentStatus = getOutstandingPaymentStatus(document),
+              paymentType = Interest,
+              interestChargeReference = None
+            )
+          }
+
+        FinancialViewDetails(
+          outstandingPayments = outstandingPayments ++ accruingInterestOutstandingPayments,
+          paymentHistory = paymentsHistory
         )
       }
-
-    FinancialViewDetails(
-      outstandingPayments = outstandingPayments ++ accruingInterestOutstandingPayments,
-      paymentHistory = paymentsHistory
-    )
-  }
+    } match {
+      case Success(financialViewDetails) => EitherT.rightT[Future, ECLAccountError](financialViewDetails)
+      case Failure(_)                    =>
+        EitherT.leftT[Future, Option[FinancialViewDetails]](
+          ECLAccountError.InternalUnexpectedError("Missing data required for FinancialViewDetails", None)
+        )
+    }
 
   private def getHistoricalPaymentStatus(lineItem: LineItemDetails, document: DocumentDetails): PaymentStatus =
     if (document.isCleared) {

@@ -65,9 +65,9 @@ class AccountServiceSpec extends SpecBase {
       when(mockECLAccountConnector.getFinancialData(any()))
         .thenReturn(Future.successful(None))
 
-      val response = await(service.getFinancialDetails)
+      val response = await(service.prepareFinancialDetails(None).value)
 
-      response shouldBe None
+      response shouldBe Right(None)
     }
 
     "return Some with FinancialViewDetails if we receive correct response from financialDataConnector" in forAll {
@@ -75,34 +75,36 @@ class AccountServiceSpec extends SpecBase {
         when(mockECLAccountConnector.getFinancialData(any()))
           .thenReturn(Future.successful(Some(validResponse.financialDataResponse)))
 
-        val response        = await(service.getFinancialDetails)
+        val response        = await(service.prepareFinancialDetails(Some(validResponse.financialDataResponse)).value)
         val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
         val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head
-        response shouldBe Some(
-          FinancialViewDetails(
-            Seq(
-              OutstandingPayments(
-                paymentDueDate = documentDetails.paymentDueDate.get,
-                chargeReference = documentDetails.chargeReferenceNumber.get,
-                fyFrom = firstItem.periodFromDate.get,
-                fyTo = firstItem.periodToDate.get,
-                amount = documentDetails.documentOutstandingAmount.get,
-                paymentStatus = Overdue,
-                paymentType = StandardPayment,
-                interestChargeReference = None
-              )
-            ),
-            Seq(
-              PaymentHistory(
-                paymentDate = firstItem.clearingDate.get,
-                chargeReference = documentDetails.chargeReferenceNumber,
-                fyFrom = firstItem.periodFromDate,
-                fyTo = firstItem.periodToDate,
-                amount = firstItem.amount.get,
-                paymentStatus = PartiallyPaid,
-                paymentDocument = firstItem.clearingDocument.get,
-                paymentType = StandardPayment,
-                refundAmount = BigDecimal(0)
+        response shouldBe Right(
+          Some(
+            FinancialViewDetails(
+              Seq(
+                OutstandingPayments(
+                  paymentDueDate = documentDetails.paymentDueDate.get,
+                  chargeReference = documentDetails.chargeReferenceNumber.get,
+                  fyFrom = firstItem.periodFromDate.get,
+                  fyTo = firstItem.periodToDate.get,
+                  amount = documentDetails.documentOutstandingAmount.get,
+                  paymentStatus = Overdue,
+                  paymentType = StandardPayment,
+                  interestChargeReference = None
+                )
+              ),
+              Seq(
+                PaymentHistory(
+                  paymentDate = firstItem.clearingDate.get,
+                  chargeReference = documentDetails.chargeReferenceNumber,
+                  fyFrom = firstItem.periodFromDate,
+                  fyTo = firstItem.periodToDate,
+                  amount = firstItem.amount.get,
+                  paymentStatus = PartiallyPaid,
+                  paymentDocument = firstItem.clearingDocument.get,
+                  paymentType = StandardPayment,
+                  refundAmount = BigDecimal(0)
+                )
               )
             )
           )
@@ -116,38 +118,40 @@ class AccountServiceSpec extends SpecBase {
         )
         val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
 
-        when(mockECLAccountConnector.getFinancialData(any()))
-          .thenReturn(
-            Future.successful(
-              Some(
-                validResponse.financialDataResponse.copy(
-                  documentDetails = Some(
-                    Seq(
-                      documentDetails.copy(lineItemDetails = Some(Seq(firstItem)))
-                    )
-                  )
-                )
+        val financialDataResponse = Some(
+          validResponse.financialDataResponse.copy(
+            documentDetails = Some(
+              Seq(
+                documentDetails.copy(lineItemDetails = Some(Seq(firstItem)))
               )
             )
           )
+        )
 
-        val response = await(service.getFinancialDetails)
+        when(mockECLAccountConnector.getFinancialData(any()))
+          .thenReturn(
+            Future.successful(
+              financialDataResponse
+            )
+          )
 
-        response shouldBe Some(
-          FinancialViewDetails(
-            outstandingPayments = Seq(
-              OutstandingPayments(
-                paymentDueDate = documentDetails.paymentDueDate.get,
-                chargeReference = documentDetails.chargeReferenceNumber.get,
-                fyFrom = firstItem.periodFromDate.get,
-                fyTo = firstItem.periodToDate.get,
-                amount = documentDetails.documentOutstandingAmount.get,
-                paymentStatus = Overdue,
-                paymentType = StandardPayment,
-                interestChargeReference = None
-              )
-            ),
-            paymentHistory = Seq.empty
+        await(service.prepareFinancialDetails(financialDataResponse).value) shouldBe Right(
+          Some(
+            FinancialViewDetails(
+              outstandingPayments = Seq(
+                OutstandingPayments(
+                  paymentDueDate = documentDetails.paymentDueDate.get,
+                  chargeReference = documentDetails.chargeReferenceNumber.get,
+                  fyFrom = firstItem.periodFromDate.get,
+                  fyTo = firstItem.periodToDate.get,
+                  amount = documentDetails.documentOutstandingAmount.get,
+                  paymentStatus = Overdue,
+                  paymentType = StandardPayment,
+                  interestChargeReference = None
+                )
+              ),
+              paymentHistory = Seq.empty
+            )
           )
         )
     }
@@ -159,38 +163,40 @@ class AccountServiceSpec extends SpecBase {
         )
         val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
 
-        when(mockECLAccountConnector.getFinancialData(any()))
-          .thenReturn(
-            Future.successful(
-              Some(
-                validResponse.financialDataResponse.copy(
-                  documentDetails = Some(
-                    Seq(
-                      documentDetails.copy(lineItemDetails = Some(Seq(firstItem)))
-                    )
-                  )
-                )
+        val financialDataResponse = Some(
+          validResponse.financialDataResponse.copy(
+            documentDetails = Some(
+              Seq(
+                documentDetails.copy(lineItemDetails = Some(Seq(firstItem)))
               )
             )
           )
+        )
 
-        val response = await(service.getFinancialDetails)
+        when(mockECLAccountConnector.getFinancialData(any()))
+          .thenReturn(
+            Future.successful(
+              financialDataResponse
+            )
+          )
 
-        response shouldBe Some(
-          FinancialViewDetails(
-            outstandingPayments = Seq(
-              OutstandingPayments(
-                paymentDueDate = documentDetails.paymentDueDate.get,
-                chargeReference = documentDetails.chargeReferenceNumber.get,
-                fyFrom = firstItem.periodFromDate.get,
-                fyTo = firstItem.periodToDate.get,
-                amount = documentDetails.documentOutstandingAmount.get,
-                paymentStatus = Overdue,
-                paymentType = StandardPayment,
-                interestChargeReference = None
-              )
-            ),
-            paymentHistory = Seq.empty
+        await(service.prepareFinancialDetails(financialDataResponse).value) shouldBe Right(
+          Some(
+            FinancialViewDetails(
+              outstandingPayments = Seq(
+                OutstandingPayments(
+                  paymentDueDate = documentDetails.paymentDueDate.get,
+                  chargeReference = documentDetails.chargeReferenceNumber.get,
+                  fyFrom = firstItem.periodFromDate.get,
+                  fyTo = firstItem.periodToDate.get,
+                  amount = documentDetails.documentOutstandingAmount.get,
+                  paymentStatus = Overdue,
+                  paymentType = StandardPayment,
+                  interestChargeReference = None
+                )
+              ),
+              paymentHistory = Seq.empty
+            )
           )
         )
     }
@@ -213,44 +219,45 @@ class AccountServiceSpec extends SpecBase {
         when(mockECLAccountConnector.getFinancialData(any()))
           .thenReturn(Future.successful(Some(validFinancialDataResponse)))
 
-        val response        = await(service.getFinancialDetails)
         val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
         val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head
-        response shouldBe Some(
-          FinancialViewDetails(
-            Seq(
-              OutstandingPayments(
-                paymentDueDate = documentDetails.paymentDueDate.get,
-                chargeReference = documentDetails.chargeReferenceNumber.get,
-                fyFrom = firstItem.periodFromDate.get,
-                fyTo = firstItem.periodToDate.get,
-                amount = documentDetails.documentOutstandingAmount.get,
-                paymentStatus = Overdue,
-                paymentType = StandardPayment,
-                interestChargeReference = None
+        await(service.prepareFinancialDetails(Some(validFinancialDataResponse)).value) shouldBe Right(
+          Some(
+            FinancialViewDetails(
+              Seq(
+                OutstandingPayments(
+                  paymentDueDate = documentDetails.paymentDueDate.get,
+                  chargeReference = documentDetails.chargeReferenceNumber.get,
+                  fyFrom = firstItem.periodFromDate.get,
+                  fyTo = firstItem.periodToDate.get,
+                  amount = documentDetails.documentOutstandingAmount.get,
+                  paymentStatus = Overdue,
+                  paymentType = StandardPayment,
+                  interestChargeReference = None
+                ),
+                OutstandingPayments(
+                  paymentDueDate = documentDetails.paymentDueDate.get,
+                  chargeReference = documentDetails.chargeReferenceNumber.get,
+                  fyFrom = firstItem.periodFromDate.get,
+                  fyTo = firstItem.periodToDate.get,
+                  amount = BigDecimal(15.00),
+                  paymentStatus = Overdue,
+                  paymentType = Interest,
+                  interestChargeReference = None
+                )
               ),
-              OutstandingPayments(
-                paymentDueDate = documentDetails.paymentDueDate.get,
-                chargeReference = documentDetails.chargeReferenceNumber.get,
-                fyFrom = firstItem.periodFromDate.get,
-                fyTo = firstItem.periodToDate.get,
-                amount = BigDecimal(15.00),
-                paymentStatus = Overdue,
-                paymentType = Interest,
-                interestChargeReference = None
-              )
-            ),
-            Seq(
-              PaymentHistory(
-                paymentDate = firstItem.clearingDate.get,
-                chargeReference = documentDetails.chargeReferenceNumber,
-                fyFrom = firstItem.periodFromDate,
-                fyTo = firstItem.periodToDate,
-                amount = firstItem.amount.get,
-                paymentStatus = PartiallyPaid,
-                paymentDocument = firstItem.clearingDocument.get,
-                paymentType = StandardPayment,
-                refundAmount = BigDecimal(0)
+              Seq(
+                PaymentHistory(
+                  paymentDate = firstItem.clearingDate.get,
+                  chargeReference = documentDetails.chargeReferenceNumber,
+                  fyFrom = firstItem.periodFromDate,
+                  fyTo = firstItem.periodToDate,
+                  amount = firstItem.amount.get,
+                  paymentStatus = PartiallyPaid,
+                  paymentDocument = firstItem.clearingDocument.get,
+                  paymentType = StandardPayment,
+                  refundAmount = BigDecimal(0)
+                )
               )
             )
           )

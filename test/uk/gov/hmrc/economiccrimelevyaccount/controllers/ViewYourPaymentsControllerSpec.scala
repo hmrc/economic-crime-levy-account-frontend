@@ -16,13 +16,15 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
+import cats.data.EitherT
 import org.mockito.ArgumentMatchers.any
 import play.api.http.Status.OK
 import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, status}
-import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialViewDetails
+import uk.gov.hmrc.economiccrimelevyaccount.{ValidFinancialDataResponse, ValidFinancialViewDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.ECLAccountError
 import uk.gov.hmrc.economiccrimelevyaccount.services.ECLAccountService
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.FinancialViewDetails
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoPaymentsView, PaymentsView}
@@ -46,9 +48,12 @@ class ViewYourPaymentsControllerSpec extends SpecBase {
 
   "onPageLoad" should {
     "return OK and the correct view when financialData is present" in forAll {
-      (financialViewDetails: ValidFinancialViewDetails) =>
-        when(mockECLAccountService.getFinancialDetails(any()))
-          .thenReturn(Future.successful(Some(financialViewDetails.financialViewDetails)))
+      (financialData: ValidFinancialDataResponse, financialViewDetails: ValidFinancialViewDetails) =>
+        when(mockECLAccountService.retrieveFinancialData(any()))
+          .thenReturn(EitherT.rightT[Future, ECLAccountError](Some(financialData.financialDataResponse)))
+
+        when(mockECLAccountService.prepareFinancialDetails(any()))
+          .thenReturn(EitherT.rightT[Future, ECLAccountError](Some(financialViewDetails.financialViewDetails)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         status(result)          shouldBe OK
@@ -60,8 +65,11 @@ class ViewYourPaymentsControllerSpec extends SpecBase {
           .toString()
     }
     "return OK and the correct view when financialData is missing" in {
-      when(mockECLAccountService.getFinancialDetails(any()))
-        .thenReturn(Future.successful(None))
+      when(mockECLAccountService.retrieveFinancialData(any()))
+        .thenReturn(EitherT.rightT[Future, ECLAccountError](None))
+
+      when(mockECLAccountService.prepareFinancialDetails(any()))
+        .thenReturn(EitherT.rightT[Future, ECLAccountError](None))
 
       val result: Future[Result] = controller.onPageLoad()(fakeRequest)
       status(result)          shouldBe OK
