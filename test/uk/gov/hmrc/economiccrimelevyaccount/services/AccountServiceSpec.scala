@@ -34,31 +34,6 @@ class AccountServiceSpec extends SpecBase {
 
   val service = new ECLAccountService(mockECLAccountConnector)
 
-//  "getLatestFinancialObligation" should {
-//    "return None if documentDetails are not present" in forAll { financialDataResponse: FinancialData =>
-//      val response = service.getLatestFinancialObligation(financialDataResponse.copy(documentDetails = None))
-//
-//      response shouldBe None
-//    }
-//
-//    "return Some value if documentDetails are present" in forAll {
-//      financialDataResponse: ValidFinancialDataResponseForLatestObligation =>
-//        val response        = service.getLatestFinancialObligation(financialDataResponse.financialDataResponse)
-//        val firstItem       = financialDataResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head
-//        val documentDetails = financialDataResponse.financialDataResponse.documentDetails.get.head
-//        response shouldBe Some(
-//          FinancialDetails(
-//            documentDetails.documentOutstandingAmount.get,
-//            firstItem.periodFromDate.get,
-//            firstItem.periodToDate.get,
-//            firstItem.periodKey.get,
-//            documentDetails.chargeReferenceNumber.get,
-//            documentDetails.getPaymentType
-//          )
-//        )
-//    }
-//  }
-
   "getFinancialDetails" should {
     "return None if we receive None from financialDataConnector" in {
 

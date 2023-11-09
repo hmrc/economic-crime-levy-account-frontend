@@ -47,6 +47,7 @@ class ViewYourReturnsController @Inject() (
     with ErrorHandler {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
+    implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationID(request)
     (for {
       obligationDataOption <- eclAccountService.retrieveObligationData.asResponseError
       financialDataOption  <- eclAccountService.retrieveFinancialData.asResponseError

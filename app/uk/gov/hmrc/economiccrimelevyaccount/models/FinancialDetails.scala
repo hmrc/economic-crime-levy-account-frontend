@@ -41,10 +41,8 @@ object FinancialDetails {
 
   def applyOptional(documentDetails: DocumentDetails): Option[FinancialDetails] =
     documentDetails.documentOutstandingAmount.map { outstandingAmount =>
-      //   val paymentType                    = value.getPaymentType
       val optionalFirstItemInItemDetails = documentDetails.lineItemDetails.flatMap(_.headOption)
-      //    val periodKey                      = if (paymentType == Interest) { None }
-      //    else { optionalFirstItemInItemDetails.flatMap(_.periodKey) }
+
       FinancialDetails(
         outstandingAmount,
         optionalFirstItemInItemDetails.flatMap(_.periodFromDate),

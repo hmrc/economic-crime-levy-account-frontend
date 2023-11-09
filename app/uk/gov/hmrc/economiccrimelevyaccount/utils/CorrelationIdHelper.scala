@@ -27,19 +27,13 @@ object CorrelationIdHelper {
   private val HEADER_X_CORRELATION_ID: String = "X-Correlation-Id"
 
   def getOrCreateCorrelationID(request: Request[_]): HeaderCarrier = {
-    val hcFromRequest: HeaderCarrier = HeaderCarrierConverter.fromRequest(request)
+    val hcFromRequest: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
     hcFromRequest
       .headers(scala.Seq(HEADER_X_CORRELATION_ID)) match {
       case Nil =>
-        hcFromRequest
-          .withExtraHeaders(
-            (
-              HEADER_X_CORRELATION_ID,
-              UUID
-                .randomUUID()
-                .toString
-            )
-          )
+        hcFromRequest.copy(otherHeaders =
+          hcFromRequest.otherHeaders ++ Seq((HEADER_X_CORRELATION_ID, UUID.randomUUID().toString))
+        )
       case _   =>
         hcFromRequest
     }

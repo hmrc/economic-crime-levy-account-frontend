@@ -47,6 +47,7 @@ class ViewYourPaymentsController @Inject() (
     with ErrorHandler {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
+    implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationID(request)
     (for {
       financialData        <- financialDataService.retrieveFinancialData.asResponseError
       financialViewDetails <- financialDataService.prepareFinancialDetails(financialData).asResponseError

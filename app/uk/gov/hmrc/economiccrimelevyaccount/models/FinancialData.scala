@@ -187,7 +187,6 @@ object FinancialDataDocumentType {
           case "TRM Amend Charge"  => JsSuccess(AmendedCharge)
           case "Interest Document" => JsSuccess(InterestCharge)
           case "Payment"           => JsSuccess(Payment)
-          case value               => JsSuccess(Other(value))
         }
       case e: JsError          => e
     }
@@ -197,7 +196,6 @@ object FinancialDataDocumentType {
       case AmendedCharge  => JsString("TRM Amend Charge")
       case InterestCharge => JsString("Interest Document")
       case Payment        => JsString("Payment")
-      case Other(value)   => JsString(value)
     }
   }
 }
@@ -209,8 +207,6 @@ case object AmendedCharge extends FinancialDataDocumentType
 case object InterestCharge extends FinancialDataDocumentType
 
 case object Payment extends FinancialDataDocumentType
-
-case class Other(value: String) extends FinancialDataDocumentType
 
 case class LineItemDetails(
   amount: Option[BigDecimal],

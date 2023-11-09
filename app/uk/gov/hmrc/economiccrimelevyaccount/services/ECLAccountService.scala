@@ -70,10 +70,7 @@ class ECLAccountService @Inject() (
         val documentDetails = extractValue(response.documentDetails)
 
         val outstandingPayments = documentDetails
-          .filter(document =>
-            !document.isCleared && !document.documentType
-              .contains(Payment) && !document.documentType.forall(_.isInstanceOf[Other])
-          )
+          .filter(document => !document.isCleared && !document.documentType.contains(Payment))
           .map { document =>
             OutstandingPayments(
               paymentDueDate = extractValue(document.paymentDueDate),
