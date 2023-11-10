@@ -18,7 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
-import play.api.http.Status.{BAD_REQUEST, CREATED}
+import play.api.http.Status.BAD_REQUEST
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.OpsConnector
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.OpsError

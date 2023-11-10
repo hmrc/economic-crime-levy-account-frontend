@@ -16,8 +16,6 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.models.errors
 
-import uk.gov.hmrc.economiccrimelevyaccount.models.EclReference
-
 trait ECLAccountError
 
 object ECLAccountError {

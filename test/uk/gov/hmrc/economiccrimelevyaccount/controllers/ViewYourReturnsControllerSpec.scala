@@ -18,11 +18,10 @@ package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import cats.data.EitherT
 import org.mockito.ArgumentMatchers.any
-import play.api.http.Status.{BAD_GATEWAY, BAD_REQUEST, INTERNAL_SERVER_ERROR, OK}
+import play.api.http.Status.{BAD_GATEWAY, INTERNAL_SERVER_ERROR, OK}
 import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, status}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.ECLAccountConnector
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
@@ -30,10 +29,8 @@ import uk.gov.hmrc.economiccrimelevyaccount._
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialData
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.ECLAccountError
 import uk.gov.hmrc.economiccrimelevyaccount.services.ECLAccountService
-import uk.gov.hmrc.http.UpstreamErrorResponse
 
 import scala.concurrent.Future
-import scala.util.{Failure, Success, Try}
 
 class ViewYourReturnsControllerSpec extends SpecBase {
 

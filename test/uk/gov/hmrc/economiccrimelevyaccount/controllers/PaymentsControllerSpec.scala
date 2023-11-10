@@ -21,10 +21,9 @@ import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{ECLAccountError, EnrolmentStoreError, OpsError}
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{ECLAccountError, OpsError}
 import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, OpsJourneyResponse}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{ECLAccountService, OpsService}
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.StandardPayment
 
 import java.time.LocalDate
 import scala.concurrent.Future

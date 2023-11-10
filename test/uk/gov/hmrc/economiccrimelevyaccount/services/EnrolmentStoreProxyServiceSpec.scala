@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
-import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EnrolmentStoreProxyConnector
@@ -26,7 +25,6 @@ import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EnrolmentStoreError
 
 import java.time.LocalDate
 import scala.concurrent.Future
-import scala.util.{Failure, Try}
 
 class EnrolmentStoreProxyServiceSpec extends SpecBase {
   val mockEnrolmentStoreProxyConnector: EnrolmentStoreProxyConnector = mock[EnrolmentStoreProxyConnector]

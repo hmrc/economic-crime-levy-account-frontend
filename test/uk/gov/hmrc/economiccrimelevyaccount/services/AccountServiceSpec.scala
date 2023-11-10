@@ -21,7 +21,6 @@ import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponseForLatestO
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.ECLAccountConnector
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, FinancialDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, PartiallyPaid}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, StandardPayment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._

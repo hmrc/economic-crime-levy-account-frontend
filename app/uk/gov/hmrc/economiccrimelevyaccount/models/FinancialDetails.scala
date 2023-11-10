@@ -18,7 +18,6 @@ package uk.gov.hmrc.economiccrimelevyaccount.models
 
 import play.api.libs.json.{Json, OFormat}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.Interest
 
 import java.time.LocalDate
 

@@ -16,12 +16,10 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.models
 
-import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json._
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialData.extractValue
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
-import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
 import java.time.LocalDate
 

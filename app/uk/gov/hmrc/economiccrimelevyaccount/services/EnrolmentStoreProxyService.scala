@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
-import cats.data.{EitherT, NonEmptyMap}
+import cats.data.EitherT
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EnrolmentStoreProxyConnector
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, Enrolment}
 import uk.gov.hmrc.economiccrimelevyaccount.models.EclReference

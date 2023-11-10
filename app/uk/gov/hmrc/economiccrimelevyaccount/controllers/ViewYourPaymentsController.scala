@@ -23,7 +23,6 @@ import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.services.ECLAccountService
 import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.FinancialViewDetails
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.PaymentsView
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.NoPaymentsView
 import uk.gov.hmrc.http.HeaderCarrier
