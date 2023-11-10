@@ -66,36 +66,38 @@ class ECLAccountService @Inject() (
     financialDataOption: Option[FinancialData]
   ): EitherT[Future, ECLAccountError, Option[FinancialViewDetails]] =
     Try {
-      financialDataOption.map { response =>
-        val documentDetails = extractValue(response.documentDetails)
+      financialDataOption.flatMap { response =>
+        response.documentDetails.map { documentDetailsList =>
+          val outstandingPayments = documentDetailsList
+            .collect(filterOutstandingPayment)
+            .collect {
+              getOutstandingPayments(documentDetailsList)
+            }
 
-        val outstandingPayments = documentDetails
-          .filter(document => !document.isCleared && !document.documentType.contains(Payment))
-          .collect {
-            getOutstandingPayments(documentDetails)
-          }
-
-        val paymentsHistory = documentDetails
-          .collect(filterOutOverPayment)
-          .flatMap { details =>
-            extractValue(details.lineItemDetails)
-              .collect(filterOutItemsWithoutClearingReason andThen useOnlyRegularLineItemDetails)
-              .filter(item => item.isCleared)
-              .collect {
-                getPaymentHistory(details, documentDetails, response)
+          val paymentsHistory = documentDetailsList
+            .collect(filterOutOverPayment)
+            .flatMap { details =>
+              details.lineItemDetails.map {
+                _.collect(filterOutItemsWithoutClearingReason andThen useOnlyRegularLineItemDetails)
+                  .filter(item => item.isCleared)
+                  .collect {
+                    getPaymentHistory(details, documentDetailsList, response)
+                  }
               }
-          }
+            }
+            .flatten
 
-        val accruingInterestOutstandingPayments = documentDetails
-          .collect(filterItemsThatHaveAccruingInterest)
-          .collect {
-            getOutstandingPaymentsAccruingInterest(documentDetails)
-          }
+          val accruingInterestOutstandingPayments = documentDetailsList
+            .collect(filterItemsThatHaveAccruingInterest)
+            .collect {
+              getOutstandingPaymentsAccruingInterest
+            }
 
-        FinancialViewDetails(
-          outstandingPayments = outstandingPayments ++ accruingInterestOutstandingPayments,
-          paymentHistory = paymentsHistory
-        )
+          FinancialViewDetails(
+            outstandingPayments = outstandingPayments ++ accruingInterestOutstandingPayments,
+            paymentHistory = paymentsHistory
+          )
+        }
       }
     } match {
       case Success(financialViewDetails) => EitherT.rightT[Future, ECLAccountError](financialViewDetails)
@@ -151,11 +153,13 @@ class ECLAccountService @Inject() (
 
   }
 
-  private def getOutstandingPaymentsAccruingInterest(
-    documentDetails: Seq[DocumentDetails]
-  ): PartialFunction[DocumentDetails, OutstandingPayments] = {
+  private def getOutstandingPaymentsAccruingInterest: PartialFunction[DocumentDetails, OutstandingPayments] = {
     case document
-        if document.fyFrom.isDefined && document.fyTo.isDefined && document.paymentDueDate.isDefined && document.interestAccruingAmount.isDefined && document.chargeReferenceNumber.isDefined =>
+        if document.fyFrom.isDefined
+          && document.fyTo.isDefined
+          && document.paymentDueDate.isDefined
+          && document.interestAccruingAmount.isDefined
+          && document.chargeReferenceNumber.isDefined =>
       OutstandingPayments(
         paymentDueDate = document.paymentDueDate.get,
         chargeReference = document.chargeReferenceNumber.get,
@@ -171,13 +175,17 @@ class ECLAccountService @Inject() (
   private def getOutstandingPayments(
     documentDetails: Seq[DocumentDetails]
   ): PartialFunction[DocumentDetails, OutstandingPayments] = {
-    case document if document.fyFrom.isDefined && document.fyTo.isDefined && document.paymentDueDate.isDefined =>
+    case document
+        if document.fyFrom.isDefined
+          && document.fyTo.isDefined
+          && document.paymentDueDate.isDefined
+          && document.chargeReferenceNumber.isDefined =>
       OutstandingPayments(
         paymentDueDate = document.paymentDueDate.get,
         chargeReference = if (document.paymentType == Interest) {
-          extractValue(getPaymentReferenceNumber(documentDetails, extractValue(document.chargeReferenceNumber)))
+          getPaymentReferenceNumber(documentDetails, document.chargeReferenceNumber.get).get
         } else {
-          extractValue(document.chargeReferenceNumber)
+          document.chargeReferenceNumber.get
         },
         fyFrom = document.fyFrom.get,
         fyTo = document.fyTo.get,
@@ -230,6 +238,10 @@ class ECLAccountService @Inject() (
     case x: DocumentDetails if x.interestAccruingAmount.nonEmpty => x
   }
 
+  private def filterOutstandingPayment: PartialFunction[DocumentDetails, DocumentDetails] = {
+    case document: DocumentDetails if !document.isCleared && !document.documentType.contains(Payment) => document
+  }
+
   private def filterItemsThatHaveAccruingInterest: PartialFunction[DocumentDetails, DocumentDetails] =
     filterItemsThatAreNotCleared andThen
       filterItemsThatArePayment andThen
@@ -255,6 +267,4 @@ class ECLAccountService @Inject() (
 
   private def containsValue[T](value: Option[T], expectedMatch: T) =
     value.contains(expectedMatch)
-
-  private def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
 }
