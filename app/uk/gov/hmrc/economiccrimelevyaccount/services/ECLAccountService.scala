@@ -25,6 +25,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, Ov
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
+import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
@@ -71,21 +72,8 @@ class ECLAccountService @Inject() (
 
         val outstandingPayments = documentDetails
           .filter(document => !document.isCleared && !document.documentType.contains(Payment))
-          .map { document =>
-            OutstandingPayments(
-              paymentDueDate = extractValue(document.paymentDueDate),
-              chargeReference = if (document.getPaymentType == Interest) {
-                extractValue(getPaymentReferenceNumber(documentDetails, extractValue(document.chargeReferenceNumber)))
-              } else {
-                extractValue(document.chargeReferenceNumber)
-              },
-              fyFrom = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head,
-              fyTo = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head,
-              amount = document.documentOutstandingAmount.getOrElse(0),
-              paymentStatus = getOutstandingPaymentStatus(document),
-              paymentType = document.getPaymentType,
-              interestChargeReference = document.getInterestChargeReference
-            )
+          .collect {
+            getOutstandingPayments(documentDetails)
           }
 
         val paymentsHistory = documentDetails
@@ -94,47 +82,15 @@ class ECLAccountService @Inject() (
             extractValue(details.lineItemDetails)
               .collect(filterOutItemsWithoutClearingReason andThen useOnlyRegularLineItemDetails)
               .filter(item => item.isCleared)
-              .map { item =>
-                PaymentHistory(
-                  paymentDate = extractValue(item.clearingDate),
-                  chargeReference = details.getPaymentType match {
-                    case Interest    =>
-                      Some(
-                        extractValue(
-                          getPaymentReferenceNumber(documentDetails, extractValue(details.chargeReferenceNumber))
-                        )
-                      )
-                    case Overpayment => None
-                    case _           => Some(extractValue(details.chargeReferenceNumber))
-                  },
-                  fyFrom = if (details.getPaymentType == Overpayment) None else Some(extractValue(item.periodFromDate)),
-                  fyTo = if (details.getPaymentType == Overpayment) None else Some(extractValue(item.periodToDate)),
-                  amount = extractValue(item.amount),
-                  paymentStatus = getHistoricalPaymentStatus(item, details),
-                  paymentDocument = extractValue(item.clearingDocument),
-                  paymentType = details.getPaymentType,
-                  refundAmount = (details.documentType, details.contractObjectNumber) match {
-                    case (Some(NewCharge), Some(contractObjectNumber)) =>
-                      response.refundAmount(contractObjectNumber).abs
-                    case _                                             => BigDecimal(0)
-                  }
-                )
+              .collect {
+                getPaymentHistory(details, documentDetails, response)
               }
           }
 
         val accruingInterestOutstandingPayments = documentDetails
           .collect(filterItemsThatHaveAccruingInterest)
-          .map { document =>
-            OutstandingPayments(
-              paymentDueDate = extractValue(document.paymentDueDate),
-              chargeReference = extractValue(document.chargeReferenceNumber),
-              fyFrom = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodFromDate).head,
-              fyTo = extractValue(document.lineItemDetails).flatMap(lineItem => lineItem.periodToDate).head,
-              amount = extractValue(document.interestAccruingAmount),
-              paymentStatus = getOutstandingPaymentStatus(document),
-              paymentType = Interest,
-              interestChargeReference = None
-            )
+          .collect {
+            getOutstandingPayments(documentDetails)
           }
 
         FinancialViewDetails(
@@ -150,6 +106,72 @@ class ECLAccountService @Inject() (
         )
     }
 
+  private def getPaymentHistory(
+    details: DocumentDetails,
+    documentDetails: Seq[DocumentDetails],
+    response: FinancialData
+  ): PartialFunction[LineItemDetails, PaymentHistory] = {
+    case item @ LineItemDetails(
+          Some(amount),
+          _,
+          Some(clearingDate),
+          Some(clearingDocument),
+          _,
+          _,
+          _,
+          _,
+          _
+        ) =>
+      val fyFrom = if (details.paymentType == Overpayment) None else item.periodFromDate
+      val fyTo   = if (details.paymentType == Overpayment) None else item.periodToDate
+
+      val chargeReference = details.paymentType match {
+        case Interest    =>
+          details.chargeReferenceNumber.flatMap(value => getPaymentReferenceNumber(documentDetails, value))
+        case Overpayment => None
+        case _           => details.chargeReferenceNumber
+      }
+
+      val refundAmount = (details.documentType, details.contractObjectNumber) match {
+        case (Some(NewCharge), Some(contractObjectNumber)) =>
+          response.refundAmount(contractObjectNumber).abs
+        case _                                             => BigDecimal(0)
+      }
+
+      PaymentHistory(
+        paymentDate = clearingDate,
+        chargeReference = chargeReference,
+        fyFrom = fyFrom,
+        fyTo = fyTo,
+        amount = amount,
+        paymentStatus = getHistoricalPaymentStatus(item, details),
+        paymentDocument = clearingDocument,
+        paymentType = details.paymentType,
+        refundAmount = refundAmount
+      )
+
+  }
+  private def getOutstandingPayments(
+    documentDetails: Seq[DocumentDetails]
+  ): PartialFunction[DocumentDetails, OutstandingPayments] = {
+    case document
+        if document.fyFrom.isDefined && document.fyTo.isDefined && document.paymentDueDate.isDefined && document
+          .paymentReference(documentDetails)
+          .isDefined =>
+      OutstandingPayments(
+        paymentDueDate = document.paymentDueDate.get,
+        chargeReference = document
+          .paymentReference(documentDetails)
+          .get,
+        fyFrom = document.fyFrom.get,
+        fyTo = document.fyTo.get,
+        amount = document.documentOutstandingAmount.getOrElse(0),
+        paymentStatus = document.outstandingPaymentStatus,
+        paymentType = document.paymentType,
+        interestChargeReference = document.interestChargeReference
+      )
+  }
+
   private def getHistoricalPaymentStatus(lineItem: LineItemDetails, document: DocumentDetails): PaymentStatus =
     if (document.isCleared) {
       if (document.isNewestLineItem(lineItem)) Paid else PartiallyPaid
@@ -159,33 +181,19 @@ class ECLAccountService @Inject() (
       Due
     }
 
-  private def getOutstandingPaymentStatus(document: DocumentDetails): PaymentStatus =
-    if (document.isOverdue) {
-      Overdue
-    } else {
-      Due
-    }
-
   private def getPaymentReferenceNumber(documentDetails: Seq[DocumentDetails], interestReferenceNumber: String) =
     documentDetails
-      .collect(filterInPayments)
-      .filter(document => document.interestPostedChargeRef.nonEmpty)
+      .filter(_.inPayment)
       .filter(document => containsString(document.interestPostedChargeRef, interestReferenceNumber))
       .head
       .chargeReferenceNumber
-
-  private def filterInPayments: PartialFunction[DocumentDetails, DocumentDetails] = {
-    case x: DocumentDetails
-        if containsValue(x.documentType, NewCharge) | containsValue(x.documentType, AmendedCharge) =>
-      x
-  }
 
   private def filterItemsThatAreNotCleared: PartialFunction[DocumentDetails, DocumentDetails] = {
     case x: DocumentDetails if !x.isCleared => x
   }
 
   private def filterItemsThatArePayment: PartialFunction[DocumentDetails, DocumentDetails] = {
-    case x: DocumentDetails if x.getPaymentType == StandardPayment => x
+    case x: DocumentDetails if x.paymentType == StandardPayment => x
   }
 
   private def filterItemsThatHaveAccruingInterestAmount: PartialFunction[DocumentDetails, DocumentDetails] = {
@@ -198,7 +206,7 @@ class ECLAccountService @Inject() (
       filterItemsThatHaveAccruingInterestAmount
 
   private def filterOutOverPayment: PartialFunction[DocumentDetails, DocumentDetails] = {
-    case x: DocumentDetails if x.getPaymentType == StandardPayment | x.getPaymentType == Interest => x
+    case x: DocumentDetails if x.paymentType == StandardPayment | x.paymentType == Interest => x
   }
 
   private def useOnlyRegularLineItemDetails: PartialFunction[LineItemDetails, LineItemDetails] = {
@@ -214,9 +222,6 @@ class ECLAccountService @Inject() (
 
   private def containsString(value: Option[String], expectedMatch: String) =
     value.exists(str => expectedMatch.equalsIgnoreCase(str))
-
-  private def containsValue[T](value: Option[T], expectedMatch: T) =
-    value.contains(expectedMatch)
 
   private def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
 }

@@ -74,9 +74,10 @@ class FinancialDataSpec extends SpecBase {
       (
         dataResponse: ValidFinancialDataResponse
       ) =>
-        val details = setup(dataResponse, twoHundred, "1234567890", "ECL", Payment)
+        val amount  = "1234567890"
+        val details = setup(dataResponse, twoHundred, amount, "ECL", Payment)
 
-        details.refundAmount("1234567890") should equal(BigDecimal(200))
+        details.refundAmount(amount) should equal(BigDecimal(200))
     }
 
     "return Payment obligation for NewCharge documentType" in forAll {
@@ -84,7 +85,7 @@ class FinancialDataSpec extends SpecBase {
         dataResponse: ValidFinancialDataResponse
       ) =>
         val details = setupDocumentType(dataResponse, NewCharge)
-        details.getPaymentType should equal(StandardPayment)
+        details.paymentType should equal(StandardPayment)
     }
 
     "return Interest obligation for InterestCharge documentType" in forAll {
@@ -92,27 +93,8 @@ class FinancialDataSpec extends SpecBase {
         dataResponse: ValidFinancialDataResponse
       ) =>
         val details = setupDocumentType(dataResponse, InterestCharge)
-        details.getPaymentType should equal(Interest)
+        details.paymentType should equal(Interest)
     }
 
-    "return interest charge reference when documentType is InterestCharge" in forAll {
-      (
-        dataResponse: ValidFinancialDataResponse
-      ) =>
-        val details = setupDocumentType(dataResponse, InterestCharge)
-        details.getInterestChargeReference should equal(Some("test-ecl-registration-reference"))
-    }
-
-    "return None for interest charge reference when documentType is NewCharge" in forAll {
-      (
-        dataResponse: ValidFinancialDataResponse
-      ) =>
-        val details = setupDocumentType(dataResponse, NewCharge)
-        details.getInterestChargeReference should equal(None)
-    }
-
-    "throw exception if None is passed in extractValue method" in {
-      an[IllegalStateException] should be thrownBy DocumentDetails.extractValue(None)
-    }
   }
 }

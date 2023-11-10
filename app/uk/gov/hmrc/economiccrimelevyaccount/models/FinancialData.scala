@@ -19,13 +19,15 @@ package uk.gov.hmrc.economiccrimelevyaccount.models
 import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json._
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialData.extractValue
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Due, Overdue}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{PaymentStatus, PaymentType}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
 import uk.gov.hmrc.http.{HttpReads, HttpResponse}
 
 import java.time.LocalDate
 
 case class FinancialData(totalisation: Option[Totalisation], documentDetails: Option[Seq[DocumentDetails]]) {
+
   private def getDocumentsByContractObject(
     contractObjectNumber: String,
     contractObjectType: String
@@ -42,7 +44,7 @@ case class FinancialData(totalisation: Option[Totalisation], documentDetails: Op
       .sum
 
   def outOverPaymentPredicate: PartialFunction[DocumentDetails, DocumentDetails] = {
-    case document: DocumentDetails if document.getPaymentType == Overpayment => document
+    case document: DocumentDetails if document.paymentType == Overpayment => document
   }
 
   val latestFinancialObligationOption: Option[DocumentDetails] =
@@ -96,6 +98,37 @@ case class DocumentDetails(
   contractObjectType: Option[String]
 ) {
 
+  val interestChargeReference: Option[String] =
+    documentType match {
+      case None        => None
+      case Some(value) =>
+        value match {
+          case InterestCharge => chargeReferenceNumber
+          case _              => None
+        }
+    }
+
+  private def getPaymentReferenceNumber(documentDetails: Seq[DocumentDetails], interestReferenceNumber: String) =
+    documentDetails
+      .filter(_.inPayment)
+      .filter(document => document.interestPostedChargeRef.exists(str => str.equalsIgnoreCase(interestReferenceNumber)))
+      .head
+      .chargeReferenceNumber
+
+  val paymentReference: Seq[DocumentDetails] => Option[String] = { documentDetails =>
+    if (paymentType == Interest && chargeReferenceNumber.isDefined) {
+      getPaymentReferenceNumber(documentDetails, chargeReferenceNumber.get)
+    } else {
+      chargeReferenceNumber
+    }
+  }
+
+  val fyFrom: Option[LocalDate] = lineItemDetails.flatMap(_.flatMap(lineItem => lineItem.periodFromDate).headOption)
+
+  val fyTo: Option[LocalDate] = lineItemDetails.flatMap(_.flatMap(lineItem => lineItem.periodToDate).headOption)
+
+  val inPayment: Boolean = documentType.contains(NewCharge) || documentType.contains(AmendedCharge)
+
   val paymentDueDate: Option[LocalDate] = newestLineItem() match {
     case Some(lineItem) =>
       lineItem.periodToDate match {
@@ -128,6 +161,9 @@ case class DocumentDetails(
     case None       => false
   })
 
+  val outstandingPaymentStatus: PaymentStatus with Serializable = if (isOverdue) { Overdue }
+  else { Due }
+
   val isPartiallyPaid: Boolean = documentOutstandingAmount match {
     case Some(amount) => amount > 0 && hasClearedAmount
     case None         => false
@@ -139,40 +175,25 @@ case class DocumentDetails(
       case None         => false
     }
 
-  private def newestLineItem(): Option[LineItemDetails] = lineItemDetails match {
-    case Some(lineItems) =>
+  private def newestLineItem(): Option[LineItemDetails] =
+    lineItemDetails.flatMap { lineItems =>
       implicit val lineItemDetailsOrdering: Ordering[LineItemDetails] = Ordering.by { l: LineItemDetails =>
         (l.clearingDate, l.clearingDocument)
       }
-      lineItems.sorted.reverse.headOption
-    case None            => None
-  }
 
-  def getPaymentType: PaymentType =
-    documentType match {
-      case None        => Unknown
-      case Some(value) =>
-        value match {
-          case NewCharge | AmendedCharge => StandardPayment
-          case InterestCharge            => Interest
-          case Payment                   => Overpayment
-          case _                         => Unknown
-        }
+      lineItems.sorted.reverse.headOption
     }
 
-  def getInterestChargeReference: Option[String] =
+  val paymentType: PaymentType =
     documentType match {
-      case None        => None
-      case Some(value) =>
-        value match {
-          case InterestCharge => chargeReferenceNumber
-          case _              => None
-        }
+      case None                                                        => Unknown
+      case Some(value) if value == NewCharge || value == AmendedCharge => StandardPayment
+      case Some(InterestCharge)                                        => Interest
+      case Some(Payment)                                               => Overpayment
+      case _                                                           => Unknown
     }
 }
 object DocumentDetails {
-  def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
-
   implicit val format: OFormat[DocumentDetails] = Json.format[DocumentDetails]
 }
 
