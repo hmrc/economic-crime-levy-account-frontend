@@ -67,7 +67,7 @@ class FinancialDataSpec extends SpecBase {
       ) =>
         val details = setup(dataResponse, twoHundred, "1234567890", "ECL", NewCharge)
 
-        details.refundAmount("1234567890") should equal(BigDecimal(0))
+        details.refundAmount("1234567890") should equal(Some(BigDecimal(0)))
     }
 
     "return Some of correct amount when we have an overpayment" in forAll {
@@ -76,7 +76,7 @@ class FinancialDataSpec extends SpecBase {
       ) =>
         val details = setup(dataResponse, twoHundred, "1234567890", "ECL", Payment)
 
-        details.refundAmount("1234567890") should equal(BigDecimal(200))
+        details.refundAmount("1234567890") should equal(Some(BigDecimal(200)))
     }
 
     "return Payment obligation for NewCharge documentType" in forAll {
@@ -111,8 +111,5 @@ class FinancialDataSpec extends SpecBase {
         details.getInterestChargeReference should equal(None)
     }
 
-    "throw exception if None is passed in extractValue method" in {
-      an[IllegalStateException] should be thrownBy DocumentDetails.extractValue(None)
-    }
   }
 }

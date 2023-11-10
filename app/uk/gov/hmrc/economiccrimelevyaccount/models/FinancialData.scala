@@ -17,27 +17,31 @@
 package uk.gov.hmrc.economiccrimelevyaccount.models
 
 import play.api.libs.json._
-import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialData.extractValue
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
 
 import java.time.LocalDate
 
 case class FinancialData(totalisation: Option[Totalisation], documentDetails: Option[Seq[DocumentDetails]]) {
-  private def getDocumentsByContractObject(
-    contractObjectNumber: String,
-    contractObjectType: String
-  ): Seq[DocumentDetails] =
-    extractValue(documentDetails).filter(document =>
-      document.contractObjectType.contains(contractObjectType)
-        && document.contractObjectNumber.contains(contractObjectNumber)
-    )
 
-  def refundAmount(contractObjectNumber: String): BigDecimal =
-    getDocumentsByContractObject(contractObjectNumber, "ECL")
-      .collect(outOverPaymentPredicate)
-      .flatMap(_.documentTotalAmount)
-      .sum
+  private val contractObjectTypeECL = "ECL"
+
+  private def getDocumentsByContractObject(
+    contractObjectNumber: String
+  ): Option[Seq[DocumentDetails]] =
+    documentDetails.map {
+      _.filter(document =>
+        document.contractObjectType.contains(contractObjectTypeECL)
+          && document.contractObjectNumber.contains(contractObjectNumber)
+      )
+    }
+
+  def refundAmount(contractObjectNumber: String): Option[BigDecimal] =
+    getDocumentsByContractObject(contractObjectNumber).map {
+      _.collect(outOverPaymentPredicate)
+        .flatMap(_.documentTotalAmount)
+        .sum
+    }
 
   def outOverPaymentPredicate: PartialFunction[DocumentDetails, DocumentDetails] = {
     case document: DocumentDetails if document.paymentType == Overpayment => document
@@ -59,8 +63,6 @@ case class FinancialData(totalisation: Option[Totalisation], documentDetails: Op
 object FinancialData {
 
   implicit val format: OFormat[FinancialData] = Json.format[FinancialData]
-
-  private def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
 }
 
 case class Totalisation(
@@ -173,7 +175,6 @@ case class DocumentDetails(
     }
 }
 object DocumentDetails {
-  def extractValue[A](value: Option[A]): A = value.getOrElse(throw new IllegalStateException())
 
   implicit val format: OFormat[DocumentDetails] = Json.format[DocumentDetails]
 }

@@ -135,7 +135,7 @@ class ECLAccountService @Inject() (
 
       val refundAmount = (details.documentType, details.contractObjectNumber) match {
         case (Some(NewCharge), Some(contractObjectNumber)) =>
-          response.refundAmount(contractObjectNumber).abs
+          response.refundAmount(contractObjectNumber).map(_.abs).getOrElse(BigDecimal(0))
         case _                                             => BigDecimal(0)
       }
 

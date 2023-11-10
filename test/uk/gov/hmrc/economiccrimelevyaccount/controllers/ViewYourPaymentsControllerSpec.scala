@@ -33,8 +33,8 @@ import scala.concurrent.Future
 class ViewYourPaymentsControllerSpec extends SpecBase {
 
   val mockECLAccountService: ECLAccountService = mock[ECLAccountService]
-  val paymentsView: PaymentsView = app.injector.instanceOf[PaymentsView]
-  val noPaymentsView: NoPaymentsView = app.injector.instanceOf[NoPaymentsView]
+  val paymentsView: PaymentsView               = app.injector.instanceOf[PaymentsView]
+  val noPaymentsView: NoPaymentsView           = app.injector.instanceOf[NoPaymentsView]
 
   val controller = new ViewYourPaymentsController(
     mcc,
