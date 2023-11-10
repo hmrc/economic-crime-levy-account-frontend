@@ -49,7 +49,7 @@ object FinancialDetails {
         optionalFirstItemInItemDetails.flatMap(_.periodToDate),
         optionalFirstItemInItemDetails.flatMap(_.periodKey),
         documentDetails.chargeReferenceNumber,
-        documentDetails.getPaymentType
+        documentDetails.paymentType
       )
     }
 }

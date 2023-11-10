@@ -84,7 +84,7 @@ class FinancialDataSpec extends SpecBase {
         dataResponse: ValidFinancialDataResponse
       ) =>
         val details = setupDocumentType(dataResponse, NewCharge)
-        details.getPaymentType should equal(StandardPayment)
+        details.paymentType should equal(StandardPayment)
     }
 
     "return Interest obligation for InterestCharge documentType" in forAll {
@@ -92,7 +92,7 @@ class FinancialDataSpec extends SpecBase {
         dataResponse: ValidFinancialDataResponse
       ) =>
         val details = setupDocumentType(dataResponse, InterestCharge)
-        details.getPaymentType should equal(Interest)
+        details.paymentType should equal(Interest)
     }
 
     "return interest charge reference when documentType is InterestCharge" in forAll {

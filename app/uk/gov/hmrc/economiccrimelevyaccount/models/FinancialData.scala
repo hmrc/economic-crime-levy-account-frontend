@@ -42,7 +42,7 @@ case class FinancialData(totalisation: Option[Totalisation], documentDetails: Op
       .sum
 
   def outOverPaymentPredicate: PartialFunction[DocumentDetails, DocumentDetails] = {
-    case document: DocumentDetails if document.getPaymentType == Overpayment => document
+    case document: DocumentDetails if document.paymentType == Overpayment => document
   }
 
   val latestFinancialObligationOption: Option[DocumentDetails] =
@@ -96,6 +96,10 @@ case class DocumentDetails(
   contractObjectType: Option[String]
 ) {
 
+  val fyFrom: Option[LocalDate] = lineItemDetails.flatMap(_.flatMap(lineItem => lineItem.periodFromDate).headOption)
+
+  val fyTo: Option[LocalDate] = lineItemDetails.flatMap(_.flatMap(lineItem => lineItem.periodToDate).headOption)
+
   val paymentDueDate: Option[LocalDate] = newestLineItem() match {
     case Some(lineItem) =>
       lineItem.periodToDate match {
@@ -148,7 +152,7 @@ case class DocumentDetails(
     case None            => None
   }
 
-  def getPaymentType: PaymentType =
+  def paymentType: PaymentType =
     documentType match {
       case None        => Unknown
       case Some(value) =>

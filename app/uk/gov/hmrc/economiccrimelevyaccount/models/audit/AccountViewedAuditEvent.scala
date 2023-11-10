@@ -82,7 +82,7 @@ object AccountViewedAuditDocumentDetails {
       detail.issueDate,
       detail.interestPostedAmount,
       detail.postingDate,
-      detail.getPaymentType,
+      detail.paymentType,
       detail.penaltyTotals.map(penaltyTotalsList => penaltyTotalsList.map(AccountViewedAuditPenaltyTotals.apply)),
       detail.lineItemDetails.map(lineItemDetailsList =>
         lineItemDetailsList.map(lineItem => AccountViewedAuditLineItem.apply(lineItem))
