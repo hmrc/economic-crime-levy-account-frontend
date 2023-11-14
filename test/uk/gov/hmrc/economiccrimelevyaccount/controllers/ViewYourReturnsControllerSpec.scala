@@ -27,8 +27,8 @@ import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
 import uk.gov.hmrc.economiccrimelevyaccount._
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialData
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.ECLAccountError
-import uk.gov.hmrc.economiccrimelevyaccount.services.ECLAccountService
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EclAccountError
+import uk.gov.hmrc.economiccrimelevyaccount.services.EclAccountService
 
 import scala.concurrent.Future
 
@@ -36,7 +36,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
 
   val returnsView: ReturnsView                 = app.injector.instanceOf[ReturnsView]
   val noReturnsView: NoReturnsView             = app.injector.instanceOf[NoReturnsView]
-  val mockECLAccountService: ECLAccountService = mock[ECLAccountService]
+  val mockECLAccountService: EclAccountService = mock[EclAccountService]
 
   val controller = new ViewYourReturnsController(
     mcc,
@@ -51,11 +51,11 @@ class ViewYourReturnsControllerSpec extends SpecBase {
       (obligationData: ObligationDataWithObligation, financialData: ValidFinancialDataResponse) =>
         when(
           mockECLAccountService.retrieveObligationData(any())
-        ).thenReturn(EitherT.rightT[Future, ECLAccountError](Some(obligationData.obligationData)))
+        ).thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
 
         when(
           mockECLAccountService.retrieveFinancialData(any())
-        ).thenReturn(EitherT.rightT[Future, ECLAccountError](Some(financialData.financialDataResponse)))
+        ).thenReturn(EitherT.rightT[Future, EclAccountError](Some(financialData.financialDataResponse)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         val dueReturns             = Seq(
@@ -76,11 +76,11 @@ class ViewYourReturnsControllerSpec extends SpecBase {
     "return OK and the correct view when return is Overdue" in forAll {
       (obligationData: ObligationDataWithOverdueObligation, financialData: ValidFinancialDataResponse) =>
         when(mockECLAccountService.retrieveObligationData(any()))
-          .thenReturn(EitherT.rightT[Future, ECLAccountError](Some(obligationData.obligationData)))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
 
         when(
           mockECLAccountService.retrieveFinancialData(any())
-        ).thenReturn(EitherT.rightT[Future, ECLAccountError](Some(financialData.financialDataResponse)))
+        ).thenReturn(EitherT.rightT[Future, EclAccountError](Some(financialData.financialDataResponse)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         val dueReturns             = Seq(
@@ -101,11 +101,11 @@ class ViewYourReturnsControllerSpec extends SpecBase {
     "return OK and the correct view when return is Submitted" in forAll {
       (obligationData: ObligationDataWithSubmittedObligation, financialData: ValidFinancialDataResponse) =>
         when(mockECLAccountService.retrieveObligationData(any()))
-          .thenReturn(EitherT.rightT[Future, ECLAccountError](Some(obligationData.obligationData)))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
 
         when(
           mockECLAccountService.retrieveFinancialData(any())
-        ).thenReturn(EitherT.rightT[Future, ECLAccountError](Some(financialData.financialDataResponse)))
+        ).thenReturn(EitherT.rightT[Future, EclAccountError](Some(financialData.financialDataResponse)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         val dueReturns             = Seq(
@@ -125,7 +125,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
 
     "return OK and the correct view when user has no returns" in {
       when(mockECLAccountService.retrieveObligationData(any()))
-        .thenReturn(EitherT.rightT[Future, ECLAccountError](None))
+        .thenReturn(EitherT.rightT[Future, EclAccountError](None))
 
       val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
@@ -135,13 +135,13 @@ class ViewYourReturnsControllerSpec extends SpecBase {
 
     "return BAD_GATEWAY when financial API fails" in forAll { (obligationData: ObligationDataWithSubmittedObligation) =>
       when(mockECLAccountService.retrieveObligationData(any()))
-        .thenReturn(EitherT.rightT[Future, ECLAccountError](Some(obligationData.obligationData)))
+        .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
 
       when(
         mockECLAccountService.retrieveFinancialData(any())
       ).thenReturn(
         EitherT.leftT[Future, Option[FinancialData]](
-          ECLAccountError.BadGateway("Internal server error", INTERNAL_SERVER_ERROR)
+          EclAccountError.BadGateway("Internal server error", INTERNAL_SERVER_ERROR)
         )
       )
 

@@ -28,12 +28,12 @@ import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import scala.concurrent.Future
 import scala.util.{Failure, Try}
 
-class ECLAccountConnectorSpec extends SpecBase {
+class EclAccountConnectorSpec extends SpecBase {
 
   val mockHttpClient: HttpClientV2       = mock[HttpClientV2]
   val mockRequestBuilder: RequestBuilder = mock[RequestBuilder]
 
-  val connector = new ECLAccountConnector(
+  val connector = new EclAccountConnector(
     appConfig,
     mockHttpClient,
     config,

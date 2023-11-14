@@ -20,7 +20,7 @@ import play.api.Logging
 
 import scala.concurrent.{ExecutionContext, Future}
 import cats.data.EitherT
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{BadGateway, ECLAccountError, EnrolmentStoreError, InternalServiceError, OpsError, ResponseError}
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{BadGateway, EclAccountError, EnrolmentStoreError, InternalServiceError, OpsError, ResponseError}
 
 trait ErrorHandler extends Logging {
 
@@ -68,11 +68,11 @@ trait ErrorHandler extends Logging {
       }
     }
 
-  implicit val eclAccountErrorConverter: Converter[ECLAccountError] =
-    new Converter[ECLAccountError] {
-      override def convert(error: ECLAccountError): ResponseError = error match {
-        case ECLAccountError.BadGateway(cause, statusCode)           => ResponseError.badGateway(cause, statusCode)
-        case ECLAccountError.InternalUnexpectedError(message, cause) =>
+  implicit val eclAccountErrorConverter: Converter[EclAccountError] =
+    new Converter[EclAccountError] {
+      override def convert(error: EclAccountError): ResponseError = error match {
+        case EclAccountError.BadGateway(cause, statusCode)           => ResponseError.badGateway(cause, statusCode)
+        case EclAccountError.InternalUnexpectedError(message, cause) =>
           ResponseError.internalServiceError(message = message, cause = cause)
       }
     }

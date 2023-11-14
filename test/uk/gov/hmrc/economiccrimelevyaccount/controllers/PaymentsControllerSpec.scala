@@ -21,9 +21,9 @@ import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import play.api.http.Status.INTERNAL_SERVER_ERROR
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{ECLAccountError, OpsError}
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{EclAccountError, OpsError}
 import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, OpsJourneyResponse}
-import uk.gov.hmrc.economiccrimelevyaccount.services.{ECLAccountService, OpsService}
+import uk.gov.hmrc.economiccrimelevyaccount.services.{EclAccountService, OpsService}
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -31,7 +31,7 @@ import scala.concurrent.Future
 class PaymentsControllerSpec extends SpecBase {
 
   val mockOpsService: OpsService               = mock[OpsService]
-  val mockECLAccountService: ECLAccountService = mock[ECLAccountService]
+  val mockECLAccountService: EclAccountService = mock[EclAccountService]
 
   val date                = LocalDate.now()
   val expectedUrl: String = "http://www.bbc.co.uk"
@@ -68,7 +68,7 @@ class PaymentsControllerSpec extends SpecBase {
         ).thenReturn(EitherT.rightT[Future, OpsError](opsJourneyResponse))
 
         when(mockECLAccountService.retrieveFinancialData(any()))
-          .thenReturn(EitherT.rightT[Future, ECLAccountError](Some(response)))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(response)))
 
         val result = await(controller.onPageLoad()(fakeRequest))
 
@@ -96,7 +96,7 @@ class PaymentsControllerSpec extends SpecBase {
         )
 
         when(mockECLAccountService.retrieveFinancialData(any()))
-          .thenReturn(EitherT.rightT[Future, ECLAccountError](Some(response)))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(response)))
 
         val result = await(controller.onPageLoad()(fakeRequest))
 

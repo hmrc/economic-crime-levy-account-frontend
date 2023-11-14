@@ -21,8 +21,8 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, FinancialDetails, ObligationData, ObligationDetails, Open}
-import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, ECLAccountService, EnrolmentStoreProxyService}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, FinancialDetails, ObligationDetails}
+import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, EclAccountService, EnrolmentStoreProxyService}
 import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
@@ -39,7 +39,7 @@ class AccountController @Inject() (
   authorise: AuthorisedAction,
   enrolmentStoreProxyService: EnrolmentStoreProxyService,
   view: AccountView,
-  eclAccountService: ECLAccountService,
+  eclAccountService: EclAccountService,
   auditService: AuditService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -48,12 +48,12 @@ class AccountController @Inject() (
     with ErrorHandler {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationID(request)
+    implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationId(request)
     (for {
       registrationDate             <-
         enrolmentStoreProxyService.getEclRegistrationDate(request.eclReference).asResponseError
       obligationDataOption         <- eclAccountService.retrieveObligationData.asResponseError
-      latestObligationDetailsOption = obligationDataOption.flatMap(getLatestObligation)
+      latestObligationDetailsOption = obligationDataOption.flatMap(_.latestObligation)
       financialDataOption          <- eclAccountService.retrieveFinancialData.asResponseError
       response                      =
         determineResponse(registrationDate, latestObligationDetailsOption, financialDataOption)
@@ -71,8 +71,8 @@ class AccountController @Inject() (
     latestObligationDetailsOption: Option[ObligationDetails],
     financialDataOption: Option[FinancialData]
   )(implicit request: AuthorisedRequest[_]): Result =
-    financialDataOption
-      .map(financialData =>
+    financialDataOption match {
+      case Some(financialData) =>
         Ok(
           view(
             request.eclReference.value,
@@ -81,8 +81,7 @@ class AccountController @Inject() (
             financialData.latestFinancialObligationOption.flatMap(FinancialDetails.applyOptional)
           )
         )
-      )
-      .getOrElse(
+      case None                =>
         Ok(
           view(
             request.eclReference.value,
@@ -91,15 +90,6 @@ class AccountController @Inject() (
             None
           )
         )
-      )
-
-  private def getLatestObligation(obligationData: ObligationData): Option[ObligationDetails] =
-    obligationData.obligations
-      .flatMap(
-        _.obligationDetails
-          .filter(_.status == Open)
-          .sortBy(_.inboundCorrespondenceDueDate)
-      )
-      .headOption
+    }
 
 }

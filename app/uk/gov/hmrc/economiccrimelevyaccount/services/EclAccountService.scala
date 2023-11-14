@@ -17,9 +17,9 @@
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import cats.data.EitherT
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.ECLAccountConnector
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.EclAccountConnector
 import uk.gov.hmrc.economiccrimelevyaccount.models._
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.ECLAccountError
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EclAccountError
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, Overpayment, StandardPayment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
@@ -30,65 +30,64 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 import scala.util.control.NonFatal
 
-class ECLAccountService @Inject() (
-  eclAccountConnector: ECLAccountConnector
+class EclAccountService @Inject() (
+  eclAccountConnector: EclAccountConnector
 )(implicit ec: ExecutionContext) {
 
   def retrieveFinancialData(implicit
     hc: HeaderCarrier
-  ): EitherT[Future, ECLAccountError, Option[FinancialData]] =
+  ): EitherT[Future, EclAccountError, Option[FinancialData]] =
     EitherT {
       eclAccountConnector.getFinancialData.map(Right(_)).recover {
         case error @ UpstreamErrorResponse(message, code, _, _)
             if UpstreamErrorResponse.Upstream5xxResponse
               .unapply(error)
               .isDefined || UpstreamErrorResponse.Upstream4xxResponse.unapply(error).isDefined =>
-          Left(ECLAccountError.BadGateway(reason = message, code = code))
-        case NonFatal(thr) => Left(ECLAccountError.InternalUnexpectedError(thr.getMessage, Some(thr)))
+          Left(EclAccountError.BadGateway(reason = message, code = code))
+        case NonFatal(thr) => Left(EclAccountError.InternalUnexpectedError(thr.getMessage, Some(thr)))
       }
     }
 
   def retrieveObligationData(implicit
     hc: HeaderCarrier
-  ): EitherT[Future, ECLAccountError, Option[ObligationData]] =
+  ): EitherT[Future, EclAccountError, Option[ObligationData]] =
     EitherT {
       eclAccountConnector.getObligationData.map(Right(_)).recover {
         case error @ UpstreamErrorResponse(message, code, _, _)
             if UpstreamErrorResponse.Upstream5xxResponse
               .unapply(error)
               .isDefined || UpstreamErrorResponse.Upstream4xxResponse.unapply(error).isDefined =>
-          Left(ECLAccountError.BadGateway(reason = message, code = code))
-        case NonFatal(thr) => Left(ECLAccountError.InternalUnexpectedError(thr.getMessage, Some(thr)))
+          Left(EclAccountError.BadGateway(reason = message, code = code))
+        case NonFatal(thr) => Left(EclAccountError.InternalUnexpectedError(thr.getMessage, Some(thr)))
       }
     }
 
   def prepareFinancialDetails(
     financialDataOption: Option[FinancialData]
-  ): EitherT[Future, ECLAccountError, Option[FinancialViewDetails]] =
+  ): EitherT[Future, EclAccountError, Option[FinancialViewDetails]] =
     Try {
       financialDataOption.flatMap { response =>
         response.documentDetails.map { documentDetailsList =>
           val outstandingPayments = documentDetailsList
-            .collect(filterOutstandingPayment)
+            .collect(DocumentDetails.filterOutstandingPayment)
             .collect {
               getOutstandingPayments(documentDetailsList)
             }
 
           val paymentsHistory = documentDetailsList
-            .collect(filterOutOverPayment)
+            .collect(DocumentDetails.filterOutOverPayment)
             .flatMap { details =>
               details.lineItemDetails.map {
-                _.collect(filterOutItemsWithoutClearingReason andThen useOnlyRegularLineItemDetails)
-                  .filter(item => item.isCleared)
-                  .collect {
-                    getPaymentHistory(details, documentDetailsList, response)
-                  }
+                _.collect(
+                  LineItemDetails.useOnlyRegularLineItemDetails andThen LineItemDetails.isCleared
+                    andThen getPaymentHistory(details, documentDetailsList, response)
+                )
               }
             }
             .flatten
 
           val accruingInterestOutstandingPayments = documentDetailsList
-            .collect(filterItemsThatHaveAccruingInterest)
+            .collect(DocumentDetails.filterItemsThatHaveAccruingInterest)
             .collect {
               getOutstandingPaymentsAccruingInterest
             }
@@ -100,10 +99,10 @@ class ECLAccountService @Inject() (
         }
       }
     } match {
-      case Success(financialViewDetails) => EitherT.rightT[Future, ECLAccountError](financialViewDetails)
+      case Success(financialViewDetails) => EitherT.rightT[Future, EclAccountError](financialViewDetails)
       case Failure(_)                    =>
         EitherT.leftT[Future, Option[FinancialViewDetails]](
-          ECLAccountError.InternalUnexpectedError("Missing data required for FinancialViewDetails", None)
+          EclAccountError.InternalUnexpectedError("Missing data required for FinancialViewDetails", None)
         )
     }
 
@@ -214,57 +213,12 @@ class ECLAccountService @Inject() (
 
   private def getPaymentReferenceNumber(documentDetails: Seq[DocumentDetails], interestReferenceNumber: String) =
     documentDetails
-      .collect(filterInPayments)
+      .collect(DocumentDetails.filterInPayments)
       .filter(document => document.interestPostedChargeRef.nonEmpty)
       .filter(document => containsString(document.interestPostedChargeRef, interestReferenceNumber))
       .head
       .chargeReferenceNumber
 
-  private def filterInPayments: PartialFunction[DocumentDetails, DocumentDetails] = {
-    case x: DocumentDetails
-        if containsValue(x.documentType, NewCharge) | containsValue(x.documentType, AmendedCharge) =>
-      x
-  }
-
-  private def filterItemsThatAreNotCleared: PartialFunction[DocumentDetails, DocumentDetails] = {
-    case x: DocumentDetails if !x.isCleared => x
-  }
-
-  private def filterItemsThatArePayment: PartialFunction[DocumentDetails, DocumentDetails] = {
-    case x: DocumentDetails if x.paymentType == StandardPayment => x
-  }
-
-  private def filterItemsThatHaveAccruingInterestAmount: PartialFunction[DocumentDetails, DocumentDetails] = {
-    case x: DocumentDetails if x.interestAccruingAmount.nonEmpty => x
-  }
-
-  private def filterOutstandingPayment: PartialFunction[DocumentDetails, DocumentDetails] = {
-    case document: DocumentDetails if !document.isCleared && !document.documentType.contains(Payment) => document
-  }
-
-  private def filterItemsThatHaveAccruingInterest: PartialFunction[DocumentDetails, DocumentDetails] =
-    filterItemsThatAreNotCleared andThen
-      filterItemsThatArePayment andThen
-      filterItemsThatHaveAccruingInterestAmount
-
-  private def filterOutOverPayment: PartialFunction[DocumentDetails, DocumentDetails] = {
-    case x: DocumentDetails if x.paymentType == StandardPayment | x.paymentType == Interest => x
-  }
-
-  private def useOnlyRegularLineItemDetails: PartialFunction[LineItemDetails, LineItemDetails] = {
-    case lineItemDetails: LineItemDetails
-        if containsString(lineItemDetails.clearingReason, "automatic clearing")
-          | containsString(lineItemDetails.clearingReason, "incoming payment") =>
-      lineItemDetails
-  }
-
-  private def filterOutItemsWithoutClearingReason: PartialFunction[LineItemDetails, LineItemDetails] = {
-    case lineItemDetails: LineItemDetails if lineItemDetails.clearingReason.nonEmpty => lineItemDetails
-  }
-
   private def containsString(value: Option[String], expectedMatch: String) =
     value.exists(str => expectedMatch.equalsIgnoreCase(str))
-
-  private def containsValue[T](value: Option[T], expectedMatch: T) =
-    value.contains(expectedMatch)
 }

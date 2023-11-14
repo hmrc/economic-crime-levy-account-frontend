@@ -93,8 +93,7 @@ class EnrolmentStoreProxyConnectorSpec extends SpecBase {
         Try(await(connector.getEnrolments(eclRegistrationReference))) match {
           case Failure(UpstreamErrorResponse(msg, _, _, _)) =>
             msg shouldEqual errorMessage
-          case x                                            => x shouldEqual "x"
-          //fail("expected UpstreamErrorResponse when an error is received from Enrolment Store Proxy")
+          case _                                            => fail("expected UpstreamErrorResponse when an error is received from Enrolment Store Proxy")
         }
 
         verify(mockRequestBuilder, times(2))

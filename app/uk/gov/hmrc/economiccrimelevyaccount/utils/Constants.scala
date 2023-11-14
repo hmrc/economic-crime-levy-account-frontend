@@ -16,22 +16,14 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.utils
 
-import play.api.mvc.Request
-import uk.gov.hmrc.http.HeaderCarrier
-import uk.gov.hmrc.play.http.HeaderCarrierConverter
+object Constants {
 
-import java.util.UUID
-
-object CorrelationIdHelper {
-  def getOrCreateCorrelationId(request: Request[_]): HeaderCarrier = {
-    val hcFromRequest: HeaderCarrier = HeaderCarrierConverter.fromRequestAndSession(request, request.session)
-    hcFromRequest
-      .headers(scala.Seq(Constants.HEADER_X_CORRELATION_ID)) match {
-      case Nil =>
-        hcFromRequest.withExtraHeaders((Constants.HEADER_X_CORRELATION_ID, UUID.randomUUID().toString))
-      case _   =>
-        hcFromRequest
-    }
-  }
+  val TRM_NEW_CHARGE           = "TRM New Charge"
+  val TRM_AMEND_CHARGE         = "TRM Amend Charge"
+  val INTEREST_DOCUMENT        = "Interest Document"
+  val PAYMENT                  = "Payment"
+  val CONTRACT_OBJECT_TYPE_ECL = "ECL"
+  val SESSION_ID_HEADER_NAME   = "x-session-id"
+  val HEADER_X_CORRELATION_ID  = "x-correlation-id"
 
 }

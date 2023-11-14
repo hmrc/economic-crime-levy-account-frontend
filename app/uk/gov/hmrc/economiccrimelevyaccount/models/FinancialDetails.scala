@@ -32,6 +32,9 @@ case class FinancialDetails(
   private val dueMonth           = 9
   private val dueDay             = 30
   val dueDate: Option[LocalDate] = toDate.map(date => LocalDate.of(date.getYear, dueMonth, dueDay))
+
+  def isPaymentType(value: PaymentType): Boolean = paymentType != value
+
   def isOverdue: Option[Boolean] = dueDate.map(date => LocalDate.now().isAfter(date))
 }
 

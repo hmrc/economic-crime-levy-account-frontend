@@ -21,7 +21,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialData, Fulfilled, ObligationData, ObligationDetails, Open}
-import uk.gov.hmrc.economiccrimelevyaccount.services.ECLAccountService
+import uk.gov.hmrc.economiccrimelevyaccount.services.EclAccountService
 import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview}
@@ -37,7 +37,7 @@ import scala.concurrent.ExecutionContext
 class ViewYourReturnsController @Inject() (
   val controllerComponents: MessagesControllerComponents,
   authorise: AuthorisedAction,
-  eclAccountService: ECLAccountService,
+  eclAccountService: EclAccountService,
   returnsView: ReturnsView,
   noReturnsView: NoReturnsView
 )(implicit ec: ExecutionContext)
@@ -47,7 +47,7 @@ class ViewYourReturnsController @Inject() (
     with ErrorHandler {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationID(request)
+    implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationId(request)
     (for {
       obligationDataOption <- eclAccountService.retrieveObligationData.asResponseError
       financialDataOption  <- eclAccountService.retrieveFinancialData.asResponseError

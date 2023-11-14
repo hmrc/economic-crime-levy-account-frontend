@@ -53,7 +53,7 @@
 
 @paymentsSubHeading = @{
     optFinancialDetails match {
-        case financialData @ Some(FinancialDetails(amount,Some(fromDate), Some(toDate), _,_,paymentType)) if(paymentType == StandardPayment) =>
+        case financialData @ Some(FinancialDetails(amount,Some(fromDate), Some(toDate), _,_,paymentType)) if(financialData.get.isPaymentType(StandardPayment)) =>
             if(financialData.get.isOverdue) {
                 Html(messages("account.overdue.payments.subHeading.1",
                       ViewUtils.formatLocalDate(fromDate).takeRight(4),
@@ -66,7 +66,7 @@
                     ViewUtils.formatLocalDate(fromDate).takeRight(4),
                     ViewUtils.formatLocalDate(toDate).takeRight(4)))
             }
-        case Some(financialDetails) if (financialDetails.paymentType != StandardPayment) =>
+        case Some(financialDetails) if (!financialDetails.isPaymentType(StandardPayment)) =>
               Html(messages("account.interest.payments.subHeading"))
         case _ => Html(messages("account.noneDue.payments.subHeading"))
     }

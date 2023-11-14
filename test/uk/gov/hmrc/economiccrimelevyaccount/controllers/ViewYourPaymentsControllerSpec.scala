@@ -24,15 +24,15 @@ import play.api.test.Helpers.{contentAsString, status}
 import uk.gov.hmrc.economiccrimelevyaccount.{ValidFinancialDataResponse, ValidFinancialViewDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.ECLAccountError
-import uk.gov.hmrc.economiccrimelevyaccount.services.ECLAccountService
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EclAccountError
+import uk.gov.hmrc.economiccrimelevyaccount.services.EclAccountService
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoPaymentsView, PaymentsView}
 
 import scala.concurrent.Future
 
 class ViewYourPaymentsControllerSpec extends SpecBase {
 
-  val mockECLAccountService: ECLAccountService = mock[ECLAccountService]
+  val mockECLAccountService: EclAccountService = mock[EclAccountService]
   val paymentsView: PaymentsView               = app.injector.instanceOf[PaymentsView]
   val noPaymentsView: NoPaymentsView           = app.injector.instanceOf[NoPaymentsView]
 
@@ -49,10 +49,10 @@ class ViewYourPaymentsControllerSpec extends SpecBase {
     "return OK and the correct view when financialData is present" in forAll {
       (financialData: ValidFinancialDataResponse, financialViewDetails: ValidFinancialViewDetails) =>
         when(mockECLAccountService.retrieveFinancialData(any()))
-          .thenReturn(EitherT.rightT[Future, ECLAccountError](Some(financialData.financialDataResponse)))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(financialData.financialDataResponse)))
 
         when(mockECLAccountService.prepareFinancialDetails(any()))
-          .thenReturn(EitherT.rightT[Future, ECLAccountError](Some(financialViewDetails.financialViewDetails)))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(financialViewDetails.financialViewDetails)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         status(result)          shouldBe OK
@@ -65,10 +65,10 @@ class ViewYourPaymentsControllerSpec extends SpecBase {
     }
     "return OK and the correct view when financialData is missing" in {
       when(mockECLAccountService.retrieveFinancialData(any()))
-        .thenReturn(EitherT.rightT[Future, ECLAccountError](None))
+        .thenReturn(EitherT.rightT[Future, EclAccountError](None))
 
       when(mockECLAccountService.prepareFinancialDetails(any()))
-        .thenReturn(EitherT.rightT[Future, ECLAccountError](None))
+        .thenReturn(EitherT.rightT[Future, EclAccountError](None))
 
       val result: Future[Result] = controller.onPageLoad()(fakeRequest)
       status(result)          shouldBe OK

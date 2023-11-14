@@ -22,6 +22,7 @@ import com.typesafe.config.Config
 import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
+import uk.gov.hmrc.economiccrimelevyaccount.utils.Constants
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, Retries, StringContextOps}
 
@@ -38,8 +39,6 @@ class OpsConnector @Inject() (
     extends BaseConnector
     with Retries {
 
-  private val sessionIdHeaderName = "x-session-id"
-
   def createOpsJourney(opsJourneyRequest: OpsJourneyRequest)(implicit
     hc: HeaderCarrier
   ): Future[OpsJourneyResponse] =
@@ -47,7 +46,7 @@ class OpsConnector @Inject() (
       httpClient
         .post(url"${appConfig.opsStartJourneyUrl}")
         .withBody(Json.toJson(opsJourneyRequest))
-        .transform(_.addHttpHeaders((sessionIdHeaderName, opsJourneyRequest.chargeReference)))
+        .transform(_.addHttpHeaders((Constants.SESSION_ID_HEADER_NAME, opsJourneyRequest.chargeReference)))
         .executeAndDeserialise[OpsJourneyResponse]
     }
 

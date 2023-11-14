@@ -41,7 +41,7 @@ class EnrolmentStoreProxyService @Inject() (enrolmentStoreProxyConnector: Enrolm
     EitherT {
       enrolmentStoreProxyConnector
         .getEnrolments(eclReference)
-        .map(getRegistrationDate)
+        .map(_.getRegistrationDate)
         .recover {
           case error @ UpstreamErrorResponse(message, code, _, _)
               if UpstreamErrorResponse.Upstream5xxResponse
@@ -51,22 +51,5 @@ class EnrolmentStoreProxyService @Inject() (enrolmentStoreProxyConnector: Enrolm
           case NonFatal(thr) => Left(EnrolmentStoreError.InternalUnexpectedError(thr.getMessage, Some(thr)))
         }
     }
-
-  private def getRegistrationDate(enrolmentResponse: EnrolmentResponse): Either[EnrolmentStoreError, LocalDate] = {
-    val enrolmentOption = enrolmentResponse.enrolments.headOption
-
-    val keyValueOption =
-      enrolmentOption.flatMap(enrolment => enrolment.verifiers.find(_.key == EclEnrolment.RegistrationDateKey))
-
-    keyValueOption
-      .map { registrationDateKeyValue =>
-        Try(LocalDate.parse(registrationDateKeyValue.value, DateTimeFormatter.BASIC_ISO_DATE)) match {
-          case Success(registrationDate) => Right(registrationDate)
-          case _                         =>
-            Left(EnrolmentStoreError.InternalUnexpectedError("Unable to parse registrationDate", None))
-        }
-      }
-      .getOrElse(Left(EnrolmentStoreError.InternalUnexpectedError("Missing registrationDate", None)))
-  }
 
 }

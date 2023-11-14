@@ -17,21 +17,19 @@
 package uk.gov.hmrc.economiccrimelevyaccount.models
 
 import play.api.libs.json._
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType
+import uk.gov.hmrc.economiccrimelevyaccount.utils.Constants
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
 
 import java.time.LocalDate
 
 case class FinancialData(totalisation: Option[Totalisation], documentDetails: Option[Seq[DocumentDetails]]) {
 
-  private val contractObjectTypeECL = "ECL"
-
   private def getDocumentsByContractObject(
     contractObjectNumber: String
   ): Option[Seq[DocumentDetails]] =
     documentDetails.map {
       _.filter(document =>
-        document.contractObjectType.contains(contractObjectTypeECL)
+        document.contractObjectType.contains(Constants.CONTRACT_OBJECT_TYPE_ECL)
           && document.contractObjectNumber.contains(contractObjectNumber)
       )
     }
@@ -43,7 +41,7 @@ case class FinancialData(totalisation: Option[Totalisation], documentDetails: Op
         .sum
     }
 
-  def outOverPaymentPredicate: PartialFunction[DocumentDetails, DocumentDetails] = {
+  private def outOverPaymentPredicate: PartialFunction[DocumentDetails, DocumentDetails] = {
     case document: DocumentDetails if document.paymentType == Overpayment => document
   }
 
@@ -51,9 +49,10 @@ case class FinancialData(totalisation: Option[Totalisation], documentDetails: Op
     documentDetails
       .map(_.collect {
         case docDetails
-            if (docDetails.documentType.contains(NewCharge)
-              || docDetails.documentType.contains(AmendedCharge)
-              || docDetails.documentType.contains(InterestCharge)) && !docDetails.isCleared =>
+            if (docDetails.isType(NewCharge)
+              || docDetails.isType(AmendedCharge)
+              || docDetails.isType(InterestCharge))
+              && !docDetails.isCleared =>
           docDetails
       })
       .flatMap(_.sortBy(_.postingDate).headOption)
@@ -77,156 +76,6 @@ case class Totalisation(
 
 object Totalisation {
   implicit val format: OFormat[Totalisation] = Json.format[Totalisation]
-}
-
-case class DocumentDetails(
-  documentType: Option[FinancialDataDocumentType],
-  chargeReferenceNumber: Option[String],
-  postingDate: Option[String],
-  issueDate: Option[String],
-  documentTotalAmount: Option[BigDecimal],
-  documentClearedAmount: Option[BigDecimal],
-  documentOutstandingAmount: Option[BigDecimal],
-  lineItemDetails: Option[Seq[LineItemDetails]],
-  interestPostedAmount: Option[BigDecimal],
-  interestAccruingAmount: Option[BigDecimal],
-  interestPostedChargeRef: Option[String],
-  penaltyTotals: Option[Seq[PenaltyTotals]],
-  contractObjectNumber: Option[String],
-  contractObjectType: Option[String]
-) {
-
-  val fyFrom: Option[LocalDate] = lineItemDetails.flatMap(_.flatMap(lineItem => lineItem.periodFromDate).headOption)
-
-  val fyTo: Option[LocalDate] = lineItemDetails.flatMap(_.flatMap(lineItem => lineItem.periodToDate).headOption)
-
-  val paymentDueDate: Option[LocalDate] = newestLineItem() match {
-    case Some(lineItem) =>
-      lineItem.periodToDate match {
-        case Some(periodToDate) =>
-          val dueMonth = 9
-          val dueDay   = 30
-
-          Some(
-            periodToDate
-              .withMonth(dueMonth)
-              .withDayOfMonth(dueDay)
-          )
-        case None               => None
-      }
-    case None           => None
-  }
-
-  private val hasClearedAmount: Boolean = documentClearedAmount match {
-    case Some(amount) => amount > 0
-    case None         => false
-  }
-
-  val isCleared: Boolean = documentOutstandingAmount match {
-    case Some(amount) => amount == 0
-    case None         => true
-  }
-
-  val isOverdue: Boolean = !isCleared && (paymentDueDate match {
-    case Some(date) => date.isBefore(LocalDate.now())
-    case None       => false
-  })
-
-  val isPartiallyPaid: Boolean = documentOutstandingAmount match {
-    case Some(amount) => amount > 0 && hasClearedAmount
-    case None         => false
-  }
-
-  def isNewestLineItem(lineItem: LineItemDetails): Boolean =
-    newestLineItem() match {
-      case Some(newest) => newest.clearingDocument == lineItem.clearingDocument
-      case None         => false
-    }
-
-  private def newestLineItem(): Option[LineItemDetails] = lineItemDetails match {
-    case Some(lineItems) =>
-      implicit val lineItemDetailsOrdering: Ordering[LineItemDetails] = Ordering.by { l: LineItemDetails =>
-        (l.clearingDate, l.clearingDocument)
-      }
-      lineItems.sorted.reverse.headOption
-    case None            => None
-  }
-
-  def paymentType: PaymentType =
-    documentType match {
-      case None        => Unknown
-      case Some(value) =>
-        value match {
-          case NewCharge | AmendedCharge => StandardPayment
-          case InterestCharge            => Interest
-          case Payment                   => Overpayment
-          case _                         => Unknown
-        }
-    }
-
-  def getInterestChargeReference: Option[String] =
-    documentType match {
-      case None        => None
-      case Some(value) =>
-        value match {
-          case InterestCharge => chargeReferenceNumber
-          case _              => None
-        }
-    }
-}
-object DocumentDetails {
-
-  implicit val format: OFormat[DocumentDetails] = Json.format[DocumentDetails]
-}
-
-sealed trait FinancialDataDocumentType
-
-object FinancialDataDocumentType {
-  implicit val format: Format[FinancialDataDocumentType] = new Format[FinancialDataDocumentType] {
-    override def reads(json: JsValue): JsResult[FinancialDataDocumentType] = json.validate[String] match {
-      case JsSuccess(value, _) =>
-        value match {
-          case "TRM New Charge"    => JsSuccess(NewCharge)
-          case "TRM Amend Charge"  => JsSuccess(AmendedCharge)
-          case "Interest Document" => JsSuccess(InterestCharge)
-          case "Payment"           => JsSuccess(Payment)
-        }
-      case e: JsError          => e
-    }
-
-    override def writes(o: FinancialDataDocumentType): JsValue = o match {
-      case NewCharge      => JsString("TRM New Charge")
-      case AmendedCharge  => JsString("TRM Amend Charge")
-      case InterestCharge => JsString("Interest Document")
-      case Payment        => JsString("Payment")
-    }
-  }
-}
-
-case object NewCharge extends FinancialDataDocumentType
-
-case object AmendedCharge extends FinancialDataDocumentType
-
-case object InterestCharge extends FinancialDataDocumentType
-
-case object Payment extends FinancialDataDocumentType
-
-case class LineItemDetails(
-  amount: Option[BigDecimal],
-  chargeDescription: Option[String],
-  clearingDate: Option[LocalDate],
-  clearingDocument: Option[String],
-  clearingReason: Option[String],
-  netDueDate: Option[LocalDate],
-  periodFromDate: Option[LocalDate],
-  periodToDate: Option[LocalDate],
-  periodKey: Option[String]
-) {
-  val isCleared: Boolean = clearingDate.nonEmpty
-}
-
-object LineItemDetails {
-  implicit val format: OFormat[LineItemDetails] = Json.format[LineItemDetails]
 }
 
 case class PenaltyTotals(

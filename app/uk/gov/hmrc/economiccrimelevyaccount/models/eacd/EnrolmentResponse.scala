@@ -17,8 +17,28 @@
 package uk.gov.hmrc.economiccrimelevyaccount.models.eacd
 
 import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EnrolmentStoreError
 
-final case class EnrolmentResponse(service: String, enrolments: Seq[Enrolment])
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import scala.util.{Success, Try}
+
+final case class EnrolmentResponse(service: String, enrolments: Seq[Enrolment]) {
+  def getRegistrationDate: Either[EnrolmentStoreError, LocalDate] = {
+    val keyValueOption =
+      enrolments.headOption.flatMap(enrolment => enrolment.verifiers.find(_.key == EclEnrolment.RegistrationDateKey))
+
+    keyValueOption
+      .map { registrationDateKeyValue =>
+        Try(LocalDate.parse(registrationDateKeyValue.value, DateTimeFormatter.BASIC_ISO_DATE)) match {
+          case Success(registrationDate) => Right(registrationDate)
+          case _                         =>
+            Left(EnrolmentStoreError.InternalUnexpectedError("Unable to parse registrationDate", None))
+        }
+      }
+      .getOrElse(Left(EnrolmentStoreError.InternalUnexpectedError("Missing registrationDate", None)))
+  }
+}
 
 object EnrolmentResponse {
   implicit val format: OFormat[EnrolmentResponse] = Json.format[EnrolmentResponse]

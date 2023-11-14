@@ -21,7 +21,7 @@ import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
-import uk.gov.hmrc.economiccrimelevyaccount.services.ECLAccountService
+import uk.gov.hmrc.economiccrimelevyaccount.services.EclAccountService
 import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.PaymentsView
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.NoPaymentsView
@@ -35,7 +35,7 @@ import scala.concurrent.ExecutionContext
 class ViewYourPaymentsController @Inject() (
   val controllerComponents: MessagesControllerComponents,
   authorise: AuthorisedAction,
-  financialDataService: ECLAccountService,
+  financialDataService: EclAccountService,
   view: PaymentsView,
   noPaymentsView: NoPaymentsView,
   appConfig: AppConfig
@@ -46,7 +46,7 @@ class ViewYourPaymentsController @Inject() (
     with ErrorHandler {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationID(request)
+    implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationId(request)
     (for {
       financialData        <- financialDataService.retrieveFinancialData.asResponseError
       financialViewDetails <- financialDataService.prepareFinancialDetails(financialData).asResponseError

@@ -29,7 +29,7 @@ import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
-class ECLAccountConnector @Inject() (
+class EclAccountConnector @Inject() (
   appConfig: AppConfig,
   httpClient: HttpClientV2,
   override val configuration: Config,

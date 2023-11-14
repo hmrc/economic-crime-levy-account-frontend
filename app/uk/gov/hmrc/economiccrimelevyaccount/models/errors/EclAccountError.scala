@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.models.errors
 
-trait ECLAccountError
+trait EclAccountError
 
-object ECLAccountError {
-  case class InternalUnexpectedError(message: String, cause: Option[Throwable]) extends ECLAccountError
-  case class BadGateway(reason: String, code: Int) extends ECLAccountError
+object EclAccountError {
+  case class InternalUnexpectedError(message: String, cause: Option[Throwable]) extends EclAccountError
+  case class BadGateway(reason: String, code: Int) extends EclAccountError
 }

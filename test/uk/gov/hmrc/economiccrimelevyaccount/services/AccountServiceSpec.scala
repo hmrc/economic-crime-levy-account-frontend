@@ -19,7 +19,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 import org.mockito.ArgumentMatchers.any
 import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponseForLatestObligation
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.ECLAccountConnector
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.EclAccountConnector
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, PartiallyPaid}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, StandardPayment}
@@ -29,9 +29,9 @@ import scala.concurrent.Future
 
 class AccountServiceSpec extends SpecBase {
 
-  private val mockECLAccountConnector = mock[ECLAccountConnector]
+  private val mockECLAccountConnector = mock[EclAccountConnector]
 
-  val service = new ECLAccountService(mockECLAccountConnector)
+  val service = new EclAccountService(mockECLAccountConnector)
 
   "getFinancialDetails" should {
     "return None if we receive None from financialDataConnector" in {

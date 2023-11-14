@@ -23,7 +23,7 @@ import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.OpsError
 import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialData, OpsJourneyResponse}
-import uk.gov.hmrc.economiccrimelevyaccount.services.{ECLAccountService, OpsService}
+import uk.gov.hmrc.economiccrimelevyaccount.services.{EclAccountService, OpsService}
 import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
@@ -35,7 +35,7 @@ import scala.concurrent.{ExecutionContext, Future}
 class PaymentsController @Inject() (
   val controllerComponents: MessagesControllerComponents,
   authorise: AuthorisedAction,
-  eclAccountService: ECLAccountService,
+  eclAccountService: EclAccountService,
   opsService: OpsService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
@@ -44,7 +44,7 @@ class PaymentsController @Inject() (
     with ErrorHandler {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationID(request)
+    implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationId(request)
     (for {
       financialDataOption <- eclAccountService.retrieveFinancialData.asResponseError
       opsJourneyResponse  <- startOpsJourneyWithLatestFinancialDetails(financialDataOption).asResponseError
