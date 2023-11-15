@@ -17,12 +17,15 @@
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.i18n.I18nSupport
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
-import uk.gov.hmrc.economiccrimelevyaccount.services.FinancialDataService
+import uk.gov.hmrc.economiccrimelevyaccount.services.EclAccountService
+import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.PaymentsView
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.NoPaymentsView
+import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.{Inject, Singleton}
@@ -32,19 +35,27 @@ import scala.concurrent.ExecutionContext
 class ViewYourPaymentsController @Inject() (
   val controllerComponents: MessagesControllerComponents,
   authorise: AuthorisedAction,
-  financialDataService: FinancialDataService,
+  financialDataService: EclAccountService,
   view: PaymentsView,
   noPaymentsView: NoPaymentsView,
   appConfig: AppConfig
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with BaseController
+    with ErrorHandler {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    financialDataService.getFinancialDetails.map {
-      case Some(financialViewDetails) =>
-        Ok(view(financialViewDetails, appConfig.refundBaseUrl, appConfig.disableRefund))
-      case None                       => Ok(noPaymentsView())
-    }
+    implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationId(request)
+    (for {
+      financialData        <- financialDataService.retrieveFinancialData.asResponseError
+      financialViewDetails <- financialDataService.prepareFinancialDetails(financialData).asResponseError
+    } yield financialViewDetails).fold(
+      error => Status(error.code.statusCode)(Json.toJson(error)),
+      financialViewDetailsOption =>
+        financialViewDetailsOption
+          .map(financialViewDetails => Ok(view(financialViewDetails, appConfig.refundBaseUrl, appConfig.disableRefund)))
+          .getOrElse(Ok(noPaymentsView()))
+    )
   }
 }

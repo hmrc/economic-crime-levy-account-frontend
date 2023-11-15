@@ -17,8 +17,8 @@
 package uk.gov.hmrc.economiccrimelevyaccount.testonly.connectors.stubs
 
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EnrolmentStoreProxyConnector
-import uk.gov.hmrc.economiccrimelevyaccount.models.KeyValue
-import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, Enrolment, QueryKnownFactsResponse}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, KeyValue}
+import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, Enrolment, EnrolmentResponse}
 import uk.gov.hmrc.http.HeaderCarrier
 
 import javax.inject.Inject
@@ -26,17 +26,18 @@ import scala.concurrent.Future
 
 class StubEnrolmentStoreProxyConnector @Inject() extends EnrolmentStoreProxyConnector {
 
-  def queryKnownFacts(eclRegistrationReference: String)(implicit hc: HeaderCarrier): Future[QueryKnownFactsResponse] =
+  override def getEnrolments(eclRegistrationReference: EclReference)(implicit
+    hc: HeaderCarrier
+  ): Future[EnrolmentResponse] =
     Future.successful(
-      QueryKnownFactsResponse(
+      EnrolmentResponse(
         service = EclEnrolment.ServiceName,
         enrolments = Seq(
           Enrolment(
-            identifiers = Seq(KeyValue(EclEnrolment.IdentifierKey, eclRegistrationReference)),
-            verifiers = Seq(KeyValue(EclEnrolment.VerifierKey, "20230901"))
+            identifiers = Seq(KeyValue(EclEnrolment.IdentifierKey, eclRegistrationReference.value)),
+            verifiers = Seq(KeyValue(EclEnrolment.RegistrationDateKey, "20230901"))
           )
         )
       )
     )
-
 }

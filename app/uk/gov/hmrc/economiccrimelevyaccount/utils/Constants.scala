@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.economiccrimelevyaccount.models
+package uk.gov.hmrc.economiccrimelevyaccount.utils
 
-import java.time.LocalDate
+object Constants {
 
-case class OpsData(
-  chargeReference: Option[String],
-  amount: BigDecimal,
-  dueDate: Option[LocalDate]
-)
+  val TRM_NEW_CHARGE           = "TRM New Charge"
+  val TRM_AMEND_CHARGE         = "TRM Amend Charge"
+  val INTEREST_DOCUMENT        = "Interest Document"
+  val PAYMENT                  = "Payment"
+  val CONTRACT_OBJECT_TYPE_ECL = "ECL"
+  val SESSION_ID_HEADER_NAME   = "x-session-id"
+  val HEADER_X_CORRELATION_ID  = "x-correlation-id"
+
+}

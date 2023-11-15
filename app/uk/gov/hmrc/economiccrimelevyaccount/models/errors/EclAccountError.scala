@@ -14,18 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.economiccrimelevyaccount.models
+package uk.gov.hmrc.economiccrimelevyaccount.models.errors
 
-import play.api.libs.functional.syntax._
-import play.api.libs.json._
-case class FinancialDataErrorResponse(errorCode: Option[String], reason: Option[String])
+trait EclAccountError
 
-object FinancialDataErrorResponse {
-
-  implicit val reads: Reads[FinancialDataErrorResponse] = (
-    (JsPath \ "failures" \ "code").readNullable[String] and
-      (JsPath \ "failures" \ "reason").readNullable[String]
-  )(FinancialDataErrorResponse.apply _)
-
-  implicit val writes: OWrites[FinancialDataErrorResponse] = Json.format[FinancialDataErrorResponse]
+object EclAccountError {
+  case class InternalUnexpectedError(message: String, cause: Option[Throwable]) extends EclAccountError
+  case class BadGateway(reason: String, code: Int) extends EclAccountError
 }

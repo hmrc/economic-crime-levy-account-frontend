@@ -16,13 +16,13 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
-import play.api.Logging
 import play.api.i18n.I18nSupport
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.{FinancialDataConnector, ObligationDataConnector}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
-import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
-import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, Fulfilled, ObligationData, ObligationDetails, Open}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialData, Fulfilled, ObligationData, ObligationDetails, Open}
+import uk.gov.hmrc.economiccrimelevyaccount.services.EclAccountService
+import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
@@ -31,65 +31,65 @@ import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 
 @Singleton
 class ViewYourReturnsController @Inject() (
   val controllerComponents: MessagesControllerComponents,
   authorise: AuthorisedAction,
-  obligationDataConnector: ObligationDataConnector,
-  financialDataConnector: FinancialDataConnector,
+  eclAccountService: EclAccountService,
   returnsView: ReturnsView,
   noReturnsView: NoReturnsView
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
     with I18nSupport
-    with Logging {
+    with BaseController
+    with ErrorHandler {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    obligationDataConnector.getObligationData().flatMap {
-      case Some(obligationData) =>
-        assembleReturnsViewData(obligationData)
-      case None                 => Future.successful(Ok(noReturnsView()))
-    }
+    implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationId(request)
+    (for {
+      obligationDataOption <- eclAccountService.retrieveObligationData.asResponseError
+      financialDataOption  <- eclAccountService.retrieveFinancialData.asResponseError
+    } yield (obligationDataOption, financialDataOption))
+      .fold(
+        err => Status(err.code.statusCode)(Json.toJson(err)),
+        {
+          case (Some(obligationData), Some(financialData)) =>
+            val returns = deriveReturnsOverview(obligationData, financialData)
+            Ok(returnsView(returns))
+          case _                                           => Ok(noReturnsView())
+        }
+      )
   }
 
-  private def assembleReturnsViewData(
-    obligationData: ObligationData
-  )(implicit hc: HeaderCarrier, request: AuthorisedRequest[_]) =
-    financialDataConnector
-      .getFinancialData()
-      .map {
-        case None                        =>
-          Ok(noReturnsView())
-        case Some(financialDataResponse) =>
-          val viewData = obligationData.obligations
-            .flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate))
-            .map { details =>
-              val status    = resolveStatus(details)
-              val reference = getChargeReference(
-                status = status,
-                dueDate = details.inboundCorrespondenceDueDate,
-                documentDetails = financialDataResponse.documentDetails,
-                periodKey = details.periodKey
-              )
-              ReturnsOverview(
-                forgeFromToCaption(
-                  details.inboundCorrespondenceFromDate.getYear,
-                  details.inboundCorrespondenceToDate.getYear
-                ),
-                details.inboundCorrespondenceDueDate,
-                status,
-                details.periodKey,
-                reference
-              )
-            }
-          Ok(returnsView(viewData.sortBy(_.dueDate)(Ordering[LocalDate].reverse)))
+  private def deriveReturnsOverview(
+    obligationData: ObligationData,
+    financialData: FinancialData
+  ): Seq[ReturnsOverview] =
+    obligationData.obligations
+      .flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate))
+      .map { details =>
+        val status    = resolveStatus(details)
+        val reference = getChargeReference(
+          status = status,
+          dueDate = details.inboundCorrespondenceDueDate,
+          documentDetails = financialData.documentDetails,
+          periodKey = details.periodKey
+        )
+
+        val fromToCaption =
+          s"${details.inboundCorrespondenceFromDate.getYear}-${details.inboundCorrespondenceToDate.getYear}"
+
+        ReturnsOverview(
+          fromToCaption,
+          details.inboundCorrespondenceDueDate,
+          status,
+          details.periodKey,
+          reference
+        )
       }
-      .recover { case e =>
-        logger.error(s"Exception thrown when assembling returns view data: ${e.getMessage}")
-        InternalServerError
-      }
+      .sortBy(_.dueDate)(Ordering[LocalDate].reverse)
 
   private def resolveStatus(details: ObligationDetails): ReturnStatus = details.status match {
     case Open      => if (details.isOverdue) Overdue else Due
@@ -104,16 +104,14 @@ class ViewYourReturnsController @Inject() (
   ): Option[String] =
     status match {
       case Submitted =>
-        val chargeReference = extractValue(documentDetails)
-          .find(details =>
-            extractValue(details.lineItemDetails).exists(item => extractValue(item.periodKey) == periodKey)
-          )
-          .flatMap(_.chargeReferenceNumber)
-        Some(extractValue(chargeReference))
+        documentDetails.flatMap(details =>
+          details.collectFirst {
+            case DocumentDetails(_, Some(chargeReferenceNumber), _, _, _, _, _, Some(lineItemDetails), _, _, _, _, _, _)
+                if lineItemDetails.exists(_.periodKey.contains(periodKey)) =>
+              chargeReferenceNumber
+          }
+        )
       case _         => None
     }
-
-  private def forgeFromToCaption(yearFrom: Integer, yearTo: Integer): String = s"$yearFrom-$yearTo"
-  private def extractValue[A](value: Option[A]): A                           = value.getOrElse(throw new IllegalStateException())
 
 }

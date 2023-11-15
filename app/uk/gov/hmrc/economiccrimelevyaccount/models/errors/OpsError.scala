@@ -14,12 +14,14 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.economiccrimelevyaccount.models
+package uk.gov.hmrc.economiccrimelevyaccount.models.errors
 
-import java.time.LocalDate
+import uk.gov.hmrc.economiccrimelevyaccount.models.EclReference
 
-case class OpsData(
-  chargeReference: Option[String],
-  amount: BigDecimal,
-  dueDate: Option[LocalDate]
-)
+trait OpsError
+
+object OpsError {
+  case class InternalUnexpectedError(message: String, cause: Option[Throwable]) extends OpsError
+  case class BadGateway(reason: String, code: Int) extends OpsError
+  case class NotFound(eclReference: EclReference) extends OpsError
+}

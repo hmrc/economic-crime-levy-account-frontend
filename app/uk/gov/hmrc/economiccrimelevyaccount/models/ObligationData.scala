@@ -48,7 +48,16 @@ object ObligationStatus {
 
 final case class ObligationData(
   obligations: Seq[Obligation]
-)
+) {
+  val latestObligation: Option[ObligationDetails] =
+    obligations
+      .flatMap(
+        _.obligationDetails
+          .filter(_.status == Open)
+          .sortBy(_.inboundCorrespondenceDueDate)
+      )
+      .headOption
+}
 
 object ObligationData {
   implicit val format: OFormat[ObligationData] = Json.format[ObligationData]

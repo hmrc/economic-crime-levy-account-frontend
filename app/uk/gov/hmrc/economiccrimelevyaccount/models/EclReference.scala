@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.models
 
-import java.time.LocalDate
+import play.api.libs.json.Json
 
-case class OpsData(
-  chargeReference: Option[String],
-  amount: BigDecimal,
-  dueDate: Option[LocalDate]
-)
+case class EclReference(value: String) extends AnyVal
+
+object EclReference {
+  implicit val format = Json.valueFormat[EclReference]
+}

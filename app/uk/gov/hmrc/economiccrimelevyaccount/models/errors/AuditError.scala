@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.economiccrimelevyaccount.models.eacd
+package uk.gov.hmrc.economiccrimelevyaccount.models.errors
 
-import play.api.libs.json.{Json, OFormat}
+trait AuditError
 
-final case class QueryKnownFactsResponse(service: String, enrolments: Seq[Enrolment])
-
-object QueryKnownFactsResponse {
-  implicit val format: OFormat[QueryKnownFactsResponse] = Json.format[QueryKnownFactsResponse]
+object AuditError {
+  case class InternalUnexpectedError(message: String, cause: Option[Throwable]) extends AuditError
+  case class BadGateway(reason: String, code: Int) extends AuditError
 }

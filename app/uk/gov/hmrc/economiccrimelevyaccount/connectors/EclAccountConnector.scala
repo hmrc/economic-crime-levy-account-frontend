@@ -17,11 +17,10 @@
 package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
 import akka.actor.ActorSystem
+import com.google.inject.Singleton
 import com.typesafe.config.Config
-import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, KeyValue}
-import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, EnrolmentResponse, QueryKnownFactsRequest}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, ObligationData}
 import uk.gov.hmrc.http.{HeaderCarrier, Retries, StringContextOps}
 import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
@@ -29,35 +28,29 @@ import uk.gov.hmrc.http.client.HttpClientV2
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 
-trait EnrolmentStoreProxyConnector {
-  def getEnrolments(eclReference: EclReference)(implicit hc: HeaderCarrier): Future[EnrolmentResponse]
-}
-
-class EnrolmentStoreProxyConnectorImpl @Inject() (
+@Singleton
+class EclAccountConnector @Inject() (
   appConfig: AppConfig,
   httpClient: HttpClientV2,
   override val configuration: Config,
   override val actorSystem: ActorSystem
-)(implicit
-  ec: ExecutionContext
-) extends EnrolmentStoreProxyConnector
-    with BaseConnector
+)(implicit ec: ExecutionContext)
+    extends BaseConnector
     with Retries {
 
-  def getEnrolments(eclReference: EclReference)(implicit hc: HeaderCarrier): Future[EnrolmentResponse] = {
-    val queryKnownFactsRequest = QueryKnownFactsRequest(
-      EclEnrolment.ServiceName,
-      knownFacts = Seq(
-        KeyValue(key = EclEnrolment.IdentifierKey, value = eclReference.value)
-      )
-    )
-
-    retryFor[EnrolmentResponse]("Enrolment Store Proxy - Enrolment data")(retryCondition) {
+  def getFinancialData(implicit
+    hc: HeaderCarrier
+  ): Future[Option[FinancialData]] =
+    retryFor[Option[FinancialData]]("ECL Account - financial data")(retryCondition) {
       httpClient
-        .post(url"${appConfig.enrolmentsUrl}")
-        .withBody(Json.toJson(queryKnownFactsRequest))
-        .executeAndDeserialise[EnrolmentResponse]
+        .get(url"${appConfig.financialDataUrl}")
+        .executeAndDeserialiseOption[FinancialData]
     }
-  }
 
+  def getObligationData(implicit hc: HeaderCarrier): Future[Option[ObligationData]] =
+    retryFor[Option[ObligationData]]("ECL Account - obligation data")(retryCondition) {
+      httpClient
+        .get(url"${appConfig.obligationDataUrl}")
+        .executeAndDeserialiseOption[ObligationData]
+    }
 }

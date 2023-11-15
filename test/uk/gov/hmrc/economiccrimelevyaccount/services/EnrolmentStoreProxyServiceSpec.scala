@@ -16,12 +16,12 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
-import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EnrolmentStoreProxyConnector
-import uk.gov.hmrc.economiccrimelevyaccount.models.KeyValue
-import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, Enrolment, QueryKnownFactsResponse}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, KeyValue}
+import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, Enrolment, EnrolmentResponse}
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EnrolmentStoreError
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -32,40 +32,38 @@ class EnrolmentStoreProxyServiceSpec extends SpecBase {
 
   "getEclRegistrationDate" should {
     "return the ECL registration date from the query known facts response" in forAll {
-      eclRegistrationReference: String =>
-        val queryKnownFactsResponse = QueryKnownFactsResponse(
+      eclRegistrationReference: EclReference =>
+        val queryKnownFactsResponse = EnrolmentResponse(
           service = EclEnrolment.ServiceName,
           enrolments = Seq(
             Enrolment(
-              identifiers = Seq(KeyValue(key = EclEnrolment.IdentifierKey, value = eclRegistrationReference)),
-              verifiers = Seq(KeyValue(key = EclEnrolment.VerifierKey, value = "20230131"))
+              identifiers = Seq(KeyValue(key = EclEnrolment.IdentifierKey, value = eclRegistrationReference.value)),
+              verifiers = Seq(KeyValue(key = EclEnrolment.RegistrationDateKey, value = "20230131"))
             )
           )
         )
 
-        when(mockEnrolmentStoreProxyConnector.queryKnownFacts(ArgumentMatchers.eq(eclRegistrationReference))(any()))
+        when(mockEnrolmentStoreProxyConnector.getEnrolments(any[String].asInstanceOf[EclReference])(any()))
           .thenReturn(Future.successful(queryKnownFactsResponse))
 
-        val result = await(service.getEclRegistrationDate(eclRegistrationReference))
+        val result = await(service.getEclRegistrationDate(eclRegistrationReference).value)
 
-        result shouldBe LocalDate.parse("2023-01-31")
+        result shouldBe Right(LocalDate.parse("2023-01-31"))
     }
 
-    "throw an IllegalStateException if the ECL registration date could not be found in the enrolment" in forAll {
-      eclRegistrationReference: String =>
-        val queryKnownFactsResponse = QueryKnownFactsResponse(
+    "return Left of EnrolmentStoreError if the ECL registration date could not be found in the enrolment" in forAll {
+      eclRegistrationReference: EclReference =>
+        val queryKnownFactsResponse = EnrolmentResponse(
           service = EclEnrolment.ServiceName,
           enrolments = Seq.empty
         )
 
-        when(mockEnrolmentStoreProxyConnector.queryKnownFacts(ArgumentMatchers.eq(eclRegistrationReference))(any()))
+        when(mockEnrolmentStoreProxyConnector.getEnrolments(any[String].asInstanceOf[EclReference])(any()))
           .thenReturn(Future.successful(queryKnownFactsResponse))
 
-        val result = intercept[IllegalStateException] {
-          await(service.getEclRegistrationDate(eclRegistrationReference))
-        }
+        val result = await(service.getEclRegistrationDate(eclRegistrationReference).value)
 
-        result.getMessage shouldBe "ECL registration date could not be found in the enrolment"
+        result shouldBe Left(EnrolmentStoreError.InternalUnexpectedError("Missing registrationDate", None))
     }
   }
 

@@ -16,33 +16,50 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
+import cats.data.EitherT
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.{OpsConnector, OpsJourneyError}
+import uk.gov.hmrc.economiccrimelevyaccount.connectors.OpsConnector
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.OpsError
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
-import uk.gov.hmrc.http.HeaderCarrier
+import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
 import java.time.LocalDate
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
+import scala.util.control.NonFatal
 
 class OpsService @Inject() (
   opsConnector: OpsConnector,
   appConfig: AppConfig
 )(implicit ec: ExecutionContext) {
 
-  def startOpsJourney(chargeReference: String, amount: BigDecimal, dueDate: Option[LocalDate] = None)(implicit
+  private val dueMonth = 9
+  private val dueDay   = 30
+
+  def startOpsJourney(chargeReference: String, amount: BigDecimal, toDate: Option[LocalDate])(implicit
     hc: HeaderCarrier
-  ): Future[Either[OpsJourneyResponse, OpsJourneyError]] = {
-    val url = appConfig.dashboardUrl
-    opsConnector
-      .createOpsJourney(
-        OpsJourneyRequest(
-          chargeReference,
-          amount * 100,
-          url,
-          url,
-          dueDate
-        )
+  ): EitherT[Future, OpsError, OpsJourneyResponse] =
+    EitherT {
+      val dueDate = toDate.map(date => LocalDate.of(date.getYear, dueMonth, dueDay))
+
+      val opsJourneyRequest = OpsJourneyRequest(
+        chargeReference,
+        amount * 100,
+        appConfig.dashboardUrl,
+        appConfig.dashboardUrl,
+        dueDate
       )
-  }
+
+      opsConnector
+        .createOpsJourney(opsJourneyRequest)
+        .map(Right(_))
+        .recover {
+          case error @ UpstreamErrorResponse(message, code, _, _)
+              if UpstreamErrorResponse.Upstream5xxResponse
+                .unapply(error)
+                .isDefined || UpstreamErrorResponse.Upstream4xxResponse.unapply(error).isDefined =>
+            Left(OpsError.BadGateway(reason = message, code = code))
+          case NonFatal(thr) => Left(OpsError.InternalUnexpectedError(thr.getMessage, Some(thr)))
+        }
+    }
 }

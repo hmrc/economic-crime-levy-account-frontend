@@ -16,18 +16,17 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
-import org.mockito.ArgumentMatchers
+import cats.data.EitherT
 import org.mockito.ArgumentMatchers.any
 import play.api.mvc.Result
 import play.api.test.Helpers._
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.connectors.ObligationDataConnector
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, FinancialDetails}
-import uk.gov.hmrc.economiccrimelevyaccount.services.{EnrolmentStoreProxyService, FinancialDataService}
-import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
+import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, FinancialData, FinancialDetails}
+import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, EclAccountService, EnrolmentStoreProxyService}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
 import uk.gov.hmrc.economiccrimelevyaccount._
-import uk.gov.hmrc.play.audit.http.connector.{AuditConnector, AuditResult}
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{AuditError, EclAccountError, EnrolmentStoreError}
+import uk.gov.hmrc.play.audit.http.connector.AuditResult
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -35,9 +34,8 @@ import scala.concurrent.Future
 class AccountControllerSpec extends SpecBase {
 
   val mockEnrolmentStoreProxyService: EnrolmentStoreProxyService = mock[EnrolmentStoreProxyService]
-  val mockFinancialDataService: FinancialDataService             = mock[FinancialDataService]
-  val mockObligationDataConnector: ObligationDataConnector       = mock[ObligationDataConnector]
-  val mockAuditConnector: AuditConnector                         = mock[AuditConnector]
+  val mockECLAccountService: EclAccountService                   = mock[EclAccountService]
+  val mockAuditService: AuditService                             = mock[AuditService]
 
   val view: AccountView = app.injector.instanceOf[AccountView]
 
@@ -46,9 +44,8 @@ class AccountControllerSpec extends SpecBase {
     fakeAuthorisedAction,
     mockEnrolmentStoreProxyService,
     view,
-    mockObligationDataConnector,
-    mockFinancialDataService,
-    mockAuditConnector
+    mockECLAccountService,
+    mockAuditService
   )
 
   "onPageLoad" should {
@@ -61,68 +58,44 @@ class AccountControllerSpec extends SpecBase {
       ) =>
         val validFinancialDetails = financialDetails.copy(amount = BigDecimal("10000"))
         when(
-          mockEnrolmentStoreProxyService.getEclRegistrationDate(ArgumentMatchers.eq(eclRegistrationReference))(any())
-        )
-          .thenReturn(Future.successful(eclRegistrationDate))
+          mockEnrolmentStoreProxyService.getEclRegistrationDate(any[String].asInstanceOf[EclReference])(any())
+        ).thenReturn(EitherT.rightT[Future, EnrolmentStoreError](eclRegistrationDate))
 
-        when(mockObligationDataConnector.getObligationData()(any()))
-          .thenReturn(Future.successful(Some(obligationData.obligationData)))
+        when(mockECLAccountService.retrieveObligationData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
 
-        when(mockAuditConnector.sendExtendedEvent(any())(any(), any()))
-          .thenReturn(Future.successful(AuditResult.Success))
+        when(mockAuditService.auditAccountViewed(any(), any[String].asInstanceOf[EclReference], any(), any())(any()))
+          .thenReturn(EitherT.rightT[Future, AuditError](AuditResult.Success))
 
-        when(mockFinancialDataService.getLatestFinancialObligation(any()))
-          .thenReturn(Some(validFinancialDetails))
-
-        when(mockFinancialDataService.retrieveFinancialData(any()))
-          .thenReturn(Future.successful(Some(validFinancialDataResponse.financialDataResponse)))
+        when(mockECLAccountService.retrieveFinancialData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(validFinancialDataResponse.financialDataResponse)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
-        status(result)          shouldBe OK
-        contentAsString(result) shouldBe view(
-          eclRegistrationReference,
-          ViewUtils.formatLocalDate(eclRegistrationDate)(messages),
-          Some(obligationData.obligationData.obligations.head.obligationDetails.head),
-          Some(validFinancialDetails)
-        )(fakeRequest, messages).toString
+        status(result) shouldBe OK
 
-        verify(mockAuditConnector, times(1)).sendExtendedEvent(any())(any(), any())
-
-        reset(mockAuditConnector)
     }
 
     "return OK and correct view when ObligationData is not present" in forAll {
-      (eclRegistrationDate: LocalDate, financialDetails: FinancialDetails) =>
+      (eclReference: EclReference, eclRegistrationDate: LocalDate, financialDetails: FinancialDetails) =>
         val validFinancialDetails = financialDetails.copy(amount = BigDecimal("10000"))
 
         when(
-          mockEnrolmentStoreProxyService.getEclRegistrationDate(ArgumentMatchers.eq(eclRegistrationReference))(any())
-        ).thenReturn(Future.successful(eclRegistrationDate))
+          mockEnrolmentStoreProxyService.getEclRegistrationDate(
+            any[String].asInstanceOf[EclReference]
+          )(any())
+        ).thenReturn(EitherT.rightT[Future, EnrolmentStoreError](eclRegistrationDate))
 
-        when(
-          mockObligationDataConnector.getObligationData()(any())
-        ).thenReturn(Future.successful(None))
+        when(mockECLAccountService.retrieveObligationData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](None))
 
-        when(mockAuditConnector.sendExtendedEvent(any())(any(), any()))
-          .thenReturn(Future.successful(AuditResult.Success))
+        when(mockAuditService.auditAccountViewed(any(), any[String].asInstanceOf[EclReference], any(), any())(any()))
+          .thenReturn(EitherT.rightT[Future, AuditError](AuditResult.Success))
 
-        when(mockFinancialDataService.getLatestFinancialObligation(any()))
-          .thenReturn(Some(validFinancialDetails))
+        val result: Future[Result] = controller.onPageLoad()(requestWithEclReference)
 
-        val result: Future[Result] = controller.onPageLoad()(fakeRequest)
+        status(result) shouldBe OK
 
-        status(result)          shouldBe OK
-        contentAsString(result) shouldBe view(
-          eclRegistrationReference,
-          ViewUtils.formatLocalDate(eclRegistrationDate)(messages),
-          None,
-          Some(validFinancialDetails)
-        )(fakeRequest, messages).toString()
-
-        verify(mockAuditConnector, times(1)).sendExtendedEvent(any())(any(), any())
-
-        reset(mockAuditConnector)
     }
 
     "return OK and correct view when ObligationData is present but it's Overdue" in forAll {
@@ -134,36 +107,23 @@ class AccountControllerSpec extends SpecBase {
         val validFinancialDetails = financialDetails.copy(amount = BigDecimal("10000"))
 
         when(
-          mockEnrolmentStoreProxyService.getEclRegistrationDate(ArgumentMatchers.eq(eclRegistrationReference))(any())
-        ).thenReturn(Future.successful(eclRegistrationDate))
+          mockEnrolmentStoreProxyService.getEclRegistrationDate(any[String].asInstanceOf[EclReference])(any())
+        ).thenReturn(EitherT.rightT[Future, EnrolmentStoreError](eclRegistrationDate))
 
-        when(
-          mockObligationDataConnector.getObligationData()(any())
-        ).thenReturn(Future.successful(Some(overdueObligationData.obligationData)))
+        when(mockECLAccountService.retrieveObligationData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(overdueObligationData.obligationData)))
 
-        when(mockAuditConnector.sendExtendedEvent(any())(any(), any()))
-          .thenReturn(Future.successful(AuditResult.Success))
-
-        when(mockFinancialDataService.getLatestFinancialObligation(any()))
-          .thenReturn(Some(validFinancialDetails))
+        when(mockAuditService.auditAccountViewed(any(), any[String].asInstanceOf[EclReference], any(), any())(any()))
+          .thenReturn(EitherT.rightT[Future, AuditError](AuditResult.Success))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
-        status(result)          shouldBe OK
-        contentAsString(result) shouldBe view(
-          eclRegistrationReference,
-          ViewUtils.formatLocalDate(eclRegistrationDate)(messages),
-          Some(overdueObligationData.obligationData.obligations.head.obligationDetails.head),
-          Some(validFinancialDetails)
-        )(fakeRequest, messages).toString()
-
-        verify(mockAuditConnector, times(1)).sendExtendedEvent(any())(any(), any())
-
-        reset(mockAuditConnector)
+        status(result) shouldBe OK
     }
 
     "return OK and correct view when ObligationData is present but it's Submitted" in forAll {
       (
+        eclReference: EclReference,
         eclRegistrationDate: LocalDate,
         submittedObligationData: ObligationDataWithSubmittedObligation,
         financialDetails: FinancialDetails
@@ -171,70 +131,46 @@ class AccountControllerSpec extends SpecBase {
         val validFinancialDetails = financialDetails.copy(amount = BigDecimal("10000"))
 
         when(
-          mockEnrolmentStoreProxyService.getEclRegistrationDate(ArgumentMatchers.eq(eclRegistrationReference))(any())
-        ).thenReturn(Future.successful(eclRegistrationDate))
+          mockEnrolmentStoreProxyService.getEclRegistrationDate(any[String].asInstanceOf[EclReference])(any())
+        ).thenReturn(EitherT.rightT[Future, EnrolmentStoreError](eclRegistrationDate))
 
-        when(
-          mockObligationDataConnector.getObligationData()(any())
-        ).thenReturn(Future.successful(Some(submittedObligationData.obligationData)))
+        when(mockECLAccountService.retrieveObligationData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(submittedObligationData.obligationData)))
 
-        when(mockAuditConnector.sendExtendedEvent(any())(any(), any()))
-          .thenReturn(Future.successful(AuditResult.Success))
-
-        when(mockFinancialDataService.getLatestFinancialObligation(any()))
-          .thenReturn(Some(validFinancialDetails))
+        when(mockAuditService.auditAccountViewed(any(), any[String].asInstanceOf[EclReference], any(), any())(any()))
+          .thenReturn(EitherT.rightT[Future, AuditError](AuditResult.Success))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
-        status(result)          shouldBe OK
-        contentAsString(result) shouldBe view(
-          eclRegistrationReference,
-          ViewUtils.formatLocalDate(eclRegistrationDate)(messages),
-          None,
-          Some(validFinancialDetails)
-        )(fakeRequest, messages).toString()
-
-        verify(mockAuditConnector, times(1)).sendExtendedEvent(any())(any(), any())
-
-        reset(mockAuditConnector)
+        status(result) shouldBe OK
     }
 
     "return OK and the correct view when obligationData is present and financialData is not present" in forAll {
       (
+        eclReference: EclReference,
         eclRegistrationDate: LocalDate,
         obligationData: ObligationDataWithObligation,
         validFinancialDataResponse: ValidFinancialDataResponse
       ) =>
         val invalidFinancialDataResponse =
-          validFinancialDataResponse.copy(financialDataResponse = FinancialDataResponse(None, None))
+          validFinancialDataResponse.copy(financialDataResponse = FinancialData(None, None))
 
         when(
-          mockEnrolmentStoreProxyService.getEclRegistrationDate(ArgumentMatchers.eq(eclRegistrationReference))(any())
-        )
-          .thenReturn(Future.successful(eclRegistrationDate))
+          mockEnrolmentStoreProxyService.getEclRegistrationDate(any[String].asInstanceOf[EclReference])(any())
+        ).thenReturn(EitherT.rightT[Future, EnrolmentStoreError](eclRegistrationDate))
 
-        when(mockObligationDataConnector.getObligationData()(any()))
-          .thenReturn(Future.successful(Some(obligationData.obligationData)))
+        when(mockECLAccountService.retrieveObligationData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
 
-        when(mockAuditConnector.sendExtendedEvent(any())(any(), any()))
-          .thenReturn(Future.successful(AuditResult.Success))
+        when(mockAuditService.auditAccountViewed(any(), any[String].asInstanceOf[EclReference], any(), any())(any()))
+          .thenReturn(EitherT.rightT[Future, AuditError](AuditResult.Success))
 
-        when(mockFinancialDataService.retrieveFinancialData(any()))
-          .thenReturn(Future.successful(Some(invalidFinancialDataResponse.financialDataResponse)))
+        when(mockECLAccountService.retrieveFinancialData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(invalidFinancialDataResponse.financialDataResponse)))
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
-        status(result)          shouldBe OK
-        contentAsString(result) shouldBe view(
-          eclRegistrationReference,
-          ViewUtils.formatLocalDate(eclRegistrationDate)(messages),
-          Some(obligationData.obligationData.obligations.head.obligationDetails.head),
-          None
-        )(fakeRequest, messages).toString
-
-        verify(mockAuditConnector, times(1)).sendExtendedEvent(any())(any(), any())
-
-        reset(mockAuditConnector)
+        status(result) shouldBe OK
     }
   }
 

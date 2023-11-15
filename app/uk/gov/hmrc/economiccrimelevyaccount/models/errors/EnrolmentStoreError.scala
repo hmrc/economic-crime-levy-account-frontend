@@ -14,12 +14,11 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.economiccrimelevyaccount.models
+package uk.gov.hmrc.economiccrimelevyaccount.models.errors
 
-import java.time.LocalDate
+trait EnrolmentStoreError
 
-case class OpsData(
-  chargeReference: Option[String],
-  amount: BigDecimal,
-  dueDate: Option[LocalDate]
-)
+object EnrolmentStoreError {
+  case class InternalUnexpectedError(message: String, cause: Option[Throwable]) extends EnrolmentStoreError
+  case class BadGateway(reason: String, code: Int) extends EnrolmentStoreError
+}

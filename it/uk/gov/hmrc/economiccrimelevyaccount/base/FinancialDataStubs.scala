@@ -22,7 +22,7 @@ trait FinancialDataStubs {
         .withBody(
           Json
             .toJson(
-              FinancialDataResponse(
+              FinancialData(
                 None,
                 Some(
                   Seq(

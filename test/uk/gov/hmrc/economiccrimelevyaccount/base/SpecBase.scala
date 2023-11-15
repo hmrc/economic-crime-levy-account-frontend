@@ -16,19 +16,25 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.base
 
+import akka.actor.ActorSystem
+import com.typesafe.config.Config
 import org.mockito.MockitoSugar
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.{BeforeAndAfterEach, OptionValues, TryValues}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
+import play.api.Application
 import play.api.i18n.{Messages, MessagesApi}
+import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc._
 import play.api.test.Helpers.{stubBodyParser, stubControllerComponents}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.FakeAuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.EclTestData
+import uk.gov.hmrc.economiccrimelevyaccount.models.EclReference
+import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
@@ -47,13 +53,29 @@ trait SpecBase
     with ScalaCheckPropertyChecks
     with EclTestData {
 
-  val internalId: String                               = "test-internal-id"
-  val fakeRequest: FakeRequest[AnyContentAsEmpty.type] = FakeRequest()
-  val appConfig: AppConfig                             = app.injector.instanceOf[AppConfig]
-  val messagesApi: MessagesApi                         = app.injector.instanceOf[MessagesApi]
-  val messages: Messages                               = messagesApi.preferred(fakeRequest)
-  val bodyParsers: PlayBodyParsers                     = app.injector.instanceOf[PlayBodyParsers]
-  val eclRegistrationReference: String                 = "test-ecl-registration-reference"
+  val internalId: String                                                 = "test-internal-id"
+  val fakeRequest: FakeRequest[AnyContentAsEmpty.type]                   = FakeRequest()
+  val eclRegistrationReference: EclReference                             = EclReference("test-ecl-registration-reference")
+  val requestWithEclReference: AuthorisedRequest[AnyContentAsEmpty.type] = AuthorisedRequest(
+    FakeRequest(),
+    internalId,
+    eclRegistrationReference
+  )
+  val appConfig: AppConfig                                               = app.injector.instanceOf[AppConfig]
+  val messagesApi: MessagesApi                                           = app.injector.instanceOf[MessagesApi]
+  val messages: Messages                                                 = messagesApi.preferred(fakeRequest)
+  val bodyParsers: PlayBodyParsers                                       = app.injector.instanceOf[PlayBodyParsers]
+  val actorSystem: ActorSystem                                           = ActorSystem("test")
+  val config: Config                                                     = app.injector.instanceOf[Config]
+
+  override def fakeApplication(): Application =
+    new GuiceApplicationBuilder()
+      .configure(
+        "metrics.jvm"                  -> false,
+        "metrics.enabled"              -> false,
+        "http-verbs.retries.intervals" -> List("1ms")
+      )
+      .build()
 
   def fakeAuthorisedAction = new FakeAuthorisedAction(bodyParsers)
 

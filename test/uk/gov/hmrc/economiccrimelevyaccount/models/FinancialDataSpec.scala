@@ -20,7 +20,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponse
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
 
-class FinancialDataResponseSpec extends SpecBase {
+class FinancialDataSpec extends SpecBase {
 
   "FinancialDataResponse refundAmount" should {
 
@@ -32,7 +32,7 @@ class FinancialDataResponseSpec extends SpecBase {
       contractObjectNumberParam: String,
       regime: String,
       secondRecordDocumentType: FinancialDataDocumentType
-    ): FinancialDataResponse = {
+    ): FinancialData = {
       val documentDetails = dataResponse.financialDataResponse.documentDetails.get.head
       dataResponse.financialDataResponse.copy(
         documentDetails = Some(
@@ -67,7 +67,7 @@ class FinancialDataResponseSpec extends SpecBase {
       ) =>
         val details = setup(dataResponse, twoHundred, "1234567890", "ECL", NewCharge)
 
-        details.refundAmount("1234567890") should equal(BigDecimal(0))
+        details.refundAmount("1234567890") should equal(Some(BigDecimal(0)))
     }
 
     "return Some of correct amount when we have an overpayment" in forAll {
@@ -76,7 +76,7 @@ class FinancialDataResponseSpec extends SpecBase {
       ) =>
         val details = setup(dataResponse, twoHundred, "1234567890", "ECL", Payment)
 
-        details.refundAmount("1234567890") should equal(BigDecimal(200))
+        details.refundAmount("1234567890") should equal(Some(BigDecimal(200)))
     }
 
     "return Payment obligation for NewCharge documentType" in forAll {
@@ -84,7 +84,7 @@ class FinancialDataResponseSpec extends SpecBase {
         dataResponse: ValidFinancialDataResponse
       ) =>
         val details = setupDocumentType(dataResponse, NewCharge)
-        details.getPaymentType should equal(StandardPayment)
+        details.paymentType should equal(StandardPayment)
     }
 
     "return Interest obligation for InterestCharge documentType" in forAll {
@@ -92,7 +92,7 @@ class FinancialDataResponseSpec extends SpecBase {
         dataResponse: ValidFinancialDataResponse
       ) =>
         val details = setupDocumentType(dataResponse, InterestCharge)
-        details.getPaymentType should equal(Interest)
+        details.paymentType should equal(Interest)
     }
 
     "return interest charge reference when documentType is InterestCharge" in forAll {
@@ -111,8 +111,5 @@ class FinancialDataResponseSpec extends SpecBase {
         details.getInterestChargeReference should equal(None)
     }
 
-    "throw exception if None is passed in extractValue method" in {
-      an[IllegalStateException] should be thrownBy DocumentDetails.extractValue(None)
-    }
   }
 }

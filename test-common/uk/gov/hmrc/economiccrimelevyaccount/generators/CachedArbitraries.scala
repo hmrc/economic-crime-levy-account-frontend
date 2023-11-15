@@ -21,19 +21,19 @@ import org.scalacheck.derive.MkArbitrary
 import uk.gov.hmrc.auth.core.{Enrolment, Enrolments}
 import uk.gov.hmrc.economiccrimelevyaccount.EclTestData
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator.derivedArbitrary
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialDataResponse, Obligation, ObligationData}
-import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.QueryKnownFactsResponse
+import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, Obligation, ObligationData}
+import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.EnrolmentResponse
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.FinancialViewDetails
 
 object CachedArbitraries extends EclTestData with Generators {
 
   private def mkArb[T](implicit mkArb: MkArbitrary[T]): Arbitrary[T] = MkArbitrary[T].arbitrary
 
-  implicit lazy val arbEnrolment: Arbitrary[Enrolment]                             = mkArb
-  implicit lazy val arbEnrolments: Arbitrary[Enrolments]                           = mkArb
-  implicit lazy val arbQueryKnownFactsResponse: Arbitrary[QueryKnownFactsResponse] = mkArb
-  implicit lazy val arbObligationData: Arbitrary[ObligationData]                   = mkArb
-  implicit lazy val arbObligation: Arbitrary[Obligation]                           = mkArb
-  implicit lazy val arbFinancialDataResponse: Arbitrary[FinancialDataResponse]     = mkArb
+  implicit lazy val arbEnrolment: Arbitrary[Enrolment]                       = mkArb
+  implicit lazy val arbEnrolments: Arbitrary[Enrolments]                     = mkArb
+  implicit lazy val arbQueryKnownFactsResponse: Arbitrary[EnrolmentResponse] = mkArb
+  implicit lazy val arbObligationData: Arbitrary[ObligationData]             = mkArb
+  implicit lazy val arbObligation: Arbitrary[Obligation]                     = mkArb
+  implicit lazy val arbFinancialDataResponse: Arbitrary[FinancialData]       = mkArb
 
 }

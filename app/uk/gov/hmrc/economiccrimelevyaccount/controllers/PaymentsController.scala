@@ -16,11 +16,15 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
+import cats.data.EitherT
 import play.api.i18n.I18nSupport
+import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
-import uk.gov.hmrc.economiccrimelevyaccount.models.OpsData
-import uk.gov.hmrc.economiccrimelevyaccount.services.{FinancialDataService, OpsService}
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.OpsError
+import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialData, OpsJourneyResponse}
+import uk.gov.hmrc.economiccrimelevyaccount.services.{EclAccountService, OpsService}
+import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
@@ -31,39 +35,69 @@ import scala.concurrent.{ExecutionContext, Future}
 class PaymentsController @Inject() (
   val controllerComponents: MessagesControllerComponents,
   authorise: AuthorisedAction,
-  financialDataService: FinancialDataService,
+  eclAccountService: EclAccountService,
   opsService: OpsService
 )(implicit ec: ExecutionContext)
     extends FrontendBaseController
-    with I18nSupport {
+    with I18nSupport
+    with BaseController
+    with ErrorHandler {
 
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
-    getFinancialDetails.flatMap {
-      case Some(value) =>
-        opsService.startOpsJourney(value.chargeReference, value.amount, value.dueDate).map {
-          case Left(r) => Redirect(r.nextUrl)
-          case _       => Redirect(routes.AccountController.onPageLoad())
-        }
-      case _           => Future.successful(Redirect(routes.AccountController.onPageLoad()))
-    }
+    implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationId(request)
+    (for {
+      financialDataOption <- eclAccountService.retrieveFinancialData.asResponseError
+      opsJourneyResponse  <- startOpsJourneyWithLatestFinancialDetails(financialDataOption).asResponseError
+    } yield opsJourneyResponse).fold(
+      err => Status(err.code.statusCode)(Json.toJson(err)),
+      response => route(response)
+    )
   }
 
-  private def getFinancialDetails()(implicit
-    hc: HeaderCarrier
-  ): Future[Option[OpsData]] =
-    financialDataService.retrieveFinancialData.map {
-      case None           => None
-      case Some(response) =>
-        financialDataService.getLatestFinancialObligation(response) match {
-          case Some(value) =>
-            Some(
-              OpsData(
-                value.chargeReference,
-                value.amount,
-                Some(value.dueDate)
+  private def route(opsJourneyResponseOption: Option[OpsJourneyResponse]) =
+    opsJourneyResponseOption match {
+      case Some(response) => Redirect(response.nextUrl)
+      case None           => Redirect(routes.AccountController.onPageLoad())
+    }
+
+  private def startOpsJourneyWithLatestFinancialDetails(
+    financialDataOption: Option[FinancialData]
+  )(implicit hc: HeaderCarrier): EitherT[Future, OpsError, Option[OpsJourneyResponse]] =
+    financialDataOption match {
+      case Some(financialData) =>
+        financialData.latestFinancialObligationOption match {
+          case Some(
+                DocumentDetails(
+                  _,
+                  Some(chargeReference),
+                  _,
+                  _,
+                  _,
+                  _,
+                  outstandingAmount,
+                  lineItemDetails,
+                  _,
+                  _,
+                  _,
+                  _,
+                  _,
+                  _
+                )
+              ) =>
+            val periodToDate = lineItemDetails.flatMap(details => details.headOption.flatMap(_.periodToDate))
+            opsService.startOpsJourney(chargeReference, outstandingAmount.getOrElse(0), periodToDate).map(Option(_))
+          case _ =>
+            EitherT[Future, OpsError, Option[OpsJourneyResponse]](
+              Future.successful(
+                Left(
+                  OpsError.InternalUnexpectedError(
+                    "Financial data missing expected values which are required to start the OPS journey",
+                    None
+                  )
+                )
               )
             )
-          case None        => None
         }
+      case None                => EitherT[Future, OpsError, Option[OpsJourneyResponse]](Future.successful(Right(None)))
     }
 }

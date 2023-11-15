@@ -23,19 +23,35 @@ import java.time.LocalDate
 
 case class FinancialDetails(
   amount: BigDecimal,
-  fromDate: LocalDate,
-  toDate: LocalDate,
-  periodKey: String,
-  chargeReference: String,
+  fromDate: Option[LocalDate],
+  toDate: Option[LocalDate],
+  periodKey: Option[String],
+  chargeReference: Option[String],
   paymentType: PaymentType
 ) {
-  private val dueMonth   = 9
-  private val dueDay     = 30
-  val dueDate: LocalDate = LocalDate.of(toDate.getYear, dueMonth, dueDay)
-  def isOverdue: Boolean = LocalDate.now().isAfter(dueDate)
+  private val dueMonth           = 9
+  private val dueDay             = 30
+  val dueDate: Option[LocalDate] = toDate.map(date => LocalDate.of(date.getYear, dueMonth, dueDay))
 
+  def isPaymentType(value: PaymentType): Boolean = paymentType != value
+
+  def isOverdue: Option[Boolean] = dueDate.map(date => LocalDate.now().isAfter(date))
 }
 
 object FinancialDetails {
   implicit val format: OFormat[FinancialDetails] = Json.format[FinancialDetails]
+
+  def applyOptional(documentDetails: DocumentDetails): Option[FinancialDetails] =
+    documentDetails.documentOutstandingAmount.map { outstandingAmount =>
+      val optionalFirstItemInItemDetails = documentDetails.lineItemDetails.flatMap(_.headOption)
+
+      FinancialDetails(
+        outstandingAmount,
+        optionalFirstItemInItemDetails.flatMap(_.periodFromDate),
+        optionalFirstItemInItemDetails.flatMap(_.periodToDate),
+        optionalFirstItemInItemDetails.flatMap(_.periodKey),
+        documentDetails.chargeReferenceNumber,
+        documentDetails.paymentType
+      )
+    }
 }
