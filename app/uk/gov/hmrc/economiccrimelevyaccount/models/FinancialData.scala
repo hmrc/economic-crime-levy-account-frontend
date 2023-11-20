@@ -58,11 +58,9 @@ case class FinancialData(totalisation: Option[Totalisation], documentDetails: Op
       .flatMap(_.sortBy(_.postingDate).headOption)
 
   def getFinancialObligation(chargeReference: String): Option[DocumentDetails] =
-    documentDetails
-      .map(_.collect {
-        case docDetails if docDetails.chargeReferenceNumber.contains(chargeReference) => docDetails
-      })
-      .flatMap(_.headOption)
+    documentDetails.flatMap(_.collectFirst {
+      case docDetails if docDetails.chargeReferenceNumber.contains(chargeReference) => docDetails
+    })
 }
 
 object FinancialData {
