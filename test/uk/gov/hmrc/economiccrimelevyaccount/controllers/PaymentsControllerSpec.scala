@@ -34,7 +34,7 @@ class PaymentsControllerSpec extends SpecBase {
   val mockECLAccountService: EclAccountService = mock[EclAccountService]
 
   val date                = LocalDate.now()
-  val expectedUrl: String = "http://www.bbc.co.uk"
+  val expectedUrl: String = "http://test-url.co.uk"
 
   val controller = new PaymentsController(
     mcc,
@@ -44,7 +44,7 @@ class PaymentsControllerSpec extends SpecBase {
   )
 
   "onPageLoad" should {
-    "redirect to URL if charge to pay" in {
+    "redirect to URL if charge to pay with charge reference" in {
       (
         chargeReference: String,
         amount: BigDecimal
@@ -71,6 +71,37 @@ class PaymentsControllerSpec extends SpecBase {
           .thenReturn(EitherT.rightT[Future, EclAccountError](Some(response)))
 
         val result = await(controller.onPageLoad(Some(chargeReference))(fakeRequest))
+
+        result shouldBe Redirect(expectedUrl)
+    }
+
+    "redirect to URL if charge to pay with no charge reference" in {
+      (
+        chargeReference: String,
+        amount: BigDecimal
+      ) =>
+        val opsJourneyResponse = OpsJourneyResponse(
+          "",
+          expectedUrl
+        )
+
+        val response = FinancialData(
+          None,
+          None
+        )
+
+        when(
+          mockOpsService.startOpsJourney(
+            ArgumentMatchers.eq(chargeReference),
+            ArgumentMatchers.eq(amount),
+            any()
+          )(any())
+        ).thenReturn(EitherT.rightT[Future, OpsError](opsJourneyResponse))
+
+        when(mockECLAccountService.retrieveFinancialData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(response)))
+
+        val result = await(controller.onPageLoad(None)(fakeRequest))
 
         result shouldBe Redirect(expectedUrl)
     }
