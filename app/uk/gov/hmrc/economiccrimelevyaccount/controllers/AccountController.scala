@@ -78,7 +78,7 @@ class AccountController @Inject() (
             request.eclReference.value,
             ViewUtils.formatLocalDate(registrationDate),
             latestObligationDetailsOption,
-            financialData.latestFinancialObligationOption.flatMap(FinancialDetails.applyOptional)
+            financialData.latestFinancialObligation.flatMap(FinancialDetails.applyOptional)
           )
         )
       case None                =>

@@ -67,6 +67,8 @@ account.viewPayments.table.outstandingPayments.header.2 = Payment type
 account.viewPayments.table.outstandingPayments.header.3 = Financial year
 account.viewPayments.table.outstandingPayments.header.4 = You owe HMRC
 account.viewPayments.table.outstandingPayments.header.5 = Payment status
+account.viewPayments.table.outstandingPayments.header.6 = Actions
+account.viewPayments.table.outstandingPayments.cell.6 = <a href="{0}" class="govuk-link">Make a payment</a>
 account.viewPayments.table.cell.reference = Levy for ECL return number {0}
 account.viewPayments.table.cell.period = {0} to {1}
 account.viewPayments.table.status = <strong class="govuk-tag govuk-tag--{0}">{1}</strong>

@@ -58,8 +58,7 @@ class ViewYourPaymentsControllerSpec extends SpecBase {
         status(result)          shouldBe OK
         contentAsString(result) shouldBe paymentsView(
           financialViewDetails.financialViewDetails,
-          appConfig.refundBaseUrl,
-          appConfig.disableRefund
+          appConfig
         )(fakeRequest, messages)
           .toString()
     }

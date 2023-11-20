@@ -70,7 +70,7 @@ class PaymentsControllerSpec extends SpecBase {
         when(mockECLAccountService.retrieveFinancialData(any()))
           .thenReturn(EitherT.rightT[Future, EclAccountError](Some(response)))
 
-        val result = await(controller.onPageLoad()(fakeRequest))
+        val result = await(controller.onPageLoad(Some(chargeReference))(fakeRequest))
 
         result shouldBe Redirect(expectedUrl)
     }
@@ -98,7 +98,7 @@ class PaymentsControllerSpec extends SpecBase {
         when(mockECLAccountService.retrieveFinancialData(any()))
           .thenReturn(EitherT.rightT[Future, EclAccountError](Some(response)))
 
-        val result = await(controller.onPageLoad()(fakeRequest))
+        val result = await(controller.onPageLoad(Some(chargeReference))(fakeRequest))
 
         result shouldBe Redirect(routes.AccountController.onPageLoad())
     }

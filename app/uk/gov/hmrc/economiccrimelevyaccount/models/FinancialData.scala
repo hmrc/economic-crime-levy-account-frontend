@@ -45,7 +45,7 @@ case class FinancialData(totalisation: Option[Totalisation], documentDetails: Op
     case document: DocumentDetails if document.paymentType == Overpayment => document
   }
 
-  val latestFinancialObligationOption: Option[DocumentDetails] =
+  val latestFinancialObligation: Option[DocumentDetails] =
     documentDetails
       .map(_.collect {
         case docDetails
@@ -57,6 +57,12 @@ case class FinancialData(totalisation: Option[Totalisation], documentDetails: Op
       })
       .flatMap(_.sortBy(_.postingDate).headOption)
 
+  def getFinancialObligation(chargeReference: String): Option[DocumentDetails] =
+    documentDetails
+      .map(_.collect {
+        case docDetails if docDetails.chargeReferenceNumber.contains(chargeReference) => docDetails
+      })
+      .flatMap(_.headOption)
 }
 
 object FinancialData {
