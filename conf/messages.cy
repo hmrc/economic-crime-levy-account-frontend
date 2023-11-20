@@ -67,6 +67,8 @@ account.viewPayments.table.outstandingPayments.header.2 = Math o daliad
 account.viewPayments.table.outstandingPayments.header.3 = Blwyddyn ariannol
 account.viewPayments.table.outstandingPayments.header.4 = Mae arnoch y swm hwn i CThEF
 account.viewPayments.table.outstandingPayments.header.5 = Statws y taliad
+account.viewPayments.table.outstandingPayments.header.6 = Gweithredoedd
+account.viewPayments.table.outstandingPayments.cell.6 = <a href="{0}" class="govuk-link">Gweithredoedd</a>
 account.viewPayments.table.cell.reference = Ardoll ar gyfer rhif datganiad {0}
 account.viewPayments.table.cell.period = {0} i {1}
 account.viewPayments.table.status = <strong class="govuk-tag govuk-tag--{0}">{1}</strong>

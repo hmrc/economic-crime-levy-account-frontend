@@ -25,12 +25,14 @@ import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationData
 
 class PaymentsISpec extends ISpecBase with AuthorisedBehaviour {
-  val expectedUrl = "http://bc.co.uk"
+  val expectedUrl = "http://test-url.co.uk"
 
-  s"GET ${routes.PaymentsController.onPageLoad().url}" should {
+  s"GET ${routes.PaymentsController.onPageLoad(None).url}" should {
     behave like authorisedActionRoute(routes.AccountController.onPageLoad())
 
-    "respond with 200 status and the start HTML view" in {
+    val chargeReference = "XMECL0000000006"
+
+    "respond with 200 status and the start HTML view with no charge reference" in {
       stubAuthorised()
 
       val obligationData = random[ObligationData]
@@ -39,11 +41,25 @@ class PaymentsISpec extends ISpecBase with AuthorisedBehaviour {
       stubFinancialData
       stubStartJourney(expectedUrl)
 
-      val result = callRoute(FakeRequest(routes.PaymentsController.onPageLoad()))
+      val result = callRoute(FakeRequest(routes.PaymentsController.onPageLoad(None)))
+
+      status(result)                 shouldBe SEE_OTHER
+      redirectLocation(result).value shouldBe expectedUrl
+    }
+
+    "respond with 200 status and the start HTML view with charge reference" in {
+      stubAuthorised()
+
+      val obligationData = random[ObligationData]
+
+      stubGetObligations(obligationData)
+      stubFinancialData
+      stubStartJourney(expectedUrl)
+
+      val result = callRoute(FakeRequest(routes.PaymentsController.onPageLoad(Some(chargeReference))))
 
       status(result)                 shouldBe SEE_OTHER
       redirectLocation(result).value shouldBe expectedUrl
     }
   }
-
 }

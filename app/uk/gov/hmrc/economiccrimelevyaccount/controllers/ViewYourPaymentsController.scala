@@ -54,7 +54,7 @@ class ViewYourPaymentsController @Inject() (
       error => Status(error.code.statusCode)(Json.toJson(error)),
       financialViewDetailsOption =>
         financialViewDetailsOption
-          .map(financialViewDetails => Ok(view(financialViewDetails, appConfig.refundBaseUrl, appConfig.disableRefund)))
+          .map(financialViewDetails => Ok(view(financialViewDetails, appConfig)))
           .getOrElse(Ok(noPaymentsView()))
     )
   }

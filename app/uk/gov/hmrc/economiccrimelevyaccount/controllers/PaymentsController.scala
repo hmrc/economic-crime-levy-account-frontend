@@ -43,11 +43,11 @@ class PaymentsController @Inject() (
     with BaseController
     with ErrorHandler {
 
-  def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
+  def onPageLoad(chargeReference: Option[String]): Action[AnyContent] = authorise.async { implicit request =>
     implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationId(request)
     (for {
-      financialDataOption <- eclAccountService.retrieveFinancialData.asResponseError
-      opsJourneyResponse  <- startOpsJourneyWithLatestFinancialDetails(financialDataOption).asResponseError
+      financialData      <- eclAccountService.retrieveFinancialData.asResponseError
+      opsJourneyResponse <- startOpsJourneyWithFinancialData(financialData, chargeReference).asResponseError
     } yield opsJourneyResponse).fold(
       err => Status(err.code.statusCode)(Json.toJson(err)),
       response => route(response)
@@ -60,12 +60,12 @@ class PaymentsController @Inject() (
       case None           => Redirect(routes.AccountController.onPageLoad())
     }
 
-  private def startOpsJourneyWithLatestFinancialDetails(
-    financialDataOption: Option[FinancialData]
-  )(implicit hc: HeaderCarrier): EitherT[Future, OpsError, Option[OpsJourneyResponse]] =
-    financialDataOption match {
+  private def startOpsJourneyWithFinancialData(financialData: Option[FinancialData], chargeReference: Option[String])(
+    implicit hc: HeaderCarrier
+  ): EitherT[Future, OpsError, Option[OpsJourneyResponse]] =
+    financialData match {
       case Some(financialData) =>
-        financialData.latestFinancialObligationOption match {
+        getObligation(financialData, chargeReference) match {
           case Some(
                 DocumentDetails(
                   _,
@@ -99,5 +99,14 @@ class PaymentsController @Inject() (
             )
         }
       case None                => EitherT[Future, OpsError, Option[OpsJourneyResponse]](Future.successful(Right(None)))
+    }
+
+  private def getObligation(
+    financialData: FinancialData,
+    chargeReference: Option[String]
+  ): Option[DocumentDetails] =
+    chargeReference match {
+      case Some(chargeReference) => financialData.getFinancialObligation(chargeReference)
+      case None                  => financialData.latestFinancialObligation
     }
 }
