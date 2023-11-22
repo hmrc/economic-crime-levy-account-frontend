@@ -126,11 +126,22 @@
 
 @getPaymentActionCellContent(data: OutstandingPayments) = @{
     val paymentLink: String = uk.gov.hmrc.economiccrimelevyaccount.controllers.routes.PaymentsController
-    .onPageLoad(Some(data.chargeReference)).url
+        .onPageLoad(Some(data.paymentType match {
+            case StandardPayment => data.chargeReference
+            case Interest => data.interestChargeReference match {
+                case Some(value) => value
+                case None => data.chargeReference
+            }
+        })).url
+
+    val paymentMessage = messages("account.viewPayments.table.outstandingPayments.cell.6", paymentLink)
 
     data.paymentType match {
-        case StandardPayment => messages("account.viewPayments.table.outstandingPayments.cell.6", paymentLink)
-        case _ => "&nbsp;"
+        case StandardPayment => paymentMessage
+        case Interest => data.interestChargeReference match {
+            case Some(value) => paymentMessage
+            case None => "&nbsp;"
+        }
     }
 }
 
