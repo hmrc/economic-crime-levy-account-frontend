@@ -21,7 +21,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.connectors.EclAccountConnector
 import uk.gov.hmrc.economiccrimelevyaccount.models._
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EclAccountError
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, Overpayment, StandardPayment}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, Overpayment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 

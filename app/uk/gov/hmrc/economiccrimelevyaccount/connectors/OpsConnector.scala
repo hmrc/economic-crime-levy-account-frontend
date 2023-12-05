@@ -22,7 +22,7 @@ import com.typesafe.config.Config
 import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
-import uk.gov.hmrc.economiccrimelevyaccount.utils.Constants
+import uk.gov.hmrc.economiccrimelevyaccount.utils.HttpHeader
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, Retries, StringContextOps}
 
@@ -46,7 +46,7 @@ class OpsConnector @Inject() (
       httpClient
         .post(url"${appConfig.opsStartJourneyUrl}")
         .withBody(Json.toJson(opsJourneyRequest))
-        .transform(_.addHttpHeaders((Constants.SESSION_ID_HEADER_NAME, opsJourneyRequest.chargeReference)))
+        .transform(_.addHttpHeaders((HttpHeader.SessionId, opsJourneyRequest.chargeReference)))
         .executeAndDeserialise[OpsJourneyResponse]
     }
 

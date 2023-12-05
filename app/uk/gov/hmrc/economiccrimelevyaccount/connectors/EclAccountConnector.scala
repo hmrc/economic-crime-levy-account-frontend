@@ -22,7 +22,6 @@ import com.typesafe.config.Config
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, ObligationData}
 import uk.gov.hmrc.http.{HeaderCarrier, Retries, StringContextOps}
-import uk.gov.hmrc.http.HttpReads.Implicits._
 import uk.gov.hmrc.http.client.HttpClientV2
 
 import javax.inject.Inject

@@ -18,18 +18,14 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import cats.data.EitherT
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EnrolmentStoreProxyConnector
-import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.{EclEnrolment, Enrolment}
 import uk.gov.hmrc.economiccrimelevyaccount.models.EclReference
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EnrolmentStoreError
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
-import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.EnrolmentResponse
 
 import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
-import scala.util.{Success, Try}
 
 class EnrolmentStoreProxyService @Inject() (enrolmentStoreProxyConnector: EnrolmentStoreProxyConnector)(implicit
   ec: ExecutionContext

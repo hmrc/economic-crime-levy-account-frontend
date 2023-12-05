@@ -17,38 +17,14 @@
 package uk.gov.hmrc.economiccrimelevyaccount.utils
 
 import java.time.LocalDate
-import scala.annotation.tailrec
+import uk.gov.hmrc.time.TaxYear
 
 object EclTaxYear {
 
-  private def startYear       = LocalDate.now().getYear
-  private val MonthDue        = 9
-  private val DayDue          = 30
-  private val EclFyEndMonth   = 3
-  private val EclFyStartMonth = 4
-  private val EclFyEndDay     = 31
-  private val EclFyStartDay   = 1
+  private def startYear = TaxYear.taxYearFor(LocalDate.now()).startYear
+  private val MonthDue  = 9
+  private val DayDue    = 30
 
   def dueDate: LocalDate =
-    LocalDate.of(calculateYearDue(), MonthDue, DayDue)
-
-  def yearDue: String                      = calculateYearDue().toString
-  private def currentFinancialYear: String = (yearDue.toInt - 1).toString
-  val YearInDays: Int                      = 365
-
-  @tailrec
-  def calculateYearDue(yearDue: Int = startYear, currentDate: LocalDate = LocalDate.now()): Int =
-    if (currentDate.isAfter(LocalDate.of(yearDue, MonthDue, DayDue))) {
-      calculateYearDue(yearDue + 1, currentDate)
-    } else {
-      yearDue
-    }
-
-  def currentFinancialYearStartDate: LocalDate =
-    LocalDate.of(currentFinancialYear.toInt, EclFyStartMonth, EclFyStartDay)
-  def currentFinancialYearEndDate: LocalDate   =
-    LocalDate.of(currentFinancialYear.toInt + 1, EclFyEndMonth, EclFyEndDay)
-
-  def currentFyStartYear: String = currentFinancialYearStartDate.getYear.toString
-  def currentFyEndYear: String   = currentFinancialYearEndDate.getYear.toString
+    LocalDate.of(startYear, MonthDue, DayDue)
 }
