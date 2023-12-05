@@ -33,7 +33,7 @@ class AuditService @Inject() (auditConnector: AuditConnector)(implicit ec: Execu
   def auditAccountViewed(
     internalId: String,
     eclRegistrationReference: EclReference,
-    obligationDataOption: Option[ObligationData],
+    obligationData: Option[ObligationData],
     financialData: Option[FinancialData]
   )(implicit
     hc: HeaderCarrier
@@ -44,8 +44,7 @@ class AuditService @Inject() (auditConnector: AuditConnector)(implicit ec: Execu
           AccountViewedAuditEvent(
             internalId = internalId,
             eclReference = eclRegistrationReference.value,
-            obligationDetails =
-              obligationDataOption.map(_.obligations.flatMap(_.obligationDetails)).getOrElse(Seq.empty),
+            obligationDetails = obligationData.map(_.obligations.flatMap(_.obligationDetails)).getOrElse(Seq.empty),
             financialDetails = financialData.map(AccountViewedAuditFinancialDetails.apply)
           ).extendedDataEvent
         )

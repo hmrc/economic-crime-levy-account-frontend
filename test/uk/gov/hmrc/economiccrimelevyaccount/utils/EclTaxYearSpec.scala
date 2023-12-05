@@ -17,30 +17,19 @@
 package uk.gov.hmrc.economiccrimelevyaccount.utils
 
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
+import uk.gov.hmrc.time.TaxYear
 
 import java.time.LocalDate
 
 class EclTaxYearSpec extends SpecBase {
 
-  "calculateYearDue" should {
-    "return 2023 if the current date is before 30th September 2023" in {
-      EclTaxYear.calculateYearDue(currentDate = LocalDate.of(2023, 9, 29))
-    }
+  "dueDate" should {
+    "returns the expected date in the current tax year" in {
+      val dueDate = EclTaxYear.dueDate
 
-    "return 2024 if the current date is before 30th September 2024 but after 30th September 2023" in {
-      EclTaxYear.calculateYearDue(currentDate = LocalDate.of(2024, 9, 29))
-    }
-
-    "return 2025 if the current date is before 30th September 2025 but after 30th September 2024" in {
-      EclTaxYear.calculateYearDue(currentDate = LocalDate.of(2025, 9, 29))
-    }
-
-    "return 2026 if the current date is before 30th September 2025 but after 30th September 2025" in {
-      EclTaxYear.calculateYearDue(currentDate = LocalDate.of(2026, 9, 29))
-    }
-
-    "return 2027 if the current date is before 30th September 2025 but after 30th September 2026" in {
-      EclTaxYear.calculateYearDue(currentDate = LocalDate.of(2027, 9, 29))
+      dueDate.getYear       shouldBe TaxYear.current.startYear
+      dueDate.getMonthValue shouldBe 9
+      dueDate.getDayOfMonth shouldBe 30
     }
   }
 

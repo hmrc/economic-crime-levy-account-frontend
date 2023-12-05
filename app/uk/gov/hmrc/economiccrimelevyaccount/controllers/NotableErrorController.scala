@@ -33,7 +33,7 @@ class NotableErrorController @Inject() (
 ) extends FrontendBaseController
     with I18nSupport {
 
-  def notRegistered: Action[AnyContent] = Action { implicit request =>
+  def notRegistered: Action[AnyContent] = Action {
     Redirect(Call(GET, appConfig.claimUrl))
   }
 

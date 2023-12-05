@@ -20,8 +20,6 @@ import play.api.libs.json._
 import uk.gov.hmrc.economiccrimelevyaccount.utils.Constants
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
 
-import java.time.LocalDate
-
 case class FinancialData(totalisation: Option[Totalisation], documentDetails: Option[Seq[DocumentDetails]]) {
 
   private def getDocumentsByContractObject(
@@ -29,7 +27,7 @@ case class FinancialData(totalisation: Option[Totalisation], documentDetails: Op
   ): Option[Seq[DocumentDetails]] =
     documentDetails.map {
       _.filter(document =>
-        document.contractObjectType.contains(Constants.CONTRACT_OBJECT_TYPE_ECL)
+        document.contractObjectType.contains(Constants.Ecl)
           && document.contractObjectNumber.contains(contractObjectNumber)
       )
     }

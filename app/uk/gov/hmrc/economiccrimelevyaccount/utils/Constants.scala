@@ -16,14 +16,20 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.utils
 
+trait Constants
+
+object DocumentTypeValues extends Constants {
+  val TrmNewCharge     = "TRM New Charge"
+  val TrmAmendCharge   = "TRM Amend Charge"
+  val InterestDocument = "Interest Document"
+  val Payment          = "Payment"
+}
+
+object HeaderValues extends Constants {
+  val SessionId     = "x-session-id"
+  val CorrelationId = "x-correlation-id"
+}
+
 object Constants {
-
-  val TRM_NEW_CHARGE           = "TRM New Charge"
-  val TRM_AMEND_CHARGE         = "TRM Amend Charge"
-  val INTEREST_DOCUMENT        = "Interest Document"
-  val PAYMENT                  = "Payment"
-  val CONTRACT_OBJECT_TYPE_ECL = "ECL"
-  val SESSION_ID_HEADER_NAME   = "x-session-id"
-  val HEADER_X_CORRELATION_ID  = "x-correlation-id"
-
+  val Ecl = "ECL"
 }
