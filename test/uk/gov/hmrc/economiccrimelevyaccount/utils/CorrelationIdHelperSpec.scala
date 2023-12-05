@@ -39,7 +39,7 @@ class CorrelationIdHelperSpec extends SpecBase {
 
       val result = CorrelationIdHelper.getOrCreateCorrelationId(fakeRequest)
 
-      result.extraHeaders                                           shouldBe empty
+      result.extraHeaders                                         shouldBe empty
       result.headers(scala.Seq(HttpHeader.CorrelationId)).head._2 shouldBe "existingHeader"
     }
   }
