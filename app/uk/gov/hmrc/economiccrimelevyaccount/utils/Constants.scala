@@ -18,14 +18,14 @@ package uk.gov.hmrc.economiccrimelevyaccount.utils
 
 trait Constants
 
-object DocumentTypeValues extends Constants {
+object DocumentType extends Constants {
   val TrmNewCharge     = "TRM New Charge"
   val TrmAmendCharge   = "TRM Amend Charge"
   val InterestDocument = "Interest Document"
   val Payment          = "Payment"
 }
 
-object HeaderValues extends Constants {
+object HttpHeader extends Constants {
   val SessionId     = "x-session-id"
   val CorrelationId = "x-correlation-id"
 }

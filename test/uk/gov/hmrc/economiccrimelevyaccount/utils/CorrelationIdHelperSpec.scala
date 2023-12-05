@@ -35,12 +35,12 @@ class CorrelationIdHelperSpec extends SpecBase {
     }
 
     "not add the HEADER_X_CORRELATION_ID header to the HeaderCarrier extra headers if present" in {
-      val fakeRequest = FakeRequest.apply().withHeaders((HeaderValues.CorrelationId, "existingHeader"))
+      val fakeRequest = FakeRequest.apply().withHeaders((HttpHeader.CorrelationId, "existingHeader"))
 
       val result = CorrelationIdHelper.getOrCreateCorrelationId(fakeRequest)
 
       result.extraHeaders                                           shouldBe empty
-      result.headers(scala.Seq(HeaderValues.CorrelationId)).head._2 shouldBe "existingHeader"
+      result.headers(scala.Seq(HttpHeader.CorrelationId)).head._2 shouldBe "existingHeader"
     }
   }
 }

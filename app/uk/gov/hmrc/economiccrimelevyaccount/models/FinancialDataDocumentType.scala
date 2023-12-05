@@ -17,7 +17,7 @@
 package uk.gov.hmrc.economiccrimelevyaccount.models
 
 import play.api.libs.json.{Format, JsError, JsResult, JsString, JsSuccess, JsValue}
-import uk.gov.hmrc.economiccrimelevyaccount.utils.DocumentTypeValues
+import uk.gov.hmrc.economiccrimelevyaccount.utils.DocumentType
 
 sealed trait FinancialDataDocumentType
 
@@ -34,19 +34,19 @@ object FinancialDataDocumentType {
     override def reads(json: JsValue): JsResult[FinancialDataDocumentType] = json.validate[String] match {
       case JsSuccess(value, _) =>
         value match {
-          case DocumentTypeValues.TrmNewCharge     => JsSuccess(NewCharge)
-          case DocumentTypeValues.TrmAmendCharge   => JsSuccess(AmendedCharge)
-          case DocumentTypeValues.InterestDocument => JsSuccess(InterestCharge)
-          case DocumentTypeValues.Payment          => JsSuccess(Payment)
+          case DocumentType.TrmNewCharge     => JsSuccess(NewCharge)
+          case DocumentType.TrmAmendCharge   => JsSuccess(AmendedCharge)
+          case DocumentType.InterestDocument => JsSuccess(InterestCharge)
+          case DocumentType.Payment          => JsSuccess(Payment)
         }
       case e: JsError          => e
     }
 
     override def writes(o: FinancialDataDocumentType): JsValue = o match {
-      case NewCharge      => JsString(DocumentTypeValues.TrmNewCharge)
-      case AmendedCharge  => JsString(DocumentTypeValues.TrmAmendCharge)
-      case InterestCharge => JsString(DocumentTypeValues.InterestDocument)
-      case Payment        => JsString(DocumentTypeValues.Payment)
+      case NewCharge      => JsString(DocumentType.TrmNewCharge)
+      case AmendedCharge  => JsString(DocumentType.TrmAmendCharge)
+      case InterestCharge => JsString(DocumentType.InterestDocument)
+      case Payment        => JsString(DocumentType.Payment)
     }
   }
 }
