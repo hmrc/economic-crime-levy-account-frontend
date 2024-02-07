@@ -21,14 +21,15 @@ import org.mockito.ArgumentMatchers.any
 import play.api.http.Status.{BAD_GATEWAY, INTERNAL_SERVER_ERROR, OK}
 import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, status}
-import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
-import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
 import uk.gov.hmrc.economiccrimelevyaccount._
+import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialData
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EclAccountError
 import uk.gov.hmrc.economiccrimelevyaccount.services.EclAccountService
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
+import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
+import uk.gov.hmrc.time.TaxYear
 
 import scala.concurrent.Future
 
@@ -46,6 +47,10 @@ class ViewYourReturnsControllerSpec extends SpecBase {
     noReturnsView
   )
 
+  val financialYearStartYear = s"${TaxYear.current.startYear}"
+  val financialYearEndYear   = s"${TaxYear.current.finishYear}"
+  val fromTo                 = s"$financialYearStartYear-$financialYearEndYear"
+
   "onPageLoad" should {
     "return OK and the correct view when return is Due" in forAll {
       (obligationData: ObligationDataWithObligation, financialData: ValidFinancialDataResponse) =>
@@ -60,7 +65,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         val dueReturns             = Seq(
           ReturnsOverview(
-            "2022-2023",
+            fromTo,
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Due,
             "21XY",
@@ -85,7 +90,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         val dueReturns             = Seq(
           ReturnsOverview(
-            "2022-2023",
+            fromTo,
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Overdue,
             "21XY",
@@ -110,7 +115,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         val dueReturns             = Seq(
           ReturnsOverview(
-            "2022-2023",
+            fromTo,
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Submitted,
             "21XY",

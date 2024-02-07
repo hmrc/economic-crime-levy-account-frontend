@@ -27,7 +27,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 
 import scala.concurrent.Future
 
-class AccountServiceSpec extends SpecBase {
+class EclAccountServiceSpec extends SpecBase {
 
   private val mockECLAccountConnector = mock[EclAccountConnector]
 

@@ -20,18 +20,18 @@ import cats.data.EitherT
 import org.mockito.ArgumentMatchers.any
 import play.api.mvc.Result
 import play.api.test.Helpers._
+import uk.gov.hmrc.economiccrimelevyaccount._
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, FinancialData, FinancialDetails}
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{AuditError, EclAccountError, EnrolmentStoreError}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, FinancialData}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, EclAccountService, EnrolmentStoreProxyService}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
-import uk.gov.hmrc.economiccrimelevyaccount._
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{AuditError, EclAccountError, EnrolmentStoreError}
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
 
 import java.time.LocalDate
 import scala.concurrent.Future
 
-class AccountControllerSpec extends SpecBase {
+class EclAccountControllerSpec extends SpecBase {
 
   val mockEnrolmentStoreProxyService: EnrolmentStoreProxyService = mock[EnrolmentStoreProxyService]
   val mockECLAccountService: EclAccountService                   = mock[EclAccountService]
@@ -53,10 +53,8 @@ class AccountControllerSpec extends SpecBase {
       (
         eclRegistrationDate: LocalDate,
         obligationData: ObligationDataWithObligation,
-        financialDetails: FinancialDetails,
         validFinancialDataResponse: ValidFinancialDataResponse
       ) =>
-        val validFinancialDetails = financialDetails.copy(amount = BigDecimal("10000"))
         when(
           mockEnrolmentStoreProxyService.getEclRegistrationDate(any[String].asInstanceOf[EclReference])(any())
         ).thenReturn(EitherT.rightT[Future, EnrolmentStoreError](eclRegistrationDate))
@@ -76,36 +74,30 @@ class AccountControllerSpec extends SpecBase {
 
     }
 
-    "return OK and correct view when ObligationData is not present" in forAll {
-      (eclReference: EclReference, eclRegistrationDate: LocalDate, financialDetails: FinancialDetails) =>
-        val validFinancialDetails = financialDetails.copy(amount = BigDecimal("10000"))
+    "return OK and correct view when ObligationData is not present" in forAll { (eclRegistrationDate: LocalDate) =>
+      when(
+        mockEnrolmentStoreProxyService.getEclRegistrationDate(
+          any[String].asInstanceOf[EclReference]
+        )(any())
+      ).thenReturn(EitherT.rightT[Future, EnrolmentStoreError](eclRegistrationDate))
 
-        when(
-          mockEnrolmentStoreProxyService.getEclRegistrationDate(
-            any[String].asInstanceOf[EclReference]
-          )(any())
-        ).thenReturn(EitherT.rightT[Future, EnrolmentStoreError](eclRegistrationDate))
+      when(mockECLAccountService.retrieveObligationData(any()))
+        .thenReturn(EitherT.rightT[Future, EclAccountError](None))
 
-        when(mockECLAccountService.retrieveObligationData(any()))
-          .thenReturn(EitherT.rightT[Future, EclAccountError](None))
+      when(mockAuditService.auditAccountViewed(any(), any[String].asInstanceOf[EclReference], any(), any())(any()))
+        .thenReturn(EitherT.rightT[Future, AuditError](AuditResult.Success))
 
-        when(mockAuditService.auditAccountViewed(any(), any[String].asInstanceOf[EclReference], any(), any())(any()))
-          .thenReturn(EitherT.rightT[Future, AuditError](AuditResult.Success))
+      val result: Future[Result] = controller.onPageLoad()(requestWithEclReference)
 
-        val result: Future[Result] = controller.onPageLoad()(requestWithEclReference)
-
-        status(result) shouldBe OK
+      status(result) shouldBe OK
 
     }
 
     "return OK and correct view when ObligationData is present but it's Overdue" in forAll {
       (
         eclRegistrationDate: LocalDate,
-        overdueObligationData: ObligationDataWithOverdueObligation,
-        financialDetails: FinancialDetails
+        overdueObligationData: ObligationDataWithOverdueObligation
       ) =>
-        val validFinancialDetails = financialDetails.copy(amount = BigDecimal("10000"))
-
         when(
           mockEnrolmentStoreProxyService.getEclRegistrationDate(any[String].asInstanceOf[EclReference])(any())
         ).thenReturn(EitherT.rightT[Future, EnrolmentStoreError](eclRegistrationDate))
@@ -123,13 +115,9 @@ class AccountControllerSpec extends SpecBase {
 
     "return OK and correct view when ObligationData is present but it's Submitted" in forAll {
       (
-        eclReference: EclReference,
         eclRegistrationDate: LocalDate,
-        submittedObligationData: ObligationDataWithSubmittedObligation,
-        financialDetails: FinancialDetails
+        submittedObligationData: ObligationDataWithSubmittedObligation
       ) =>
-        val validFinancialDetails = financialDetails.copy(amount = BigDecimal("10000"))
-
         when(
           mockEnrolmentStoreProxyService.getEclRegistrationDate(any[String].asInstanceOf[EclReference])(any())
         ).thenReturn(EitherT.rightT[Future, EnrolmentStoreError](eclRegistrationDate))
@@ -147,7 +135,6 @@ class AccountControllerSpec extends SpecBase {
 
     "return OK and the correct view when obligationData is present and financialData is not present" in forAll {
       (
-        eclReference: EclReference,
         eclRegistrationDate: LocalDate,
         obligationData: ObligationDataWithObligation,
         validFinancialDataResponse: ValidFinancialDataResponse

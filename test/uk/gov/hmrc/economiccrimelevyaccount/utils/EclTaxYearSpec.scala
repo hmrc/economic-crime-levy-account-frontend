@@ -19,8 +19,6 @@ package uk.gov.hmrc.economiccrimelevyaccount.utils
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.time.TaxYear
 
-import java.time.LocalDate
-
 class EclTaxYearSpec extends SpecBase {
 
   "dueDate" should {

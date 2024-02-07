@@ -16,14 +16,13 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.generators
 
+import com.danielasfregola.randomdatagenerator.RandomDataGenerator.derivedArbitrary
 import org.scalacheck.Arbitrary
 import org.scalacheck.derive.MkArbitrary
 import uk.gov.hmrc.auth.core.{Enrolment, Enrolments}
 import uk.gov.hmrc.economiccrimelevyaccount.EclTestData
-import com.danielasfregola.randomdatagenerator.RandomDataGenerator.derivedArbitrary
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, Obligation, ObligationData}
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.EnrolmentResponse
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.FinancialViewDetails
+import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, Obligation, ObligationData}
 
 object CachedArbitraries extends EclTestData with Generators {
 
