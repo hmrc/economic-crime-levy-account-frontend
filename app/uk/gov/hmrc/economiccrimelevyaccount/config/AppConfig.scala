@@ -40,8 +40,10 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
   val returnsUrl: String      = configuration.get[String]("urls.returns")
   val registrationUrl: String = configuration.get[String]("urls.registration")
 
-  private val exitSurveyHost              = configuration.get[String]("feedback-frontend.host")
-  private val exitSurveyServiceIdentifier = configuration.get[String]("feedback-frontend.serviceId")
+  private val economicCrimeLevyAccountBaseUrl: String      = servicesConfig.baseUrl("economic-crime-levy-account")
+  private val economicCrimeLevyRegistrationBaseUrl: String = servicesConfig.baseUrl("economic-crime-levy-registration")
+  private val exitSurveyHost                               = configuration.get[String]("feedback-frontend.host")
+  private val exitSurveyServiceIdentifier                  = configuration.get[String]("feedback-frontend.serviceId")
 
   val exitSurveyUrl: String = s"$exitSurveyHost/feedback/$exitSurveyServiceIdentifier"
 
@@ -57,8 +59,6 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
     enrolmentStoreProxyBaseUrl + servicesConfig.getString(
       "microservice.services.enrolment-store-proxy.endpoints.enrolments"
     )
-
-  val economicCrimeLevyAccountBaseUrl: String = servicesConfig.baseUrl("economic-crime-levy-account")
 
   val financialDataUrl: String =
     economicCrimeLevyAccountBaseUrl + servicesConfig.getString(
@@ -86,4 +86,9 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
   val disableRefund: Boolean   = !configuration.get[Boolean]("features.requestRefundEnabled")
 
   val returnsEnabled: Boolean = configuration.get[Boolean]("features.returnsEnabled")
+
+  val subscriptionStatusUrl: String =
+    economicCrimeLevyRegistrationBaseUrl + servicesConfig.getString(
+      "microservice.services.economic-crime-levy-registration.endpoints.subscriptionStatus"
+    )
 }
