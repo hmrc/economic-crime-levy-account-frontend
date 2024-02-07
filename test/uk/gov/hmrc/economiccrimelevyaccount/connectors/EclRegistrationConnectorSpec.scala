@@ -38,7 +38,6 @@ class EclRegistrationConnectorSpec extends SpecBase {
   "getSubscriptionStatus" should {
     "return an EclSubscriptionStatus when the http client returns an EclSubscriptionStatus" in forAll {
       (eclRegistrationReference: String, eclSubscriptionStatus: EclSubscriptionStatus) =>
-
         val expectedUrl = url"${appConfig.subscriptionStatusUrl}/ZECL/$eclRegistrationReference"
         val response    = HttpResponse(OK, Json.toJson(eclSubscriptionStatus).toString())
 
@@ -52,7 +51,6 @@ class EclRegistrationConnectorSpec extends SpecBase {
 
     "throw an UpstreamErrorResponse exception when the http client returns a error response" in forAll {
       eclRegistrationReference: String =>
-
         val expectedUrl = url"${appConfig.subscriptionStatusUrl}/ZECL/$eclRegistrationReference"
         val msg         = "Internal server error"
 

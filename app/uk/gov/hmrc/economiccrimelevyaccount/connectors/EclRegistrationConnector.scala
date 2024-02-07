@@ -30,9 +30,11 @@ class EclRegistrationConnector @Inject() (
   appConfig: AppConfig,
   httpClient: HttpClientV2
 )(implicit ec: ExecutionContext)
-  extends BaseConnector {
+    extends BaseConnector {
 
-  def getSubscriptionStatus(eclRegistrationReference: String)(implicit hc: HeaderCarrier): Future[EclSubscriptionStatus] =
+  def getSubscriptionStatus(
+    eclRegistrationReference: String
+  )(implicit hc: HeaderCarrier): Future[EclSubscriptionStatus] =
     httpClient
       .get(url"${appConfig.subscriptionStatusUrl}/ZECL/$eclRegistrationReference")
       .executeAndDeserialise[EclSubscriptionStatus]
