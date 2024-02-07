@@ -34,7 +34,7 @@ class SubscriptionStatusSpec extends SpecBase {
         (NotSubscribed, JsString("NotSubscribed"))
       )
     ) { (subscriptionStatus: SubscriptionStatus, expectedResult: JsValue) =>
-      val result = Json.toJson(subscriptionStatus)(EclSubscriptionStatus.subscriptionStatusFormat)
+      val result: JsValue = Json.toJson(subscriptionStatus)(EclSubscriptionStatus.subscriptionStatusFormat)
 
       result shouldBe expectedResult
     }
@@ -43,23 +43,24 @@ class SubscriptionStatusSpec extends SpecBase {
   "reads" should {
     "return the subscription status deserialized from its JSON representation" in forAll {
       (subscriptionStatus: SubscriptionStatus) =>
-        val json = Json.toJson(subscriptionStatus)(EclSubscriptionStatus.subscriptionStatusFormat)
+        val json: JsValue = Json.toJson(subscriptionStatus)(EclSubscriptionStatus.subscriptionStatusFormat)
 
-        val result = json.as[SubscriptionStatus](EclSubscriptionStatus.subscriptionStatusFormat)
+        val result: SubscriptionStatus = json.as[SubscriptionStatus](EclSubscriptionStatus.subscriptionStatusFormat)
 
         result shouldBe subscriptionStatus
     }
 
     "return a JsError when passed an invalid string value" in {
-      val result = Json.fromJson[SubscriptionStatus](JsString("Test"))(EclSubscriptionStatus.subscriptionStatusFormat)
+      val result: JsResult[SubscriptionStatus] =
+        Json.fromJson[SubscriptionStatus](JsString("Test"))(EclSubscriptionStatus.subscriptionStatusFormat)
 
       result shouldBe JsError(s"Test is not a valid SubscriptionStatus")
     }
 
     "return a JsError when passed a json object that does not contain a Subscribed status with an ECL registration reference" in {
-      val json = Json.obj("Test" -> "Test")
+      val json: JsObject = Json.obj("Test" -> "Test")
 
-      val result =
+      val result: JsResult[SubscriptionStatus] =
         Json.fromJson[SubscriptionStatus](json)(
           EclSubscriptionStatus.subscriptionStatusFormat
         )
@@ -68,7 +69,7 @@ class SubscriptionStatusSpec extends SpecBase {
     }
 
     "return a JsError when passed a json object that contains a status other than Subscribed with an ECL registration reference" in {
-      val result =
+      val result: JsResult[SubscriptionStatus] =
         Json.fromJson[SubscriptionStatus](
           Json.obj("status" -> "Test", "eclRegistrationReference" -> testEclRegistrationReference)
         )(EclSubscriptionStatus.subscriptionStatusFormat)

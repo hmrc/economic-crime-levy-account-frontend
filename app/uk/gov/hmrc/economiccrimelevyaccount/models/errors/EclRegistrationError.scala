@@ -19,6 +19,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.models.errors
 trait EclRegistrationError
 
 object EclRegistrationError {
-  case class InternalUnexpectedError(cause: Option[Throwable], message: Option[String] = None) extends EclRegistrationError
+  case class InternalUnexpectedError(cause: Option[Throwable], message: Option[String] = None)
+      extends EclRegistrationError
   case class BadGateway(reason: String, code: Int) extends EclRegistrationError
 }

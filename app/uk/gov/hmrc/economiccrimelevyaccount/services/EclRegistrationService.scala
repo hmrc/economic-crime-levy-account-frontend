@@ -27,20 +27,22 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.control.NonFatal
 
 @Singleton
-class EclRegistrationService @Inject()(
+class EclRegistrationService @Inject() (
   eclRegistrationConnector: EclRegistrationConnector
 )(implicit ec: ExecutionContext) {
 
-  def getSubscriptionStatus(eclRegistrationReference: String)(implicit hc: HeaderCarrier): EitherT[Future, EclRegistrationError, EclSubscriptionStatus] =
+  def getSubscriptionStatus(
+    eclRegistrationReference: String
+  )(implicit hc: HeaderCarrier): EitherT[Future, EclRegistrationError, EclSubscriptionStatus] =
     EitherT {
       eclRegistrationConnector
         .getSubscriptionStatus(eclRegistrationReference)
         .map(Right(_))
         .recover {
           case error @ UpstreamErrorResponse(message, code, _, _)
-            if UpstreamErrorResponse.Upstream5xxResponse
-              .unapply(error)
-              .isDefined || UpstreamErrorResponse.Upstream4xxResponse.unapply(error).isDefined =>
+              if UpstreamErrorResponse.Upstream5xxResponse
+                .unapply(error)
+                .isDefined || UpstreamErrorResponse.Upstream4xxResponse.unapply(error).isDefined =>
             Left(EclRegistrationError.BadGateway(message, code))
           case NonFatal(thr) => Left(EclRegistrationError.InternalUnexpectedError(Some(thr), Some(thr.getMessage)))
         }

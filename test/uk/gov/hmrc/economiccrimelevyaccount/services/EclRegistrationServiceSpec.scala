@@ -29,43 +29,42 @@ import scala.concurrent.Future
 class EclRegistrationServiceSpec extends SpecBase {
 
   private val mockEclRegistrationConnector: EclRegistrationConnector = mock[EclRegistrationConnector]
-  private val service = new EclRegistrationService(mockEclRegistrationConnector)
+  private val service: EclRegistrationService                        = new EclRegistrationService(mockEclRegistrationConnector)
 
   "getSubscriptionStatus" should {
     "return an EclSubscriptionStatus when EclRegistrationConnector returns an EclSubscriptionStatus" in forAll {
       (eclRegistrationReference: String, eclSubscriptionStatus: EclSubscriptionStatus) =>
-
         when(mockEclRegistrationConnector.getSubscriptionStatus(eclRegistrationReference))
           .thenReturn(Future.successful(eclSubscriptionStatus))
 
-        val result = await(service.getSubscriptionStatus(eclRegistrationReference).value)
+        val result: Either[EclRegistrationError, EclSubscriptionStatus] =
+          await(service.getSubscriptionStatus(eclRegistrationReference).value)
 
         result shouldBe Right(eclSubscriptionStatus)
     }
 
-    "return return EclRegistrationError.BadGateway when when call to EclRegistrationConnector fails with 5xx error" in forAll {
+    "return EclRegistrationError.BadGateway when when call to EclRegistrationConnector fails with 5xx error" in forAll {
       (eclRegistrationReference: String, errorMessage: String) =>
-
         val errorCode = INTERNAL_SERVER_ERROR
-        val message   = "INTERNAL_SERVER_ERROR"
 
         when(mockEclRegistrationConnector.getSubscriptionStatus(eclRegistrationReference))
-          .thenReturn(Future.failed(UpstreamErrorResponse.apply(message, errorCode)))
+          .thenReturn(Future.failed(UpstreamErrorResponse.apply(errorMessage, errorCode)))
 
-        val result = await(service.getSubscriptionStatus(eclRegistrationReference).value)
+        val result: Either[EclRegistrationError, EclSubscriptionStatus] =
+          await(service.getSubscriptionStatus(eclRegistrationReference).value)
 
-        result shouldBe Left(EclRegistrationError.BadGateway(message, errorCode))
+        result shouldBe Left(EclRegistrationError.BadGateway(errorMessage, errorCode))
     }
 
-    "return return EclRegistrationError.InternalUnexpectedError when when call to EclRegistrationConnector fails with an unexpected error" in forAll {
+    "return EclRegistrationError.InternalUnexpectedError when when call to EclRegistrationConnector fails with an unexpected error" in forAll {
       (eclRegistrationReference: String, errorMessage: String) =>
-
         val throwable: Exception = new Exception(errorMessage)
 
         when(mockEclRegistrationConnector.getSubscriptionStatus(eclRegistrationReference))
           .thenReturn(Future.failed(throwable))
 
-        val result = await(service.getSubscriptionStatus(eclRegistrationReference).value)
+        val result: Either[EclRegistrationError, EclSubscriptionStatus] =
+          await(service.getSubscriptionStatus(eclRegistrationReference).value)
 
         result shouldBe Left(EclRegistrationError.InternalUnexpectedError(Some(throwable), Some(errorMessage)))
     }
