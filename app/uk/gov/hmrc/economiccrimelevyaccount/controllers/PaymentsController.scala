@@ -25,6 +25,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.models.errors.OpsError
 import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialData, OpsJourneyResponse}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{EclAccountService, OpsService}
 import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
+import uk.gov.hmrc.economiccrimelevyaccount.views.html.ErrorTemplate
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
@@ -37,7 +38,7 @@ class PaymentsController @Inject() (
   authorise: AuthorisedAction,
   eclAccountService: EclAccountService,
   opsService: OpsService
-)(implicit ec: ExecutionContext)
+)(implicit ec: ExecutionContext, errorTemplate: ErrorTemplate)
     extends FrontendBaseController
     with I18nSupport
     with BaseController
@@ -49,7 +50,7 @@ class PaymentsController @Inject() (
       financialData      <- eclAccountService.retrieveFinancialData.asResponseError
       opsJourneyResponse <- startOpsJourneyWithFinancialData(financialData, chargeReference).asResponseError
     } yield opsJourneyResponse).fold(
-      err => Status(err.code.statusCode)(Json.toJson(err)),
+      error => routeError(error),
       response => route(response)
     )
   }

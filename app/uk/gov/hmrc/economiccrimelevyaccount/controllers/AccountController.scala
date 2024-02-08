@@ -17,7 +17,6 @@
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.i18n.I18nSupport
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
@@ -25,7 +24,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, FinancialDeta
 import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, EclAccountService, EnrolmentStoreProxyService}
 import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
-import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
+import uk.gov.hmrc.economiccrimelevyaccount.views.html.{AccountView, ErrorTemplate}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
@@ -41,7 +40,7 @@ class AccountController @Inject() (
   view: AccountView,
   eclAccountService: EclAccountService,
   auditService: AuditService
-)(implicit ec: ExecutionContext)
+)(implicit ec: ExecutionContext, errorTemplate: ErrorTemplate)
     extends FrontendBaseController
     with I18nSupport
     with BaseController
@@ -61,7 +60,7 @@ class AccountController @Inject() (
         auditService
           .auditAccountViewed(request.internalId, request.eclReference, obligationDataOption, financialDataOption)
     } yield response).fold(
-      presentationError => Status(presentationError.code.statusCode)(Json.toJson(presentationError)),
+      error => routeError(error),
       result => result
     )
   }

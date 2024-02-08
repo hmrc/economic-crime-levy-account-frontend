@@ -138,20 +138,21 @@ class ViewYourReturnsControllerSpec extends SpecBase {
       contentAsString(result) shouldBe noReturnsView()(fakeRequest, messages).toString()
     }
 
-    "return BAD_GATEWAY when financial API fails" in forAll { (obligationData: ObligationDataWithSubmittedObligation) =>
-      when(mockECLAccountService.retrieveObligationData(any()))
-        .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
+    "return INTERNAL_SERVER_ERROR when financial API fails" in forAll {
+      (obligationData: ObligationDataWithSubmittedObligation) =>
+        when(mockECLAccountService.retrieveObligationData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
 
-      when(
-        mockECLAccountService.retrieveFinancialData(any())
-      ).thenReturn(
-        EitherT.leftT[Future, Option[FinancialData]](
-          EclAccountError.BadGateway("Internal server error", INTERNAL_SERVER_ERROR)
+        when(
+          mockECLAccountService.retrieveFinancialData(any())
+        ).thenReturn(
+          EitherT.leftT[Future, Option[FinancialData]](
+            EclAccountError.BadGateway("Internal server error", INTERNAL_SERVER_ERROR)
+          )
         )
-      )
 
-      val result: Future[Result] = controller.onPageLoad()(fakeRequest)
-      status(result) shouldBe BAD_GATEWAY
+        val result: Future[Result] = controller.onPageLoad()(fakeRequest)
+        status(result) shouldBe INTERNAL_SERVER_ERROR
     }
   }
 }

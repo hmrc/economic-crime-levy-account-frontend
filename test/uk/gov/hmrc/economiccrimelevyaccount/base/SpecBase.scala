@@ -35,6 +35,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.FakeAuthorisedAc
 import uk.gov.hmrc.economiccrimelevyaccount.EclTestData
 import uk.gov.hmrc.economiccrimelevyaccount.models.EclReference
 import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
+import uk.gov.hmrc.economiccrimelevyaccount.views.html.ErrorTemplate
 import uk.gov.hmrc.http.HeaderCarrier
 
 import scala.concurrent.ExecutionContext
@@ -67,6 +68,8 @@ trait SpecBase
   val bodyParsers: PlayBodyParsers                                       = app.injector.instanceOf[PlayBodyParsers]
   val actorSystem: ActorSystem                                           = ActorSystem("test")
   val config: Config                                                     = app.injector.instanceOf[Config]
+
+  implicit val errorTemplate: ErrorTemplate = app.injector.instanceOf[ErrorTemplate]
 
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()

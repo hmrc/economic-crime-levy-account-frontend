@@ -17,15 +17,14 @@
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.i18n.I18nSupport
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
-import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialData, Fulfilled, ObligationData, ObligationDetails, Open}
+import uk.gov.hmrc.economiccrimelevyaccount.models._
 import uk.gov.hmrc.economiccrimelevyaccount.services.EclAccountService
 import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview}
-import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
+import uk.gov.hmrc.economiccrimelevyaccount.views.html.{ErrorTemplate, NoReturnsView, ReturnsView}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
@@ -40,7 +39,7 @@ class ViewYourReturnsController @Inject() (
   eclAccountService: EclAccountService,
   returnsView: ReturnsView,
   noReturnsView: NoReturnsView
-)(implicit ec: ExecutionContext)
+)(implicit ec: ExecutionContext, errorTemplate: ErrorTemplate)
     extends FrontendBaseController
     with I18nSupport
     with BaseController
@@ -53,7 +52,7 @@ class ViewYourReturnsController @Inject() (
       financialDataOption  <- eclAccountService.retrieveFinancialData.asResponseError
     } yield (obligationDataOption, financialDataOption))
       .fold(
-        err => Status(err.code.statusCode)(Json.toJson(err)),
+        error => routeError(error),
         {
           case (Some(obligationData), Some(financialData)) =>
             val returns = deriveReturnsOverview(obligationData, financialData)

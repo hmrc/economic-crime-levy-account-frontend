@@ -17,14 +17,12 @@
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.i18n.I18nSupport
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.services.EclAccountService
 import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
-import uk.gov.hmrc.economiccrimelevyaccount.views.html.PaymentsView
-import uk.gov.hmrc.economiccrimelevyaccount.views.html.NoPaymentsView
+import uk.gov.hmrc.economiccrimelevyaccount.views.html.{ErrorTemplate, NoPaymentsView, PaymentsView}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
@@ -39,7 +37,7 @@ class ViewYourPaymentsController @Inject() (
   view: PaymentsView,
   noPaymentsView: NoPaymentsView,
   appConfig: AppConfig
-)(implicit ec: ExecutionContext)
+)(implicit ec: ExecutionContext, errorTemplate: ErrorTemplate)
     extends FrontendBaseController
     with I18nSupport
     with BaseController
@@ -51,7 +49,7 @@ class ViewYourPaymentsController @Inject() (
       financialData        <- financialDataService.retrieveFinancialData.asResponseError
       financialViewDetails <- financialDataService.prepareFinancialDetails(financialData).asResponseError
     } yield financialViewDetails).fold(
-      error => Status(error.code.statusCode)(Json.toJson(error)),
+      error => routeError(error),
       financialViewDetailsOption =>
         financialViewDetailsOption
           .map(financialViewDetails => Ok(view(financialViewDetails, appConfig)))
