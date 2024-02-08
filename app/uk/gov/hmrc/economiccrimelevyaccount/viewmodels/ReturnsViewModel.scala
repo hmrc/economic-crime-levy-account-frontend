@@ -18,9 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
 
 import uk.gov.hmrc.economiccrimelevyaccount.models.EclSubscriptionStatus
 
-final case class ReturnsViewModel (
+final case class ReturnsViewModel(
   returns: Seq[ReturnsOverview],
   eclSubscriptionStatus: EclSubscriptionStatus
-) {
-
-}
+) {}

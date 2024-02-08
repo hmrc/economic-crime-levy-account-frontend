@@ -15,9 +15,11 @@ trait EclRegistrationStubs { self: WireMockStubs =>
       aResponse()
         .withStatus(OK)
         .withBody(
-          Json.toJson(
-            eclSubscriptionStatus
-          ).toString()
+          Json
+            .toJson(
+              eclSubscriptionStatus
+            )
+            .toString()
         )
     )
 }

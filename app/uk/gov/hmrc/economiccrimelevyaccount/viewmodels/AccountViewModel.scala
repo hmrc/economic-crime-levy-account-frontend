@@ -24,6 +24,4 @@ final case class AccountViewModel(
   optOpenObligation: Option[ObligationDetails],
   optFinancialDetails: Option[FinancialDetails],
   eclSubscriptionStatus: EclSubscriptionStatus
-) {
-
-}
+) {}
