@@ -18,7 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import cats.data.EitherT
 import org.mockito.ArgumentMatchers.any
-import play.api.http.Status.{BAD_GATEWAY, INTERNAL_SERVER_ERROR, OK}
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, status}
 import uk.gov.hmrc.economiccrimelevyaccount._

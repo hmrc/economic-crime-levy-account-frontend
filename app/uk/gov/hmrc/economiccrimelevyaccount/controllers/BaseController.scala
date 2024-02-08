@@ -21,7 +21,7 @@ import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc.Results.InternalServerError
 import play.api.mvc.{Request, Result, Results}
 import play.twirl.api.Html
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.ResponseError
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{ErrorCode, ResponseError}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.ErrorTemplate
 
 trait BaseController extends I18nSupport {
@@ -48,11 +48,11 @@ trait BaseController extends I18nSupport {
 
   def routeError(error: ResponseError)(implicit request: Request[_], errorTemplate: ErrorTemplate): Result =
     error.code match {
-      case _         =>
+      case ErrorCode.InternalServerError | ErrorCode.BadGateway | ErrorCode.BadRequest =>
         InternalServerError(internalServerErrorTemplate(request, errorTemplate)).withHeaders(
           CACHE_CONTROL -> "no-cache"
         )
-      case errorCode => Results.Status(errorCode.statusCode)(fallbackClientErrorTemplate(request, errorTemplate))
+      case errorCode                                                                   => Results.Status(errorCode.statusCode)(fallbackClientErrorTemplate(request, errorTemplate))
     }
 
 }
