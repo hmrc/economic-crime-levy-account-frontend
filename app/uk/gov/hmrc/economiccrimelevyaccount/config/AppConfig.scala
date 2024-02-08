@@ -19,7 +19,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.config
 import com.google.inject.{Inject, Singleton}
 import play.api.Configuration
 import play.api.mvc.RequestHeader
-import uk.gov.hmrc.play.bootstrap.binders.SafeRedirectUrl
+import uk.gov.hmrc.play.bootstrap.binders.RedirectUrl
 import uk.gov.hmrc.play.bootstrap.config.ServicesConfig
 
 @Singleton
@@ -32,7 +32,7 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
   private val contactFormServiceIdentifier = "economic-crime-levy-account-frontend"
 
   def feedbackUrl(implicit request: RequestHeader): String =
-    s"$contactHost/contact/beta-feedback?service=$contactFormServiceIdentifier&backUrl=${SafeRedirectUrl(host + request.uri).encodedUrl}"
+    s"$contactHost/contact/beta-feedback?service=$contactFormServiceIdentifier&backUrl=${RedirectUrl(host + request.uri)}"
 
   val signInUrl: String       = configuration.get[String]("urls.signIn")
   val signOutUrl: String      = configuration.get[String]("urls.signOut")

@@ -20,7 +20,7 @@ import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
-import uk.gov.hmrc.economiccrimelevyaccount.services.EclAccountService
+import uk.gov.hmrc.economiccrimelevyaccount.services.{EclAccountService, EclRegistrationService}
 import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{ErrorTemplate, NoPaymentsView, PaymentsView}
 import uk.gov.hmrc.http.HeaderCarrier
@@ -36,7 +36,8 @@ class ViewYourPaymentsController @Inject() (
   financialDataService: EclAccountService,
   view: PaymentsView,
   noPaymentsView: NoPaymentsView,
-  appConfig: AppConfig
+  appConfig: AppConfig,
+  eclRegistrationService: EclRegistrationService
 )(implicit ec: ExecutionContext, errorTemplate: ErrorTemplate)
     extends FrontendBaseController
     with I18nSupport
@@ -46,13 +47,14 @@ class ViewYourPaymentsController @Inject() (
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
     implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationId(request)
     (for {
-      financialData        <- financialDataService.retrieveFinancialData.asResponseError
-      financialViewDetails <- financialDataService.prepareFinancialDetails(financialData).asResponseError
-    } yield financialViewDetails).fold(
+      financialData      <- financialDataService.retrieveFinancialData.asResponseError
+      subscriptionStatus <- eclRegistrationService.getSubscriptionStatus(request.eclReference).asResponseError
+      viewModel          <- financialDataService.prepareViewModel(financialData, subscriptionStatus).asResponseError
+    } yield viewModel).fold(
       error => routeError(error),
-      financialViewDetailsOption =>
-        financialViewDetailsOption
-          .map(financialViewDetails => Ok(view(financialViewDetails, appConfig)))
+      viewModelOption =>
+        viewModelOption
+          .map(viewModel => Ok(view(viewModel, appConfig)))
           .getOrElse(Ok(noPaymentsView()))
     )
   }

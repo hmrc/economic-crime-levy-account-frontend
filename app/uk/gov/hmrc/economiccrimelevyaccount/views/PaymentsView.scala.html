@@ -15,7 +15,7 @@
  *@
 
 @import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{FinancialViewDetails, OutstandingPayments, PaymentStatus}
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{OutstandingPayments, PaymentStatus, PaymentsViewModel}
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentHistory
@@ -27,10 +27,10 @@
         table: GovukTable
 )
 
-@(financialViewDetails: FinancialViewDetails, appConfig: AppConfig)(implicit request: Request[_], messages: Messages)
+@(viewModel: PaymentsViewModel, appConfig: AppConfig)(implicit request: Request[_], messages: Messages)
 
 @generateTableOutstandingPayments = @{
-    val outstandingPayments = financialViewDetails.outstandingPayments
+    val outstandingPayments = viewModel.outstandingPayments
             .filter(payment => payment.paymentStatus == Due || payment.paymentStatus == Overdue)
   if(outstandingPayments.nonEmpty) {
     table(Table(
@@ -58,7 +58,7 @@
         (p.paymentDate, p.paymentDocument)
     }
 
-    val paymentHistory = financialViewDetails.paymentHistory
+    val paymentHistory = viewModel.paymentHistory
         .filter(payment => payment.paymentStatus == Paid || payment.paymentStatus == PartiallyPaid)
         .sorted
         .reverse

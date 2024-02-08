@@ -18,7 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import cats.data.EitherT
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EclRegistrationConnector
-import uk.gov.hmrc.economiccrimelevyaccount.models.EclSubscriptionStatus
+import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, EclSubscriptionStatus}
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EclRegistrationError
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
 
@@ -32,7 +32,7 @@ class EclRegistrationService @Inject() (
 )(implicit ec: ExecutionContext) {
 
   def getSubscriptionStatus(
-    eclRegistrationReference: String
+    eclRegistrationReference: EclReference
   )(implicit hc: HeaderCarrier): EitherT[Future, EclRegistrationError, EclSubscriptionStatus] =
     EitherT {
       eclRegistrationConnector
@@ -44,7 +44,7 @@ class EclRegistrationService @Inject() (
                 .unapply(error)
                 .isDefined || UpstreamErrorResponse.Upstream4xxResponse.unapply(error).isDefined =>
             Left(EclRegistrationError.BadGateway(message, code))
-          case NonFatal(thr) => Left(EclRegistrationError.InternalUnexpectedError(Some(thr), Some(thr.getMessage)))
+          case NonFatal(thr) => Left(EclRegistrationError.InternalUnexpectedError(thr.getMessage, Some(thr)))
         }
     }
 }

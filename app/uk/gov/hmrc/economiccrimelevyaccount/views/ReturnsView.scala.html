@@ -16,7 +16,7 @@
 
 @import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus._
-@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview}
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview, ReturnsViewModel}
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Empty
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.table.HeadCell
@@ -28,7 +28,7 @@
         table: GovukTable
 )
 
-@(returnData: Seq[ReturnsOverview])(implicit request: Request[_], messages: Messages)
+@(viewModel: ReturnsViewModel)(implicit request: Request[_], messages: Messages)
 
 @thirdCellResolve(status: ReturnStatus, periodKey: String) = @{
     status match {
@@ -84,7 +84,7 @@
 }
 
 @generateTable = @{
-    returnData.map { data =>
+    viewModel.returns.map { data =>
         table(Table(
             rows = Seq(tableRows(data)),
             head = Some(Seq(

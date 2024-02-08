@@ -14,7 +14,7 @@ trait FinancialDataStubs {
 
   val periodKey = "22XY"
 
-  def stubFinancialData: StubMapping =
+  def stubFinancialData(): StubMapping =
     stub(
       get(urlEqualTo("/economic-crime-levy-account/financial-data")),
       aResponse()

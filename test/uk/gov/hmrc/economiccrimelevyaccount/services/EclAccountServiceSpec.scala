@@ -20,7 +20,6 @@ import org.mockito.ArgumentMatchers.any
 import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponseForLatestObligation
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EclAccountConnector
-import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, PartiallyPaid}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, StandardPayment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
@@ -39,22 +38,24 @@ class EclAccountServiceSpec extends SpecBase {
       when(mockECLAccountConnector.getFinancialData(any()))
         .thenReturn(Future.successful(None))
 
-      val response = await(service.prepareFinancialDetails(None).value)
+      val response = await(service.prepareViewModel(None, testSubscribedSubscriptionStatus).value)
 
       response shouldBe Right(None)
     }
 
-    "return Some with FinancialViewDetails if we receive correct response from financialDataConnector" in forAll {
+    "return Some with PaymentsViewModel if we receive correct response from financialDataConnector" in forAll {
       validResponse: ValidFinancialDataResponseForLatestObligation =>
         when(mockECLAccountConnector.getFinancialData(any()))
           .thenReturn(Future.successful(Some(validResponse.financialDataResponse)))
 
-        val response        = await(service.prepareFinancialDetails(Some(validResponse.financialDataResponse)).value)
+        val response        = await(
+          service.prepareViewModel(Some(validResponse.financialDataResponse), testSubscribedSubscriptionStatus).value
+        )
         val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
         val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head
         response shouldBe Right(
           Some(
-            FinancialViewDetails(
+            PaymentsViewModel(
               Seq(
                 OutstandingPayments(
                   paymentDueDate = documentDetails.paymentDueDate.get,
@@ -79,7 +80,8 @@ class EclAccountServiceSpec extends SpecBase {
                   paymentType = StandardPayment,
                   refundAmount = BigDecimal(0)
                 )
-              )
+              ),
+              testSubscribedSubscriptionStatus
             )
           )
         )
@@ -109,9 +111,9 @@ class EclAccountServiceSpec extends SpecBase {
             )
           )
 
-        await(service.prepareFinancialDetails(financialDataResponse).value) shouldBe Right(
+        await(service.prepareViewModel(financialDataResponse, testSubscribedSubscriptionStatus).value) shouldBe Right(
           Some(
-            FinancialViewDetails(
+            PaymentsViewModel(
               outstandingPayments = Seq(
                 OutstandingPayments(
                   paymentDueDate = documentDetails.paymentDueDate.get,
@@ -124,7 +126,8 @@ class EclAccountServiceSpec extends SpecBase {
                   interestChargeReference = None
                 )
               ),
-              paymentHistory = Seq.empty
+              paymentHistory = Seq.empty,
+              testSubscribedSubscriptionStatus
             )
           )
         )
@@ -154,9 +157,9 @@ class EclAccountServiceSpec extends SpecBase {
             )
           )
 
-        await(service.prepareFinancialDetails(financialDataResponse).value) shouldBe Right(
+        await(service.prepareViewModel(financialDataResponse, testSubscribedSubscriptionStatus).value) shouldBe Right(
           Some(
-            FinancialViewDetails(
+            PaymentsViewModel(
               outstandingPayments = Seq(
                 OutstandingPayments(
                   paymentDueDate = documentDetails.paymentDueDate.get,
@@ -169,13 +172,14 @@ class EclAccountServiceSpec extends SpecBase {
                   interestChargeReference = None
                 )
               ),
-              paymentHistory = Seq.empty
+              paymentHistory = Seq.empty,
+              testSubscribedSubscriptionStatus
             )
           )
         )
     }
 
-    "return Some with FinancialViewDetails with interest that is not yet formed into interest document" in forAll {
+    "return Some with PaymentsViewModel with interest that is not yet formed into interest document" in forAll {
       validResponse: ValidFinancialDataResponseForLatestObligation =>
         val documentDetailsFirstItem = validResponse.financialDataResponse.documentDetails.get.head
 
@@ -195,9 +199,11 @@ class EclAccountServiceSpec extends SpecBase {
 
         val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
         val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head
-        await(service.prepareFinancialDetails(Some(validFinancialDataResponse)).value) shouldBe Right(
+        await(
+          service.prepareViewModel(Some(validFinancialDataResponse), testSubscribedSubscriptionStatus).value
+        ) shouldBe Right(
           Some(
-            FinancialViewDetails(
+            PaymentsViewModel(
               Seq(
                 OutstandingPayments(
                   paymentDueDate = documentDetails.paymentDueDate.get,
@@ -232,7 +238,8 @@ class EclAccountServiceSpec extends SpecBase {
                   paymentType = StandardPayment,
                   refundAmount = BigDecimal(0)
                 )
-              )
+              ),
+              testSubscribedSubscriptionStatus
             )
           )
         )

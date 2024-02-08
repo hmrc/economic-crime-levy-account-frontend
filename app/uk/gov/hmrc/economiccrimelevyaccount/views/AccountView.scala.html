@@ -17,10 +17,9 @@
 @import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.CardAction
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
-@import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationDetails
 @import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDetails
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.StandardPayment
-
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.AccountViewModel
 
 
 @this(
@@ -31,13 +30,10 @@
         card: uk.gov.hmrc.economiccrimelevyaccount.views.html.components.Card
 )
 
-@(eclRegistrationReference: String,
-        eclRegistrationDate: String,
-        optOpenObligation: Option[ObligationDetails],
-        optFinancialDetails: Option[FinancialDetails])(implicit request: Request[_], messages: Messages)
+@(viewModel: AccountViewModel)(implicit request: Request[_], messages: Messages)
 
 @returnsSubHeading = @{
-    optOpenObligation match {
+    viewModel.optOpenObligation match {
         case Some(o) if (o.isOverdue) =>
                 Html(messages("account.overdue.return.subHeading",
                     ViewUtils.formatLocalDate(o.inboundCorrespondenceFromDate),
@@ -52,7 +48,7 @@
 }
 
 @paymentsSubHeading = @{
-    optFinancialDetails match {
+    viewModel.optFinancialDetails match {
         case financialData @ Some(FinancialDetails(amount,Some(fromDate), Some(toDate), _,_,paymentType)) if(financialData.get.isPaymentType(StandardPayment)) =>
             if(financialData.get.isOverdue) {
                 Html(messages("account.overdue.payments.subHeading.1",
@@ -73,12 +69,12 @@
 }
 
 @submitReturnLink = @{
-    optOpenObligation.map(o => s"${appConfig.returnsUrl}/period/${o.periodKey}")
+    viewModel.optOpenObligation.map(o => s"${appConfig.returnsUrl}/period/${o.periodKey}")
 }
 
 @makePaymentLink = @{
   if(appConfig.paymentsEnabled) {
-      optFinancialDetails.map(o => "/economic-crime-levy-account/make-a-payment")
+      viewModel.optFinancialDetails.map(o => "/economic-crime-levy-account/make-a-payment")
   } else {
       None
   }
@@ -110,7 +106,7 @@
 }
 @registrationAction() = @{
   Seq(
-      CardAction("amend-registration", s"${appConfig.registrationUrl}/amend-economic-crime-levy-registration/$eclRegistrationReference", messages("account.registration.card.amendRegistration")),
+      CardAction("amend-registration", s"${appConfig.registrationUrl}/amend-economic-crime-levy-registration/$viewModel.eclRegistrationReference", messages("account.registration.card.amendRegistration")),
   )
 }
 
@@ -124,7 +120,7 @@
     @messages("account.heading")
     </h1>
     <span class="govuk-caption-m">
-    @messages("account.eclReferenceNumber", eclRegistrationReference)
+    @messages("account.eclReferenceNumber", viewModel.eclRegistrationReference)
     </span>
     <p>
 

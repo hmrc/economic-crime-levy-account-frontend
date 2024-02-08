@@ -17,9 +17,16 @@
 package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
 
 import play.api.libs.json._
+import uk.gov.hmrc.economiccrimelevyaccount.models.EclSubscriptionStatus
+
 import java.time.LocalDate
 
-case class FinancialViewDetails(outstandingPayments: Seq[OutstandingPayments], paymentHistory: Seq[PaymentHistory])
+case class PaymentsViewModel(
+  outstandingPayments: Seq[OutstandingPayments],
+  paymentHistory: Seq[PaymentHistory],
+  eclSubscriptionStatus: EclSubscriptionStatus
+)
+
 case class OutstandingPayments(
   paymentDueDate: LocalDate,
   chargeReference: String,

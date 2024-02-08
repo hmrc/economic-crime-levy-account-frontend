@@ -18,7 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
 import com.google.inject.Singleton
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-import uk.gov.hmrc.economiccrimelevyaccount.models.{EclSubscriptionStatus, FinancialData}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, EclSubscriptionStatus}
 import uk.gov.hmrc.http.client.HttpClientV2
 import uk.gov.hmrc.http.{HeaderCarrier, StringContextOps}
 
@@ -33,9 +33,9 @@ class EclRegistrationConnector @Inject() (
     extends BaseConnector {
 
   def getSubscriptionStatus(
-    eclRegistrationReference: String
+    eclReference: EclReference
   )(implicit hc: HeaderCarrier): Future[EclSubscriptionStatus] =
     httpClient
-      .get(url"${appConfig.subscriptionStatusUrl}/ZECL/$eclRegistrationReference")
+      .get(url"${appConfig.subscriptionStatusUrl}/ZECL/${eclReference.value}")
       .executeAndDeserialise[EclSubscriptionStatus]
 }

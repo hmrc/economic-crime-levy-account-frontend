@@ -2,11 +2,9 @@ package uk.gov.hmrc.economiccrimelevyaccount
 
 import play.api.test.FakeRequest
 import uk.gov.hmrc.economiccrimelevyaccount.base.ISpecBase
-import com.danielasfregola.randomdatagenerator.RandomDataGenerator.random
 import uk.gov.hmrc.economiccrimelevyaccount.behaviours.AuthorisedBehaviour
-import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
-import uk.gov.hmrc.economiccrimelevyaccount.models.{Fulfilled, Obligation, ObligationData, ObligationDetails, Open}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{Fulfilled, Obligation, ObligationData, ObligationDetails}
 
 import java.time.LocalDate
 
@@ -17,7 +15,8 @@ class ViewYourReturnsISpec extends ISpecBase with AuthorisedBehaviour {
 
     "respond with 200 status and return correct view" in {
       stubAuthorised()
-      stubFinancialData
+      stubFinancialData()
+
       val date           = LocalDate.now
       val obligationData = ObligationData(
         obligations = Seq(
@@ -37,6 +36,7 @@ class ViewYourReturnsISpec extends ISpecBase with AuthorisedBehaviour {
       )
 
       stubGetObligations(obligationData)
+      stubGetSubscriptionStatus(testEclReference, testSubscribedSubscriptionStatus)
 
       val result = callRoute(FakeRequest(routes.ViewYourReturnsController.onPageLoad()))
 

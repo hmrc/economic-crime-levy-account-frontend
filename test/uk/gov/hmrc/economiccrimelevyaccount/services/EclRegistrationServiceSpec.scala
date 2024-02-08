@@ -20,7 +20,7 @@ import play.api.http.Status.INTERNAL_SERVER_ERROR
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EclRegistrationConnector
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
-import uk.gov.hmrc.economiccrimelevyaccount.models.EclSubscriptionStatus
+import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, EclSubscriptionStatus}
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EclRegistrationError
 import uk.gov.hmrc.http.UpstreamErrorResponse
 
@@ -33,40 +33,40 @@ class EclRegistrationServiceSpec extends SpecBase {
 
   "getSubscriptionStatus" should {
     "return an EclSubscriptionStatus when EclRegistrationConnector returns an EclSubscriptionStatus" in forAll {
-      (eclRegistrationReference: String, eclSubscriptionStatus: EclSubscriptionStatus) =>
-        when(mockEclRegistrationConnector.getSubscriptionStatus(eclRegistrationReference))
+      (eclReference: EclReference, eclSubscriptionStatus: EclSubscriptionStatus) =>
+        when(mockEclRegistrationConnector.getSubscriptionStatus(eclReference))
           .thenReturn(Future.successful(eclSubscriptionStatus))
 
         val result: Either[EclRegistrationError, EclSubscriptionStatus] =
-          await(service.getSubscriptionStatus(eclRegistrationReference).value)
+          await(service.getSubscriptionStatus(eclReference).value)
 
         result shouldBe Right(eclSubscriptionStatus)
     }
 
     "return EclRegistrationError.BadGateway when when call to EclRegistrationConnector fails with 5xx error" in forAll {
-      (eclRegistrationReference: String, errorMessage: String) =>
+      (eclReference: EclReference, errorMessage: String) =>
         val errorCode = INTERNAL_SERVER_ERROR
 
-        when(mockEclRegistrationConnector.getSubscriptionStatus(eclRegistrationReference))
+        when(mockEclRegistrationConnector.getSubscriptionStatus(eclReference))
           .thenReturn(Future.failed(UpstreamErrorResponse.apply(errorMessage, errorCode)))
 
         val result: Either[EclRegistrationError, EclSubscriptionStatus] =
-          await(service.getSubscriptionStatus(eclRegistrationReference).value)
+          await(service.getSubscriptionStatus(eclReference).value)
 
         result shouldBe Left(EclRegistrationError.BadGateway(errorMessage, errorCode))
     }
 
     "return EclRegistrationError.InternalUnexpectedError when when call to EclRegistrationConnector fails with an unexpected error" in forAll {
-      (eclRegistrationReference: String, errorMessage: String) =>
+      (eclReference: EclReference, errorMessage: String) =>
         val throwable: Exception = new Exception(errorMessage)
 
-        when(mockEclRegistrationConnector.getSubscriptionStatus(eclRegistrationReference))
+        when(mockEclRegistrationConnector.getSubscriptionStatus(eclReference))
           .thenReturn(Future.failed(throwable))
 
         val result: Either[EclRegistrationError, EclSubscriptionStatus] =
-          await(service.getSubscriptionStatus(eclRegistrationReference).value)
+          await(service.getSubscriptionStatus(eclReference).value)
 
-        result shouldBe Left(EclRegistrationError.InternalUnexpectedError(Some(throwable), Some(errorMessage)))
+        result shouldBe Left(EclRegistrationError.InternalUnexpectedError(errorMessage, Some(throwable)))
     }
   }
 }

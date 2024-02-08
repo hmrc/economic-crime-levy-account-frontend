@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.economiccrimelevyaccount.models
+package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
 
-import play.api.libs.json.{Json, OFormat}
+import uk.gov.hmrc.economiccrimelevyaccount.models.EclSubscriptionStatus
 
-final case class EclReference(value: String)
+final case class ReturnsViewModel (
+  returns: Seq[ReturnsOverview],
+  eclSubscriptionStatus: EclSubscriptionStatus
+) {
 
-object EclReference {
-  implicit val format: OFormat[EclReference] = Json.format[EclReference]
 }
