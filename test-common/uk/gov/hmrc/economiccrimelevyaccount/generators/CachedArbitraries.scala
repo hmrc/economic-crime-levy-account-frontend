@@ -23,7 +23,6 @@ import uk.gov.hmrc.economiccrimelevyaccount.EclTestData
 import com.danielasfregola.randomdatagenerator.RandomDataGenerator.derivedArbitrary
 import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, Obligation, ObligationData}
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.EnrolmentResponse
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.FinancialViewDetails
 
 object CachedArbitraries extends EclTestData with Generators {
 

@@ -60,7 +60,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         val dueReturns             = Seq(
           ReturnsOverview(
-            "2022-2023",
+            "2023-2024",
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Due,
             "21XY",
@@ -85,7 +85,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         val dueReturns             = Seq(
           ReturnsOverview(
-            "2022-2023",
+            "2023-2024",
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Overdue,
             "21XY",
@@ -110,7 +110,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
         val dueReturns             = Seq(
           ReturnsOverview(
-            "2022-2023",
+            "2023-2024",
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Submitted,
             "21XY",

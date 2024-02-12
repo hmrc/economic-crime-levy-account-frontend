@@ -2,10 +2,10 @@ package uk.gov.hmrc.economiccrimelevyaccount.base
 
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import play.api.http.Status.{CREATED, OK}
+import play.api.http.Status.CREATED
 import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.base.WireMockHelper._
-import uk.gov.hmrc.economiccrimelevyaccount.models.{ObligationData, OpsJourneyResponse}
+import uk.gov.hmrc.economiccrimelevyaccount.models.OpsJourneyResponse
 
 trait OpsJourneyStubs { self: WireMockStubs =>
 
