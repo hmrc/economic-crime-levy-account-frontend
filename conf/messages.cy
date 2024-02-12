@@ -89,6 +89,7 @@ account.viewPayments.table.paymentsHistory.header.6 = Gweithredoedd
 account.viewPayments.table.paymentsHistory.cell.6 = <a href="{0}" class="govuk-link">Gofyn am ad-daliad</a>
 account.registration.card.title = Cofrestriad
 account.registration.card.amendRegistration = Diwygio cofrestriad
+account.deregistration.p1 = Gwnaethoch ddadgofrestru'r cyfrif hwn. Gallwch barhau i weld eich datganiadau a gyflwynwyd a hanes talu.
 
 account.viewPayments.history.table.cell.interest.reference = Tâl llog ar gyfer rhif datganiad ECL {0}
 account.viewPayments.outstanding.table.cell.interest.reference = Tâl llog {0} ar gyfer rhif datganiad ECL {1}

@@ -49,7 +49,8 @@ class ViewYourPaymentsController @Inject() (
     (for {
       financialData      <- financialDataService.retrieveFinancialData.asResponseError
       subscriptionStatus <- eclRegistrationService.getSubscriptionStatus(request.eclReference).asResponseError
-      viewModel          <- financialDataService.prepareViewModel(financialData, subscriptionStatus).asResponseError
+      viewModel          <-
+        financialDataService.prepareViewModel(financialData, request.eclReference, subscriptionStatus).asResponseError
     } yield viewModel).fold(
       error => routeError(error),
       viewModelOption =>

@@ -38,7 +38,7 @@ class EclAccountServiceSpec extends SpecBase {
       when(mockECLAccountConnector.getFinancialData(any()))
         .thenReturn(Future.successful(None))
 
-      val response = await(service.prepareViewModel(None, testSubscribedSubscriptionStatus).value)
+      val response = await(service.prepareViewModel(None, testEclReference, testSubscribedSubscriptionStatus).value)
 
       response shouldBe Right(None)
     }
@@ -49,7 +49,13 @@ class EclAccountServiceSpec extends SpecBase {
           .thenReturn(Future.successful(Some(validResponse.financialDataResponse)))
 
         val response        = await(
-          service.prepareViewModel(Some(validResponse.financialDataResponse), testSubscribedSubscriptionStatus).value
+          service
+            .prepareViewModel(
+              Some(validResponse.financialDataResponse),
+              testEclReference,
+              testSubscribedSubscriptionStatus
+            )
+            .value
         )
         val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
         val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head
@@ -81,6 +87,7 @@ class EclAccountServiceSpec extends SpecBase {
                   refundAmount = BigDecimal(0)
                 )
               ),
+              testEclReference,
               testSubscribedSubscriptionStatus
             )
           )
@@ -111,7 +118,9 @@ class EclAccountServiceSpec extends SpecBase {
             )
           )
 
-        await(service.prepareViewModel(financialDataResponse, testSubscribedSubscriptionStatus).value) shouldBe Right(
+        await(
+          service.prepareViewModel(financialDataResponse, testEclReference, testSubscribedSubscriptionStatus).value
+        ) shouldBe Right(
           Some(
             PaymentsViewModel(
               outstandingPayments = Seq(
@@ -127,6 +136,7 @@ class EclAccountServiceSpec extends SpecBase {
                 )
               ),
               paymentHistory = Seq.empty,
+              testEclReference,
               testSubscribedSubscriptionStatus
             )
           )
@@ -157,7 +167,9 @@ class EclAccountServiceSpec extends SpecBase {
             )
           )
 
-        await(service.prepareViewModel(financialDataResponse, testSubscribedSubscriptionStatus).value) shouldBe Right(
+        await(
+          service.prepareViewModel(financialDataResponse, testEclReference, testSubscribedSubscriptionStatus).value
+        ) shouldBe Right(
           Some(
             PaymentsViewModel(
               outstandingPayments = Seq(
@@ -173,6 +185,7 @@ class EclAccountServiceSpec extends SpecBase {
                 )
               ),
               paymentHistory = Seq.empty,
+              testEclReference,
               testSubscribedSubscriptionStatus
             )
           )
@@ -200,7 +213,9 @@ class EclAccountServiceSpec extends SpecBase {
         val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
         val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head
         await(
-          service.prepareViewModel(Some(validFinancialDataResponse), testSubscribedSubscriptionStatus).value
+          service
+            .prepareViewModel(Some(validFinancialDataResponse), testEclReference, testSubscribedSubscriptionStatus)
+            .value
         ) shouldBe Right(
           Some(
             PaymentsViewModel(
@@ -239,6 +254,7 @@ class EclAccountServiceSpec extends SpecBase {
                   refundAmount = BigDecimal(0)
                 )
               ),
+              testEclReference,
               testSubscribedSubscriptionStatus
             )
           )

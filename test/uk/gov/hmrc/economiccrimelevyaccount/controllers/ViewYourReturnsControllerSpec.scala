@@ -80,7 +80,8 @@ class ViewYourReturnsControllerSpec extends SpecBase {
           )
         )
 
-        val viewModel: ReturnsViewModel = ReturnsViewModel(dueReturns, testSubscribedSubscriptionStatus)
+        val viewModel: ReturnsViewModel =
+          ReturnsViewModel(dueReturns, testEclReference, testSubscribedSubscriptionStatus)
 
         status(result)          shouldBe OK
         contentAsString(result) shouldBe returnsView(
@@ -113,7 +114,8 @@ class ViewYourReturnsControllerSpec extends SpecBase {
           )
         )
 
-        val viewModel: ReturnsViewModel = ReturnsViewModel(dueReturns, testSubscribedSubscriptionStatus)
+        val viewModel: ReturnsViewModel =
+          ReturnsViewModel(dueReturns, testEclReference, testSubscribedSubscriptionStatus)
 
         status(result)          shouldBe OK
         contentAsString(result) shouldBe returnsView(
@@ -146,7 +148,8 @@ class ViewYourReturnsControllerSpec extends SpecBase {
           )
         )
 
-        val viewModel: ReturnsViewModel = ReturnsViewModel(dueReturns, testSubscribedSubscriptionStatus)
+        val viewModel: ReturnsViewModel =
+          ReturnsViewModel(dueReturns, testEclReference, testSubscribedSubscriptionStatus)
 
         status(result)          shouldBe OK
         contentAsString(result) shouldBe returnsView(

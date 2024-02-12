@@ -24,9 +24,10 @@ import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.{BeforeAndAfterEach, OptionValues, TryValues}
 import org.scalatestplus.play.guice.GuiceOneAppPerSuite
 import org.scalatestplus.scalacheck.ScalaCheckPropertyChecks
-import play.api.Application
+import play.api
+import play.api.{Application, inject}
 import play.api.i18n.{Messages, MessagesApi}
-import play.api.inject.guice.GuiceApplicationBuilder
+import play.api.inject.guice.{GuiceApplicationBuilder, GuiceableModule}
 import play.api.mvc._
 import play.api.test.Helpers.{stubBodyParser, stubControllerComponents}
 import play.api.test.{DefaultAwaitTimeout, FakeRequest, FutureAwaits}
@@ -59,17 +60,20 @@ trait SpecBase
     testInternalId,
     testEclReference
   )
-  val appConfig: AppConfig                                               = app.injector.instanceOf[AppConfig]
   val messagesApi: MessagesApi                                           = app.injector.instanceOf[MessagesApi]
   val messages: Messages                                                 = messagesApi.preferred(fakeRequest)
   val bodyParsers: PlayBodyParsers                                       = app.injector.instanceOf[PlayBodyParsers]
   val actorSystem: ActorSystem                                           = ActorSystem("test")
   val config: Config                                                     = app.injector.instanceOf[Config]
+  lazy val appConfig: AppConfig                                          = app.injector.instanceOf[AppConfig]
 
   implicit val errorTemplate: ErrorTemplate = app.injector.instanceOf[ErrorTemplate]
 
+  def moduleOverrides(): Seq[GuiceableModule] = Seq.empty
+
   override def fakeApplication(): Application =
     new GuiceApplicationBuilder()
+      .overrides(moduleOverrides(): _*)
       .configure(
         "metrics.jvm"                  -> false,
         "metrics.enabled"              -> false,

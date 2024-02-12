@@ -32,83 +32,6 @@
 
 @(viewModel: AccountViewModel)(implicit request: Request[_], messages: Messages)
 
-@returnsSubHeading = @{
-    viewModel.optOpenObligation match {
-        case Some(o) if (o.isOverdue) =>
-                Html(messages("account.overdue.return.subHeading",
-                    ViewUtils.formatLocalDate(o.inboundCorrespondenceFromDate),
-                    ViewUtils.formatLocalDate(o.inboundCorrespondenceToDate)))
-        case Some(o) =>
-                Html(messages("account.due.return.subHeading",
-                    ViewUtils.formatLocalDate(o.inboundCorrespondenceFromDate),
-                    ViewUtils.formatLocalDate(o.inboundCorrespondenceToDate),
-                    ViewUtils.formatLocalDate(o.inboundCorrespondenceDueDate)))
-        case _ => Html(messages("account.noneDue.return.subHeading"))
-    }
-}
-
-@paymentsSubHeading = @{
-    viewModel.optFinancialDetails match {
-        case financialData @ Some(FinancialDetails(amount,Some(fromDate), Some(toDate), _,_,paymentType)) if(financialData.get.isPaymentType(StandardPayment)) =>
-            if(financialData.get.isOverdue) {
-                Html(messages("account.overdue.payments.subHeading.1",
-                      ViewUtils.formatLocalDate(fromDate).takeRight(4),
-                      ViewUtils.formatLocalDate(toDate).takeRight(4),
-                      ViewUtils.formatMoney(amount)))
-            } else {
-                Html(messages("account.due.payments.subHeading",
-                    ViewUtils.formatMoney(amount),
-                    ViewUtils.formatLocalDate(financialData.get.dueDate.get).takeRight(4),
-                    ViewUtils.formatLocalDate(fromDate).takeRight(4),
-                    ViewUtils.formatLocalDate(toDate).takeRight(4)))
-            }
-        case Some(financialDetails) if (!financialDetails.isPaymentType(StandardPayment)) =>
-              Html(messages("account.interest.payments.subHeading"))
-        case _ => Html(messages("account.noneDue.payments.subHeading"))
-    }
-}
-
-@submitReturnLink = @{
-    viewModel.optOpenObligation.map(o => s"${appConfig.returnsUrl}/period/${o.periodKey}")
-}
-
-@makePaymentLink = @{
-  if(appConfig.paymentsEnabled) {
-      viewModel.optFinancialDetails.map(o => "/economic-crime-levy-account/make-a-payment")
-  } else {
-      None
-  }
-
-}
-
-@getViewReturnsLinkName = @{
-    if(appConfig.amendReturnsEnabled) {
-        messages("account.viewOrAmendReturns")
-    } else {
-        messages("account.viewReturns")
-    }
-}
-
-@returnsActions = @{
-    submitReturnLink.map(CardAction("submit-return", _, messages("account.submitEcl"))).toSeq ++
-            Seq(
-                CardAction("how-to-complete-return", "https://www.gov.uk/guidance/submit-a-return-for-the-economic-crime-levy", messages("account.howToComplete")),
-                CardAction("view-returns", uk.gov.hmrc.economiccrimelevyaccount.controllers.routes.ViewYourReturnsController.onPageLoad().url, getViewReturnsLinkName)
-            )
-}
-
-@paymentsActions = @{
-    makePaymentLink.map(CardAction("make-payment", _, messages("account.payments.makePayment"))).toSeq ++
-    Seq(
-        CardAction("how-to-make-payment", "https://www.gov.uk/guidance/pay-your-economic-crime-levy", messages("account.payments.howTo")),
-        CardAction("view-payment-history", uk.gov.hmrc.economiccrimelevyaccount.controllers.routes.ViewYourPaymentsController.onPageLoad().url, messages("account.payments.viewHistory"))
-    )
-}
-@registrationAction() = @{
-  Seq(
-      CardAction("amend-registration", s"${appConfig.registrationUrl}/amend-economic-crime-levy-registration/$viewModel.eclRegistrationReference", messages("account.registration.card.amendRegistration")),
-  )
-}
 
 @layout(
     pageTitle = title(messages("account.title")),
@@ -119,25 +42,28 @@
     <h1 class="govuk-heading-xl govuk-!-margin-bottom-0">
     @messages("account.heading")
     </h1>
+
     <span class="govuk-caption-m">
-    @messages("account.eclReferenceNumber", viewModel.eclRegistrationReference)
+    @messages("account.eclReferenceNumber", viewModel.eclRegistrationReference.value)
+
     </span>
-    <p>
 
-        <br>
+    @if(viewModel.isDeRegistered) {
+        <p class="govuk-body govuk-!-margin-top-3">@messages("account.deregistration.p1")</p>
+    }
 
-<div class="container govuk-grid-row">
-    <div class="flex-container govuk-grid-row">
-        @if(appConfig.returnsEnabled) {
-            @card("returns", messages("account.return.card.title"), Some(returnsSubHeading), returnsActions)
-        }
-        @if(appConfig.paymentsEnabled) {
-            @card("payments", messages("account.payments.card.title"), Some(paymentsSubHeading), paymentsActions)
-        }
-        @if(appConfig.amendRegistrationEnabled) {
-            @card("registration", messages("account.registration.card.title"), None, registrationAction)
-        }
+    <div class="container govuk-grid-row govuk-!-margin-top-7">
+        <div class="flex-container govuk-grid-row">
+            @if(viewModel.canViewReturns) {
+                @card("returns", messages("account.return.card.title"), Some(viewModel.returnsSubHeading()), viewModel.returnsActions())
+            }
+            @if(viewModel.canViewPayments) {
+                @card("payments", messages("account.payments.card.title"), Some(viewModel.paymentsSubHeading()), viewModel.paymentsActions())
+            }
+            @if(viewModel.canAmendRegistration) {
+                @card("registration", messages("account.registration.card.title"), None, viewModel.registrationAction())
+            }
+        </div>
     </div>
-</div>
 
 }

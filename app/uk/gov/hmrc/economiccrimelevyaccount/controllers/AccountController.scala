@@ -18,6 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
 import uk.gov.hmrc.economiccrimelevyaccount.models.{EclSubscriptionStatus, FinancialData, FinancialDetails, ObligationDetails}
@@ -41,7 +42,8 @@ class AccountController @Inject() (
   view: AccountView,
   eclAccountService: EclAccountService,
   auditService: AuditService,
-  eclRegistrationService: EclRegistrationService
+  eclRegistrationService: EclRegistrationService,
+  appConfig: AppConfig
 )(implicit ec: ExecutionContext, errorTemplate: ErrorTemplate)
     extends FrontendBaseController
     with I18nSupport
@@ -77,19 +79,21 @@ class AccountController @Inject() (
     val viewModel: AccountViewModel = financialDataOption match {
       case Some(financialData) =>
         AccountViewModel(
-          request.eclReference.value,
+          appConfig,
+          eclSubscriptionStatus,
+          request.eclReference,
           ViewUtils.formatLocalDate(registrationDate),
           latestObligationDetailsOption,
-          financialData.latestFinancialObligation.flatMap(FinancialDetails.applyOptional),
-          eclSubscriptionStatus
+          financialData.latestFinancialObligation.flatMap(FinancialDetails.applyOptional)
         )
       case None                =>
         AccountViewModel(
-          request.eclReference.value,
+          appConfig,
+          eclSubscriptionStatus,
+          request.eclReference,
           ViewUtils.formatLocalDate(registrationDate),
           latestObligationDetailsOption,
-          None,
-          eclSubscriptionStatus
+          None
         )
     }
 

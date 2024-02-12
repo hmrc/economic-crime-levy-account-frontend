@@ -64,6 +64,7 @@ class EclAccountService @Inject() (
 
   def prepareViewModel(
     financialDataOption: Option[FinancialData],
+    eclReference: EclReference,
     eclSubscriptionStatus: EclSubscriptionStatus
   ): EitherT[Future, EclAccountError, Option[PaymentsViewModel]] =
     Try {
@@ -96,6 +97,7 @@ class EclAccountService @Inject() (
           PaymentsViewModel(
             outstandingPayments = outstandingPayments ++ accruingInterestOutstandingPayments,
             paymentHistory = paymentsHistory,
+            eclReference,
             eclSubscriptionStatus
           )
         }

@@ -64,14 +64,18 @@
     Seq(TableRow(content = ViewUtils.formatLocalDate(rowData.dueDate), classes = "govuk-table__header govuk-!-width-one-half"),
         TableRow(content = HtmlContent(messages("account.viewReturns.table.status", rowStatus._1, messages(rowStatus._2))), classes = "govuk-table__cell"),
         TableRow(content = chargeReference, classes = "govuk-table__cell"),
-        rowData.chargeReference match {
-            case Some(_) =>
-                if(rowData.dueDate.plusYears(1).isAfter(LocalDate.now()) && appConfig.amendReturnsEnabled) {
-                    (TableRow(content = amendLink))
-                } else {
-                    TableRow(content = Empty)
-                }
-            case None => TableRow(content = HtmlContent(tableLinkInfo))
+        if (viewModel.isSubscribed){
+            rowData.chargeReference match {
+                case Some(_) =>
+                    if(rowData.dueDate.plusYears(1).isAfter(LocalDate.now()) && appConfig.amendReturnsEnabled) {
+                        (TableRow(content = amendLink))
+                    } else {
+                        TableRow(content = Empty)
+                    }
+                case None => TableRow(content = HtmlContent(tableLinkInfo))
+            }
+        } else {
+            TableRow(content = Empty)
         })
 }
 

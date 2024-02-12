@@ -52,7 +52,8 @@ trait BaseController extends I18nSupport {
         InternalServerError(internalServerErrorTemplate(request, errorTemplate)).withHeaders(
           CACHE_CONTROL -> "no-cache"
         )
-      case errorCode                                                                   => Results.Status(errorCode.statusCode)(fallbackClientErrorTemplate(request, errorTemplate))
+      case errorCode                                                                   =>
+        Results.Status(errorCode.statusCode)(fallbackClientErrorTemplate(request, errorTemplate))
     }
 
 }

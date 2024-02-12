@@ -16,15 +16,7 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
 
-import uk.gov.hmrc.economiccrimelevyaccount.models.EclSubscriptionStatus.Subscribed
-import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, EclSubscriptionStatus}
-
-final case class ReturnsViewModel(
-  returns: Seq[ReturnsOverview],
-  eclRegistrationReference: EclReference,
-  eclSubscriptionStatus: EclSubscriptionStatus
-) {
-
-  val isSubscribed: Boolean =
-    eclSubscriptionStatus.subscriptionStatus == Subscribed(eclRegistrationReference.value)
+trait ViewModelBase {
+  def add[T](value: T): Seq[T]                         = Seq(value)
+  def addIf[T](condition: Boolean, value: T): Seq[T]    = if (condition) Seq(value) else Seq.empty
 }

@@ -52,7 +52,7 @@ class ViewYourReturnsController @Inject() (
       obligationDataOption <- eclAccountService.retrieveObligationData.asResponseError
       financialDataOption  <- eclAccountService.retrieveFinancialData.asResponseError
       subscriptionStatus   <- eclRegistrationService.getSubscriptionStatus(request.eclReference).asResponseError
-      response              = prepareResponse(obligationDataOption, financialDataOption, subscriptionStatus)
+      response              = prepareResponse(obligationDataOption, financialDataOption, request.eclReference, subscriptionStatus)
     } yield response)
       .fold(
         error => routeError(error),
@@ -63,12 +63,13 @@ class ViewYourReturnsController @Inject() (
   private def prepareResponse(
     obligationData: Option[ObligationData],
     financialData: Option[FinancialData],
+    eclRegistrationReference: EclReference,
     eclSubscriptionStatus: EclSubscriptionStatus
   )(implicit request: Request[_], messages: Messages): Result =
     (obligationData, financialData) match {
       case (Some(obligationData), Some(financialData)) =>
         val returns   = deriveReturnsOverview(obligationData, financialData)
-        val viewModel = ReturnsViewModel(returns, eclSubscriptionStatus)
+        val viewModel = ReturnsViewModel(returns, eclRegistrationReference, eclSubscriptionStatus)
         Ok(returnsView(viewModel)(request, messages))
       case _                                           => Ok(noReturnsView()(request, messages))
     }

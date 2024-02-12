@@ -20,7 +20,7 @@ import play.api.Logging
 
 import scala.concurrent.{ExecutionContext, Future}
 import cats.data.EitherT
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{BadGateway, EclAccountError, EclRegistrationError, EnrolmentStoreError, InternalServiceError, OpsError, ResponseError}
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors._
 
 trait ErrorHandler extends Logging {
 

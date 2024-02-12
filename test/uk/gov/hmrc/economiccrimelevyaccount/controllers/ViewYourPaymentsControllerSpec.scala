@@ -52,7 +52,7 @@ class ViewYourPaymentsControllerSpec extends SpecBase {
         when(mockEclAccountService.retrieveFinancialData(any()))
           .thenReturn(EitherT.rightT[Future, EclAccountError](Some(financialData.financialDataResponse)))
 
-        when(mockEclAccountService.prepareViewModel(any(), any()))
+        when(mockEclAccountService.prepareViewModel(any(), any(), any()))
           .thenReturn(EitherT.rightT[Future, EclAccountError](Some(validPaymentsViewModel.viewModel)))
 
         when(mockEclRegistrationService.getSubscriptionStatus(any())(any()))
@@ -71,7 +71,7 @@ class ViewYourPaymentsControllerSpec extends SpecBase {
       when(mockEclAccountService.retrieveFinancialData(any()))
         .thenReturn(EitherT.rightT[Future, EclAccountError](None))
 
-      when(mockEclAccountService.prepareViewModel(any(), any()))
+      when(mockEclAccountService.prepareViewModel(any(), any(), any()))
         .thenReturn(EitherT.rightT[Future, EclAccountError](None))
 
       val result: Future[Result] = controller.onPageLoad()(fakeRequest)

@@ -24,7 +24,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.models.EclSubscriptionStatus.{DeRegi
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.EclEnrolment
 import uk.gov.hmrc.economiccrimelevyaccount.models._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.Paid
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{OutstandingPayments, PaymentHistory, PaymentsViewModel}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
 import uk.gov.hmrc.time.TaxYear
 
@@ -313,6 +313,7 @@ trait EclTestData {
             refundAmount = BigDecimal(0)
           )
         ),
+        testEclReference,
         testSubscribedSubscriptionStatus
       )
     )

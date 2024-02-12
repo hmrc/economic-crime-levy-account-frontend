@@ -47,7 +47,8 @@ class EclAccountControllerSpec extends SpecBase {
     view,
     mockEclAccountService,
     mockAuditService,
-    mockEclRegistrationService
+    mockEclRegistrationService,
+    appConfig
   )
 
   "onPageLoad" should {

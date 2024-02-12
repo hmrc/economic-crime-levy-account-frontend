@@ -17,15 +17,20 @@
 package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
 
 import play.api.libs.json._
-import uk.gov.hmrc.economiccrimelevyaccount.models.EclSubscriptionStatus
+import uk.gov.hmrc.economiccrimelevyaccount.models.EclSubscriptionStatus.Subscribed
+import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, EclSubscriptionStatus}
 
 import java.time.LocalDate
 
 case class PaymentsViewModel(
   outstandingPayments: Seq[OutstandingPayments],
   paymentHistory: Seq[PaymentHistory],
+  eclRegistrationReference: EclReference,
   eclSubscriptionStatus: EclSubscriptionStatus
-)
+) {
+  val isSubscribed: Boolean =
+    eclSubscriptionStatus.subscriptionStatus == Subscribed(eclRegistrationReference.value)
+}
 
 case class OutstandingPayments(
   paymentDueDate: LocalDate,
