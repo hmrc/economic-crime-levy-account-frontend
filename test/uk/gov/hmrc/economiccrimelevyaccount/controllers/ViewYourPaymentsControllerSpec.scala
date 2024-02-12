@@ -23,7 +23,6 @@ import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, status}
 import uk.gov.hmrc.economiccrimelevyaccount.{ValidFinancialDataResponse, ValidFinancialViewDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EclAccountError
 import uk.gov.hmrc.economiccrimelevyaccount.services.EclAccountService
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoPaymentsView, PaymentsView}

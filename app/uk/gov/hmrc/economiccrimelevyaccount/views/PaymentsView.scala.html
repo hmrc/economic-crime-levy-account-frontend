@@ -43,7 +43,6 @@
             HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.5")), classes = "govuk-table__header govuk-!-width-one-quarter"),
             HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.6")), classes = "govuk-table__header govuk-!-width-one-quarter")
         )),
-        firstCellIsHeader = true,
         caption = Some(messages("account.viewPayments.table.outstandingPayments.header.title")),
         captionClasses = "govuk-table__caption--m",
         classes = "govuk-table"
@@ -73,7 +72,6 @@
                 HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.5")), classes = "govuk-table__header govuk-!-width-one-quarter"),
                 HeadCell(content = if (appConfig.disableRefund) " " else Text(messages("account.viewPayments.table.paymentsHistory.header.6")), classes = "govuk-table__header govuk-!-width-one-quarter")
             )),
-            firstCellIsHeader = true,
             caption = Some(messages("account.viewPayments.table.paymentsHistory.header.title")),
             captionClasses = "govuk-table__caption--m",
             classes = "govuk-table"
@@ -152,7 +150,7 @@
         val refundAmount = data.refundAmount
 
         val link = appConfig.refundBaseUrl + "?amount=" + refundAmount
-        Seq(TableRow(content = HtmlContent(paymentDate)),
+        Seq(TableRow(content = HtmlContent(paymentDate), classes = "govuk-table__header"),
             TableRow(content = HtmlContent(getHistoryPaymentTypeCellContent(data))),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.period", ViewUtils.formatLocalDate(data.fyFrom.get),
                 ViewUtils.formatLocalDate(data.fyTo.get))), classes = "govuk-table__cell"),

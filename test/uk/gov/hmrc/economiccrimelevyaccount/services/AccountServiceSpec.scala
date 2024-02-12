@@ -20,8 +20,7 @@ import org.mockito.ArgumentMatchers.any
 import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponseForLatestObligation
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EclAccountConnector
-import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, PartiallyPaid}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Due, PartiallyPaid}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, StandardPayment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 
@@ -62,7 +61,7 @@ class AccountServiceSpec extends SpecBase {
                   fyFrom = firstItem.periodFromDate.get,
                   fyTo = firstItem.periodToDate.get,
                   amount = documentDetails.documentOutstandingAmount.get,
-                  paymentStatus = Overdue,
+                  paymentStatus = Due,
                   paymentType = StandardPayment,
                   interestChargeReference = None
                 )
@@ -119,7 +118,7 @@ class AccountServiceSpec extends SpecBase {
                   fyFrom = firstItem.periodFromDate.get,
                   fyTo = firstItem.periodToDate.get,
                   amount = documentDetails.documentOutstandingAmount.get,
-                  paymentStatus = Overdue,
+                  paymentStatus = Due,
                   paymentType = StandardPayment,
                   interestChargeReference = None
                 )
@@ -164,7 +163,7 @@ class AccountServiceSpec extends SpecBase {
                   fyFrom = firstItem.periodFromDate.get,
                   fyTo = firstItem.periodToDate.get,
                   amount = documentDetails.documentOutstandingAmount.get,
-                  paymentStatus = Overdue,
+                  paymentStatus = Due,
                   paymentType = StandardPayment,
                   interestChargeReference = None
                 )
@@ -205,7 +204,7 @@ class AccountServiceSpec extends SpecBase {
                   fyFrom = firstItem.periodFromDate.get,
                   fyTo = firstItem.periodToDate.get,
                   amount = documentDetails.documentOutstandingAmount.get,
-                  paymentStatus = Overdue,
+                  paymentStatus = Due,
                   paymentType = StandardPayment,
                   interestChargeReference = None
                 ),
@@ -215,7 +214,7 @@ class AccountServiceSpec extends SpecBase {
                   fyFrom = firstItem.periodFromDate.get,
                   fyTo = firstItem.periodToDate.get,
                   amount = BigDecimal(15.00),
-                  paymentStatus = Overdue,
+                  paymentStatus = Due,
                   paymentType = Interest,
                   interestChargeReference = None
                 )

@@ -2,11 +2,9 @@ package uk.gov.hmrc.economiccrimelevyaccount
 
 import play.api.test.FakeRequest
 import uk.gov.hmrc.economiccrimelevyaccount.base.ISpecBase
-import com.danielasfregola.randomdatagenerator.RandomDataGenerator.random
 import uk.gov.hmrc.economiccrimelevyaccount.behaviours.AuthorisedBehaviour
-import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
-import uk.gov.hmrc.economiccrimelevyaccount.models.{Fulfilled, Obligation, ObligationData, ObligationDetails, Open}
+import uk.gov.hmrc.economiccrimelevyaccount.models._
 
 import java.time.LocalDate
 
