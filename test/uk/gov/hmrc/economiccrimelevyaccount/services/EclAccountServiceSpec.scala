@@ -20,13 +20,13 @@ import org.mockito.ArgumentMatchers.any
 import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponseForLatestObligation
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EclAccountConnector
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Due, PartiallyPaid}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, PartiallyPaid}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, StandardPayment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 
 import scala.concurrent.Future
 
-class AccountServiceSpec extends SpecBase {
+class EclAccountServiceSpec extends SpecBase {
 
   private val mockECLAccountConnector = mock[EclAccountConnector]
 
@@ -38,22 +38,30 @@ class AccountServiceSpec extends SpecBase {
       when(mockECLAccountConnector.getFinancialData(any()))
         .thenReturn(Future.successful(None))
 
-      val response = await(service.prepareFinancialDetails(None).value)
+      val response = await(service.prepareViewModel(None, testEclReference, testSubscribedSubscriptionStatus).value)
 
       response shouldBe Right(None)
     }
 
-    "return Some with FinancialViewDetails if we receive correct response from financialDataConnector" in forAll {
+    "return Some with PaymentsViewModel if we receive correct response from financialDataConnector" in forAll {
       validResponse: ValidFinancialDataResponseForLatestObligation =>
         when(mockECLAccountConnector.getFinancialData(any()))
           .thenReturn(Future.successful(Some(validResponse.financialDataResponse)))
 
-        val response        = await(service.prepareFinancialDetails(Some(validResponse.financialDataResponse)).value)
+        val response        = await(
+          service
+            .prepareViewModel(
+              Some(validResponse.financialDataResponse),
+              testEclReference,
+              testSubscribedSubscriptionStatus
+            )
+            .value
+        )
         val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
         val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head
         response shouldBe Right(
           Some(
-            FinancialViewDetails(
+            PaymentsViewModel(
               Seq(
                 OutstandingPayments(
                   paymentDueDate = documentDetails.paymentDueDate.get,
@@ -61,7 +69,7 @@ class AccountServiceSpec extends SpecBase {
                   fyFrom = firstItem.periodFromDate.get,
                   fyTo = firstItem.periodToDate.get,
                   amount = documentDetails.documentOutstandingAmount.get,
-                  paymentStatus = Due,
+                  paymentStatus = Overdue,
                   paymentType = StandardPayment,
                   interestChargeReference = None
                 )
@@ -78,7 +86,9 @@ class AccountServiceSpec extends SpecBase {
                   paymentType = StandardPayment,
                   refundAmount = BigDecimal(0)
                 )
-              )
+              ),
+              testEclReference,
+              testSubscribedSubscriptionStatus
             )
           )
         )
@@ -108,9 +118,11 @@ class AccountServiceSpec extends SpecBase {
             )
           )
 
-        await(service.prepareFinancialDetails(financialDataResponse).value) shouldBe Right(
+        await(
+          service.prepareViewModel(financialDataResponse, testEclReference, testSubscribedSubscriptionStatus).value
+        ) shouldBe Right(
           Some(
-            FinancialViewDetails(
+            PaymentsViewModel(
               outstandingPayments = Seq(
                 OutstandingPayments(
                   paymentDueDate = documentDetails.paymentDueDate.get,
@@ -118,12 +130,14 @@ class AccountServiceSpec extends SpecBase {
                   fyFrom = firstItem.periodFromDate.get,
                   fyTo = firstItem.periodToDate.get,
                   amount = documentDetails.documentOutstandingAmount.get,
-                  paymentStatus = Due,
+                  paymentStatus = Overdue,
                   paymentType = StandardPayment,
                   interestChargeReference = None
                 )
               ),
-              paymentHistory = Seq.empty
+              paymentHistory = Seq.empty,
+              testEclReference,
+              testSubscribedSubscriptionStatus
             )
           )
         )
@@ -153,9 +167,11 @@ class AccountServiceSpec extends SpecBase {
             )
           )
 
-        await(service.prepareFinancialDetails(financialDataResponse).value) shouldBe Right(
+        await(
+          service.prepareViewModel(financialDataResponse, testEclReference, testSubscribedSubscriptionStatus).value
+        ) shouldBe Right(
           Some(
-            FinancialViewDetails(
+            PaymentsViewModel(
               outstandingPayments = Seq(
                 OutstandingPayments(
                   paymentDueDate = documentDetails.paymentDueDate.get,
@@ -163,18 +179,20 @@ class AccountServiceSpec extends SpecBase {
                   fyFrom = firstItem.periodFromDate.get,
                   fyTo = firstItem.periodToDate.get,
                   amount = documentDetails.documentOutstandingAmount.get,
-                  paymentStatus = Due,
+                  paymentStatus = Overdue,
                   paymentType = StandardPayment,
                   interestChargeReference = None
                 )
               ),
-              paymentHistory = Seq.empty
+              paymentHistory = Seq.empty,
+              testEclReference,
+              testSubscribedSubscriptionStatus
             )
           )
         )
     }
 
-    "return Some with FinancialViewDetails with interest that is not yet formed into interest document" in forAll {
+    "return Some with PaymentsViewModel with interest that is not yet formed into interest document" in forAll {
       validResponse: ValidFinancialDataResponseForLatestObligation =>
         val documentDetailsFirstItem = validResponse.financialDataResponse.documentDetails.get.head
 
@@ -194,9 +212,13 @@ class AccountServiceSpec extends SpecBase {
 
         val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
         val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head
-        await(service.prepareFinancialDetails(Some(validFinancialDataResponse)).value) shouldBe Right(
+        await(
+          service
+            .prepareViewModel(Some(validFinancialDataResponse), testEclReference, testSubscribedSubscriptionStatus)
+            .value
+        ) shouldBe Right(
           Some(
-            FinancialViewDetails(
+            PaymentsViewModel(
               Seq(
                 OutstandingPayments(
                   paymentDueDate = documentDetails.paymentDueDate.get,
@@ -204,7 +226,7 @@ class AccountServiceSpec extends SpecBase {
                   fyFrom = firstItem.periodFromDate.get,
                   fyTo = firstItem.periodToDate.get,
                   amount = documentDetails.documentOutstandingAmount.get,
-                  paymentStatus = Due,
+                  paymentStatus = Overdue,
                   paymentType = StandardPayment,
                   interestChargeReference = None
                 ),
@@ -214,7 +236,7 @@ class AccountServiceSpec extends SpecBase {
                   fyFrom = firstItem.periodFromDate.get,
                   fyTo = firstItem.periodToDate.get,
                   amount = BigDecimal(15.00),
-                  paymentStatus = Due,
+                  paymentStatus = Overdue,
                   paymentType = Interest,
                   interestChargeReference = None
                 )
@@ -231,7 +253,9 @@ class AccountServiceSpec extends SpecBase {
                   paymentType = StandardPayment,
                   refundAmount = BigDecimal(0)
                 )
-              )
+              ),
+              testEclReference,
+              testSubscribedSubscriptionStatus
             )
           )
         )

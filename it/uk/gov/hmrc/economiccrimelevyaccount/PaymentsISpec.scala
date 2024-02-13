@@ -38,7 +38,7 @@ class PaymentsISpec extends ISpecBase with AuthorisedBehaviour {
       val obligationData = random[ObligationData]
 
       stubGetObligations(obligationData)
-      stubFinancialData
+      stubFinancialData()
       stubStartJourney(expectedUrl)
 
       val result = callRoute(FakeRequest(routes.PaymentsController.onPageLoad(None)))
@@ -53,7 +53,7 @@ class PaymentsISpec extends ISpecBase with AuthorisedBehaviour {
       val obligationData = random[ObligationData]
 
       stubGetObligations(obligationData)
-      stubFinancialData
+      stubFinancialData()
       stubStartJourney(expectedUrl)
 
       val result = callRoute(FakeRequest(routes.PaymentsController.onPageLoad(Some(chargeReference))))

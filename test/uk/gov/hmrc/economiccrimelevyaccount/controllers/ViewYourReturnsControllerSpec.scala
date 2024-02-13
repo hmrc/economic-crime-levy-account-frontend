@@ -18,114 +18,152 @@ package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import cats.data.EitherT
 import org.mockito.ArgumentMatchers.any
-import play.api.http.Status.{BAD_GATEWAY, INTERNAL_SERVER_ERROR, OK}
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, status}
-import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnsOverview
-import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
 import uk.gov.hmrc.economiccrimelevyaccount._
+import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialData
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EclAccountError
-import uk.gov.hmrc.economiccrimelevyaccount.services.EclAccountService
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{EclAccountError, EclRegistrationError}
+import uk.gov.hmrc.economiccrimelevyaccount.services.{EclAccountService, EclRegistrationService}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnsOverview, ReturnsViewModel}
+import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
+import uk.gov.hmrc.time.TaxYear
 
 import scala.concurrent.Future
 
 class ViewYourReturnsControllerSpec extends SpecBase {
 
-  val returnsView: ReturnsView                 = app.injector.instanceOf[ReturnsView]
-  val noReturnsView: NoReturnsView             = app.injector.instanceOf[NoReturnsView]
-  val mockECLAccountService: EclAccountService = mock[EclAccountService]
+  val returnsView: ReturnsView                           = app.injector.instanceOf[ReturnsView]
+  val noReturnsView: NoReturnsView                       = app.injector.instanceOf[NoReturnsView]
+  val mockEclAccountService: EclAccountService           = mock[EclAccountService]
+  val mockEclRegistrationService: EclRegistrationService = mock[EclRegistrationService]
 
   val controller = new ViewYourReturnsController(
     mcc,
     fakeAuthorisedAction,
-    mockECLAccountService,
+    mockEclAccountService,
     returnsView,
-    noReturnsView
+    noReturnsView,
+    mockEclRegistrationService
   )
+
+  val financialYearStartYear = s"${TaxYear.current.startYear}"
+  val financialYearEndYear   = s"${TaxYear.current.finishYear}"
+  val fromTo                 = s"$financialYearStartYear-$financialYearEndYear"
 
   "onPageLoad" should {
     "return OK and the correct view when return is Due" in forAll {
       (obligationData: ObligationDataWithObligation, financialData: ValidFinancialDataResponse) =>
         when(
-          mockECLAccountService.retrieveObligationData(any())
+          mockEclAccountService.retrieveObligationData(any())
         ).thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
 
         when(
-          mockECLAccountService.retrieveFinancialData(any())
+          mockEclAccountService.retrieveFinancialData(any())
         ).thenReturn(EitherT.rightT[Future, EclAccountError](Some(financialData.financialDataResponse)))
 
+        when(
+          mockEclRegistrationService.getSubscriptionStatus(any())(any())
+        ).thenReturn(EitherT.rightT[Future, EclRegistrationError](testSubscribedSubscriptionStatus))
+
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
-        val dueReturns             = Seq(
+
+        val dueReturns = Seq(
           ReturnsOverview(
-            "2023-2024",
+            fromTo,
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Due,
             "21XY",
             None
           )
         )
+
+        val viewModel: ReturnsViewModel =
+          ReturnsViewModel(dueReturns, testEclReference, testSubscribedSubscriptionStatus)
+
         status(result)          shouldBe OK
         contentAsString(result) shouldBe returnsView(
-          dueReturns
+          viewModel
         )(fakeRequest, messages).toString()
     }
 
     "return OK and the correct view when return is Overdue" in forAll {
       (obligationData: ObligationDataWithOverdueObligation, financialData: ValidFinancialDataResponse) =>
-        when(mockECLAccountService.retrieveObligationData(any()))
+        when(mockEclAccountService.retrieveObligationData(any()))
           .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
 
         when(
-          mockECLAccountService.retrieveFinancialData(any())
+          mockEclAccountService.retrieveFinancialData(any())
         ).thenReturn(EitherT.rightT[Future, EclAccountError](Some(financialData.financialDataResponse)))
 
+        when(
+          mockEclRegistrationService.getSubscriptionStatus(any())(any())
+        ).thenReturn(EitherT.rightT[Future, EclRegistrationError](testSubscribedSubscriptionStatus))
+
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
-        val dueReturns             = Seq(
+
+        val dueReturns = Seq(
           ReturnsOverview(
-            "2023-2024",
+            fromTo,
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Overdue,
             "21XY",
             None
           )
         )
+
+        val viewModel: ReturnsViewModel =
+          ReturnsViewModel(dueReturns, testEclReference, testSubscribedSubscriptionStatus)
+
         status(result)          shouldBe OK
         contentAsString(result) shouldBe returnsView(
-          dueReturns
+          viewModel
         )(fakeRequest, messages).toString()
     }
 
     "return OK and the correct view when return is Submitted" in forAll {
       (obligationData: ObligationDataWithSubmittedObligation, financialData: ValidFinancialDataResponse) =>
-        when(mockECLAccountService.retrieveObligationData(any()))
+        when(mockEclAccountService.retrieveObligationData(any()))
           .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
 
         when(
-          mockECLAccountService.retrieveFinancialData(any())
+          mockEclAccountService.retrieveFinancialData(any())
         ).thenReturn(EitherT.rightT[Future, EclAccountError](Some(financialData.financialDataResponse)))
 
+        when(
+          mockEclRegistrationService.getSubscriptionStatus(any())(any())
+        ).thenReturn(EitherT.rightT[Future, EclRegistrationError](testSubscribedSubscriptionStatus))
+
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
-        val dueReturns             = Seq(
+
+        val dueReturns = Seq(
           ReturnsOverview(
-            "2023-2024",
+            fromTo,
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Submitted,
             "21XY",
-            Some(eclRegistrationReference.value)
+            Some(testEclReference.value)
           )
         )
+
+        val viewModel: ReturnsViewModel =
+          ReturnsViewModel(dueReturns, testEclReference, testSubscribedSubscriptionStatus)
+
         status(result)          shouldBe OK
         contentAsString(result) shouldBe returnsView(
-          dueReturns
+          viewModel
         )(fakeRequest, messages).toString()
     }
 
     "return OK and the correct view when user has no returns" in {
-      when(mockECLAccountService.retrieveObligationData(any()))
+      when(mockEclAccountService.retrieveObligationData(any()))
         .thenReturn(EitherT.rightT[Future, EclAccountError](None))
+
+      when(
+        mockEclRegistrationService.getSubscriptionStatus(any())(any())
+      ).thenReturn(EitherT.rightT[Future, EclRegistrationError](testSubscribedSubscriptionStatus))
 
       val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
@@ -133,20 +171,21 @@ class ViewYourReturnsControllerSpec extends SpecBase {
       contentAsString(result) shouldBe noReturnsView()(fakeRequest, messages).toString()
     }
 
-    "return BAD_GATEWAY when financial API fails" in forAll { (obligationData: ObligationDataWithSubmittedObligation) =>
-      when(mockECLAccountService.retrieveObligationData(any()))
-        .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
+    "return INTERNAL_SERVER_ERROR when financial API fails" in forAll {
+      (obligationData: ObligationDataWithSubmittedObligation) =>
+        when(mockEclAccountService.retrieveObligationData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
 
-      when(
-        mockECLAccountService.retrieveFinancialData(any())
-      ).thenReturn(
-        EitherT.leftT[Future, Option[FinancialData]](
-          EclAccountError.BadGateway("Internal server error", INTERNAL_SERVER_ERROR)
+        when(
+          mockEclAccountService.retrieveFinancialData(any())
+        ).thenReturn(
+          EitherT.leftT[Future, Option[FinancialData]](
+            EclAccountError.BadGateway("Internal server error", INTERNAL_SERVER_ERROR)
+          )
         )
-      )
 
-      val result: Future[Result] = controller.onPageLoad()(fakeRequest)
-      status(result) shouldBe BAD_GATEWAY
+        val result: Future[Result] = controller.onPageLoad()(fakeRequest)
+        status(result) shouldBe INTERNAL_SERVER_ERROR
     }
   }
 }

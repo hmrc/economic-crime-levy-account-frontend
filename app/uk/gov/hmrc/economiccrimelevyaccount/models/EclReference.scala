@@ -16,10 +16,10 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.models
 
-import play.api.libs.json.Json
+import play.api.libs.json.{Json, OFormat}
 
-case class EclReference(value: String) extends AnyVal
+final case class EclReference(value: String)
 
 object EclReference {
-  implicit val format = Json.valueFormat[EclReference]
+  implicit val format: OFormat[EclReference] = Json.format[EclReference]
 }

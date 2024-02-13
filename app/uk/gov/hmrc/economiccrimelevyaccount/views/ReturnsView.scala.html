@@ -16,7 +16,7 @@
 
 @import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus._
-@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview}
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview, ReturnsViewModel}
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Empty
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.table.HeadCell
@@ -28,7 +28,7 @@
         table: GovukTable
 )
 
-@(returnData: Seq[ReturnsOverview])(implicit request: Request[_], messages: Messages)
+@(viewModel: ReturnsViewModel)(implicit request: Request[_], messages: Messages)
 
 @thirdCellResolve(status: ReturnStatus, periodKey: String) = @{
     status match {
@@ -64,14 +64,18 @@
     Seq(TableRow(content = ViewUtils.formatLocalDate(rowData.dueDate), classes = "govuk-table__header govuk-!-width-one-half"),
         TableRow(content = HtmlContent(messages("account.viewReturns.table.status", rowStatus._1, messages(rowStatus._2))), classes = "govuk-table__cell"),
         TableRow(content = chargeReference, classes = "govuk-table__cell"),
-        rowData.chargeReference match {
-            case Some(_) =>
-                if(rowData.dueDate.plusYears(1).isAfter(LocalDate.now()) && appConfig.amendReturnsEnabled) {
-                    (TableRow(content = amendLink))
-                } else {
-                    TableRow(content = Empty)
-                }
-            case None => TableRow(content = HtmlContent(tableLinkInfo))
+        if (viewModel.isSubscribed){
+            rowData.chargeReference match {
+                case Some(_) =>
+                    if(rowData.dueDate.plusYears(1).isAfter(LocalDate.now()) && appConfig.amendReturnsEnabled) {
+                        (TableRow(content = amendLink))
+                    } else {
+                        TableRow(content = Empty)
+                    }
+                case None => TableRow(content = HtmlContent(tableLinkInfo))
+            }
+        } else {
+            TableRow(content = Empty)
         })
 }
 
@@ -84,7 +88,7 @@
 }
 
 @generateTable = @{
-    returnData.map { data =>
+    viewModel.returns.map { data =>
         table(Table(
             rows = Seq(tableRows(data)),
             head = Some(Seq(

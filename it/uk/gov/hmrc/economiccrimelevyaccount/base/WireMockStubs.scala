@@ -14,3 +14,4 @@ trait WireMockStubs
     with ObligationDataStubs
     with FinancialDataStubs
     with OpsJourneyStubs
+    with EclRegistrationStubs

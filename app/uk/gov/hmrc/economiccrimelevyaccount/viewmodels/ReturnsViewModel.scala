@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.economiccrimelevyaccount.utils
+package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
 
-import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.time.TaxYear
+import uk.gov.hmrc.economiccrimelevyaccount.models.EclSubscriptionStatus.Subscribed
+import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, EclSubscriptionStatus}
 
-class EclTaxYearSpec extends SpecBase {
+final case class ReturnsViewModel(
+  returns: Seq[ReturnsOverview],
+  eclRegistrationReference: EclReference,
+  eclSubscriptionStatus: EclSubscriptionStatus
+) {
 
-  "dueDate" should {
-    "returns the expected date in the current tax year" in {
-      val dueDate = EclTaxYear.dueDate
-
-      dueDate.getYear       shouldBe TaxYear.current.startYear
-      dueDate.getMonthValue shouldBe 9
-      dueDate.getDayOfMonth shouldBe 30
-    }
-  }
-
+  val isSubscribed: Boolean =
+    eclSubscriptionStatus.subscriptionStatus == Subscribed(eclRegistrationReference.value)
 }

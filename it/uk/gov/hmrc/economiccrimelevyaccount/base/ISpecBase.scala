@@ -19,6 +19,7 @@ import play.api.inject.guice.GuiceApplicationBuilder
 import play.api.mvc.{Result, Results}
 import play.api.test._
 import play.api.{Application, Mode}
+import uk.gov.hmrc.economiccrimelevyaccount.EclTestData
 import uk.gov.hmrc.economiccrimelevyaccount.base.WireMockHelper._
 
 import scala.concurrent.ExecutionContext.global
@@ -40,7 +41,8 @@ abstract class ISpecBase
     with MimeTypes
     with ResultExtractors
     with WireMockHelper
-    with WireMockStubs {
+    with WireMockStubs
+    with EclTestData {
 
   implicit val arbString: Arbitrary[String]    = Arbitrary(Gen.alphaNumStr.retryUntil(_.nonEmpty))
   implicit lazy val system: ActorSystem        = ActorSystem()
@@ -54,6 +56,7 @@ abstract class ISpecBase
     "auth",
     "enrolment-store-proxy",
     "economic-crime-levy-account",
+    "economic-crime-levy-registration",
     "pay-api"
   )
 

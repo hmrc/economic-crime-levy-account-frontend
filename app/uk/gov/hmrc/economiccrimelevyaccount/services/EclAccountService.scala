@@ -62,9 +62,11 @@ class EclAccountService @Inject() (
       }
     }
 
-  def prepareFinancialDetails(
-    financialDataOption: Option[FinancialData]
-  ): EitherT[Future, EclAccountError, Option[FinancialViewDetails]] =
+  def prepareViewModel(
+    financialDataOption: Option[FinancialData],
+    eclReference: EclReference,
+    eclSubscriptionStatus: EclSubscriptionStatus
+  ): EitherT[Future, EclAccountError, Option[PaymentsViewModel]] =
     Try {
       financialDataOption.flatMap { response =>
         response.documentDetails.map { documentDetailsList =>
@@ -92,17 +94,19 @@ class EclAccountService @Inject() (
               getOutstandingPaymentsAccruingInterest
             }
 
-          FinancialViewDetails(
+          PaymentsViewModel(
             outstandingPayments = outstandingPayments ++ accruingInterestOutstandingPayments,
-            paymentHistory = paymentsHistory
+            paymentHistory = paymentsHistory,
+            eclReference,
+            eclSubscriptionStatus
           )
         }
       }
     } match {
-      case Success(financialViewDetails) => EitherT.rightT[Future, EclAccountError](financialViewDetails)
-      case Failure(_)                    =>
-        EitherT.leftT[Future, Option[FinancialViewDetails]](
-          EclAccountError.InternalUnexpectedError("Missing data required for FinancialViewDetails", None)
+      case Success(viewModel) => EitherT.rightT[Future, EclAccountError](viewModel)
+      case Failure(_)         =>
+        EitherT.leftT[Future, Option[PaymentsViewModel]](
+          EclAccountError.InternalUnexpectedError("Missing data required for PaymentsViewModel", None)
         )
     }
 

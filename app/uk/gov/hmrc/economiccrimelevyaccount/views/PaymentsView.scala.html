@@ -15,7 +15,7 @@
  *@
 
 @import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{FinancialViewDetails, OutstandingPayments, PaymentStatus}
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{OutstandingPayments, PaymentStatus, PaymentsViewModel}
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentHistory
@@ -27,27 +27,29 @@
         table: GovukTable
 )
 
-@(financialViewDetails: FinancialViewDetails, appConfig: AppConfig)(implicit request: Request[_], messages: Messages)
+@(viewModel: PaymentsViewModel, appConfig: AppConfig)(implicit request: Request[_], messages: Messages)
 
 @generateTableOutstandingPayments = @{
-    val outstandingPayments = financialViewDetails.outstandingPayments
+    val outstandingPayments = viewModel.outstandingPayments
             .filter(payment => payment.paymentStatus == Due || payment.paymentStatus == Overdue)
-  if(outstandingPayments.nonEmpty) {
-    table(Table(
-        rows = tableRowsOutstandingPayments(outstandingPayments),
-        head = Some(Seq(
-            HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.1")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-            HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.2")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-            HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.3")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-            HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.4")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-            HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.5")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-            HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.6")), classes = "govuk-table__header govuk-!-width-one-quarter")
-        )),
-        caption = Some(messages("account.viewPayments.table.outstandingPayments.header.title")),
-        captionClasses = "govuk-table__caption--m",
-        classes = "govuk-table"
-    ))
-  }
+    if(outstandingPayments.nonEmpty) {
+        table(
+            Table(
+                rows = tableRowsOutstandingPayments(outstandingPayments),
+                head = Some(Seq(
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.1")), classes = "govuk-table__header govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.2")), classes = "govuk-table__header govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.3")), classes = "govuk-table__header govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.4")), classes = "govuk-table__header govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.5")), classes = "govuk-table__header govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.6")), classes = "govuk-table__header govuk-!-width-one-quarter")
+                )),
+                caption = Some(messages("account.viewPayments.table.outstandingPayments.header.title")),
+                captionClasses = "govuk-table__caption--m",
+                classes = "govuk-table"
+            )
+        )
+    }
 }
 
 
@@ -57,7 +59,7 @@
         (p.paymentDate, p.paymentDocument)
     }
 
-    val paymentHistory = financialViewDetails.paymentHistory
+    val paymentHistory = viewModel.paymentHistory
         .filter(payment => payment.paymentStatus == Paid || payment.paymentStatus == PartiallyPaid)
         .sorted
         .reverse
@@ -86,17 +88,21 @@
             TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.period",
                 ViewUtils.formatLocalDate(data.fyFrom), ViewUtils.formatLocalDate(data.fyTo))), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(ViewUtils.formatMoney(data.amount)), classes = "govuk-table__cell"), getPaymentStatusCellContent(data),
-            TableRow(content = HtmlContent(getPaymentActionCellContent(data)), classes = "govuk-table__cell")
+            if (viewModel.isSubscribed) {
+                TableRow(content = HtmlContent(getPaymentActionCellContent(data)), classes = "govuk-table__cell")
+            } else {
+                TableRow(content = Empty)
+            }
         )
     }
     )
 }
 
 @getPaymentDueDateCellContent(data: OutstandingPayments) = @{
-  data.paymentType match {
-      case StandardPayment => TableRow(content = HtmlContent(ViewUtils.formatLocalDate(data.paymentDueDate)), classes = "govuk-table__header")
-      case _ => TableRow(content = Empty)
-  }
+    data.paymentType match {
+        case StandardPayment => TableRow(content = HtmlContent(ViewUtils.formatLocalDate(data.paymentDueDate)), classes = "govuk-table__header")
+        case _ => TableRow(content = Empty)
+    }
 }
 
 @getPaymentStatusCellContent(data: OutstandingPayments) = @{
@@ -150,23 +156,27 @@
         val refundAmount = data.refundAmount
 
         val link = appConfig.refundBaseUrl + "?amount=" + refundAmount
-        Seq(TableRow(content = HtmlContent(paymentDate), classes = "govuk-table__header"),
+        Seq(TableRow(content = HtmlContent(paymentDate)),
             TableRow(content = HtmlContent(getHistoryPaymentTypeCellContent(data))),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.period", ViewUtils.formatLocalDate(data.fyFrom.get),
                 ViewUtils.formatLocalDate(data.fyTo.get))), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(ViewUtils.formatMoney(data.amount)), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.status", status._1, status._2)), classes = status._2),
-            TableRow(content = HtmlContent(if (appConfig.disableRefund) "&nbsp;" else messages("account.viewPayments.table.paymentsHistory.cell.6", link)), classes = "govuk-table__cell"),
+            if (viewModel.isSubscribed) {
+                TableRow(content = HtmlContent(if (appConfig.disableRefund) "&nbsp;" else messages("account.viewPayments.table.paymentsHistory.cell.6", link)), classes = "govuk-table__cell")
+            } else {
+                TableRow(content = Empty)
+            }
         )
     })
 }
 
 @getHistoryPaymentTypeCellContent(data: PaymentHistory) = @{
-  data.paymentType match {
-      case StandardPayment => messages("account.viewPayments.table.cell.reference", data.chargeReference.get)
-      case Interest => messages("account.viewPayments.history.table.cell.interest.reference", data.chargeReference.get)
-      case _ => ""
-  }
+    data.paymentType match {
+        case StandardPayment => messages("account.viewPayments.table.cell.reference", data.chargeReference.get)
+        case Interest => messages("account.viewPayments.history.table.cell.interest.reference", data.chargeReference.get)
+        case _ => ""
+    }
 }
 @resolveStatus(paymentStatus: PaymentStatus) = @{
     paymentStatus match {
@@ -184,7 +194,7 @@
 ) {
     <h1 class="govuk-heading-xl">@messages("account.viewPayments.heading")</h1>
 
-       @generateTableOutstandingPayments
-       @generateTablePaymentHistory
+    @generateTableOutstandingPayments
+    @generateTablePaymentHistory
 
 }

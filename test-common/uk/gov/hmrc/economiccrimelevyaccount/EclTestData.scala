@@ -20,11 +20,13 @@ import com.danielasfregola.randomdatagenerator.RandomDataGenerator.derivedArbitr
 import org.scalacheck.{Arbitrary, Gen}
 import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments}
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
+import uk.gov.hmrc.economiccrimelevyaccount.models.EclSubscriptionStatus.{DeRegistered, Subscribed}
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.EclEnrolment
 import uk.gov.hmrc.economiccrimelevyaccount.models._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.Paid
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{FinancialViewDetails, OutstandingPayments, PaymentHistory}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
+import uk.gov.hmrc.time.TaxYear
 
 import java.time.{Instant, LocalDate}
 
@@ -39,7 +41,7 @@ case class ObligationDataWithSubmittedObligation(obligationData: ObligationData)
 case class ValidFinancialDataResponse(financialDataResponse: FinancialData)
 case class ValidFinancialDataResponseForLatestObligation(financialDataResponse: FinancialData)
 
-case class ValidFinancialViewDetails(financialViewDetails: FinancialViewDetails)
+case class ValidPaymentsViewModel(viewModel: PaymentsViewModel)
 
 trait EclTestData {
 
@@ -48,6 +50,24 @@ trait EclTestData {
   private val endDayFY: Int     = 31
   private val startMonthFY: Int = 4
   private val endMonthFY: Int   = 3
+
+  def alphaNumericString: String = Gen.alphaNumStr.sample.get
+
+  private val genDate: Gen[LocalDate] =
+    localDateGen(currentYear - 1, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY)
+
+  val testInternalId: String = alphaNumericString
+
+  val testEclRegistrationReference: String = "test-ecl-registration-reference"
+
+  val testEclReference: EclReference = EclReference(testEclRegistrationReference)
+
+  val testDeregisteredSubscriptionStatus: EclSubscriptionStatus = EclSubscriptionStatus(
+    DeRegistered(testEclRegistrationReference)
+  )
+  val testSubscribedSubscriptionStatus: EclSubscriptionStatus   = EclSubscriptionStatus(
+    Subscribed(testEclRegistrationReference)
+  )
 
   implicit val arbInstant: Arbitrary[Instant] = Arbitrary {
     Instant.now()
@@ -220,7 +240,7 @@ trait EclTestData {
               documentOutstandingAmount = Some(BigDecimal(9000)),
               interestPostedAmount = None,
               interestAccruingAmount = None,
-              issueDate = Some(LocalDate.now.toString),
+              issueDate = Some(TaxYear.current.starts.toString),
               penaltyTotals = None,
               lineItemDetails = Some(
                 Seq(
@@ -228,8 +248,8 @@ trait EclTestData {
                     chargeDescription = Some("test-ecl-registration-reference"),
                     amount = Some(BigDecimal(1000)),
                     clearingDate = Some(LocalDate.now),
-                    periodFromDate = Some(LocalDate.now),
-                    periodToDate = Some(LocalDate.now),
+                    periodFromDate = Some(TaxYear.current.starts),
+                    periodToDate = Some(TaxYear.current.starts),
                     periodKey = Some("21XY"),
                     clearingDocument = Some("clearing-document"),
                     clearingReason = Some("Incoming Payment")
@@ -242,9 +262,6 @@ trait EclTestData {
       )
     )
   }
-
-  private val genDate: Gen[LocalDate] =
-    localDateGen(currentYear - 1, startMonthFY, startDayFY, currentYear, endMonthFY, endDayFY)
 
   implicit val arbFinancialDetails: Arbitrary[FinancialDetails] = Arbitrary {
     for {
@@ -263,14 +280,14 @@ trait EclTestData {
     )
   }
 
-  implicit val arbFinancialViewDetails: Arbitrary[ValidFinancialViewDetails] = Arbitrary {
+  implicit val arbPaymentsViewModel: Arbitrary[ValidPaymentsViewModel] = Arbitrary {
     for {
       fromDate <- genDate
       toDate   <- genDate
       amount   <- Arbitrary.arbitrary[Int]
 
-    } yield ValidFinancialViewDetails(
-      FinancialViewDetails(
+    } yield ValidPaymentsViewModel(
+      PaymentsViewModel(
         outstandingPayments = Seq(
           OutstandingPayments(
             paymentDueDate = fromDate,
@@ -295,18 +312,14 @@ trait EclTestData {
             paymentType = StandardPayment,
             refundAmount = BigDecimal(0)
           )
-        )
+        ),
+        testEclReference,
+        testSubscribedSubscriptionStatus
       )
     )
   }
 
   implicit val arbEclReference: Arbitrary[EclReference] = Arbitrary {
-    EclReference(alphaNumericString)
+    testEclReference
   }
-
-  def alphaNumericString: String = Gen.alphaNumStr.sample.get
-
-  val testInternalId: String               = alphaNumericString
-  val testEclRegistrationReference: String = alphaNumericString
-
 }

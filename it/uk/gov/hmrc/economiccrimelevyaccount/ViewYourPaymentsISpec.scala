@@ -12,7 +12,8 @@ class ViewYourPaymentsISpec extends ISpecBase with AuthorisedBehaviour {
 
     "respond with 200 status and return correct view" in {
       stubAuthorised()
-      stubFinancialData
+      stubFinancialData()
+      stubGetSubscriptionStatus(testEclReference, testSubscribedSubscriptionStatus)
 
       val result = callRoute(FakeRequest(routes.ViewYourPaymentsController.onPageLoad()))
 

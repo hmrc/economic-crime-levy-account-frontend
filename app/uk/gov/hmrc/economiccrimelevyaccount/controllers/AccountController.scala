@@ -17,15 +17,16 @@
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.i18n.I18nSupport
-import play.api.libs.json.Json
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
+import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, FinancialDetails, ObligationDetails}
-import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, EclAccountService, EnrolmentStoreProxyService}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{EclSubscriptionStatus, FinancialData, FinancialDetails, ObligationDetails}
+import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, EclAccountService, EclRegistrationService, EnrolmentStoreProxyService}
 import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.AccountViewModel
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
-import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
+import uk.gov.hmrc.economiccrimelevyaccount.views.html.{AccountView, ErrorTemplate}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
@@ -40,8 +41,10 @@ class AccountController @Inject() (
   enrolmentStoreProxyService: EnrolmentStoreProxyService,
   view: AccountView,
   eclAccountService: EclAccountService,
-  auditService: AuditService
-)(implicit ec: ExecutionContext)
+  auditService: AuditService,
+  eclRegistrationService: EclRegistrationService,
+  appConfig: AppConfig
+)(implicit ec: ExecutionContext, errorTemplate: ErrorTemplate)
     extends FrontendBaseController
     with I18nSupport
     with BaseController
@@ -55,13 +58,14 @@ class AccountController @Inject() (
       obligationDataOption         <- eclAccountService.retrieveObligationData.asResponseError
       latestObligationDetailsOption = obligationDataOption.flatMap(_.latestObligation)
       financialDataOption          <- eclAccountService.retrieveFinancialData.asResponseError
+      subscriptionStatus           <- eclRegistrationService.getSubscriptionStatus(request.eclReference).asResponseError
       response                      =
-        determineResponse(registrationDate, latestObligationDetailsOption, financialDataOption)
+        determineResponse(registrationDate, latestObligationDetailsOption, financialDataOption, subscriptionStatus)
       _                             =
         auditService
           .auditAccountViewed(request.internalId, request.eclReference, obligationDataOption, financialDataOption)
     } yield response).fold(
-      presentationError => Status(presentationError.code.statusCode)(Json.toJson(presentationError)),
+      error => routeError(error),
       result => result
     )
   }
@@ -69,27 +73,31 @@ class AccountController @Inject() (
   private def determineResponse(
     registrationDate: LocalDate,
     latestObligationDetailsOption: Option[ObligationDetails],
-    financialDataOption: Option[FinancialData]
-  )(implicit request: AuthorisedRequest[_]): Result =
-    financialDataOption match {
+    financialDataOption: Option[FinancialData],
+    eclSubscriptionStatus: EclSubscriptionStatus
+  )(implicit request: AuthorisedRequest[_]): Result = {
+    val viewModel: AccountViewModel = financialDataOption match {
       case Some(financialData) =>
-        Ok(
-          view(
-            request.eclReference.value,
-            ViewUtils.formatLocalDate(registrationDate),
-            latestObligationDetailsOption,
-            financialData.latestFinancialObligation.flatMap(FinancialDetails.applyOptional)
-          )
+        AccountViewModel(
+          appConfig,
+          eclSubscriptionStatus,
+          request.eclReference,
+          ViewUtils.formatLocalDate(registrationDate),
+          latestObligationDetailsOption,
+          financialData.latestFinancialObligation.flatMap(FinancialDetails.applyOptional)
         )
       case None                =>
-        Ok(
-          view(
-            request.eclReference.value,
-            ViewUtils.formatLocalDate(registrationDate),
-            latestObligationDetailsOption,
-            None
-          )
+        AccountViewModel(
+          appConfig,
+          eclSubscriptionStatus,
+          request.eclReference,
+          ViewUtils.formatLocalDate(registrationDate),
+          latestObligationDetailsOption,
+          None
         )
     }
+
+    Ok(view(viewModel))
+  }
 
 }

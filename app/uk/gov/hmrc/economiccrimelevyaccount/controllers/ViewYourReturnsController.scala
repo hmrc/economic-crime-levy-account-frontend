@@ -16,16 +16,15 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
-import play.api.i18n.I18nSupport
-import play.api.libs.json.Json
-import play.api.mvc.{Action, AnyContent, MessagesControllerComponents}
+import play.api.i18n.{I18nSupport, Messages}
+import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Request, Result}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
-import uk.gov.hmrc.economiccrimelevyaccount.models.{DocumentDetails, FinancialData, Fulfilled, ObligationData, ObligationDetails, Open}
-import uk.gov.hmrc.economiccrimelevyaccount.services.EclAccountService
+import uk.gov.hmrc.economiccrimelevyaccount.models._
+import uk.gov.hmrc.economiccrimelevyaccount.services.{EclAccountService, EclRegistrationService}
 import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview}
-import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview, ReturnsViewModel}
+import uk.gov.hmrc.economiccrimelevyaccount.views.html.{ErrorTemplate, NoReturnsView, ReturnsView}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
@@ -39,8 +38,9 @@ class ViewYourReturnsController @Inject() (
   authorise: AuthorisedAction,
   eclAccountService: EclAccountService,
   returnsView: ReturnsView,
-  noReturnsView: NoReturnsView
-)(implicit ec: ExecutionContext)
+  noReturnsView: NoReturnsView,
+  eclRegistrationService: EclRegistrationService
+)(implicit ec: ExecutionContext, errorTemplate: ErrorTemplate)
     extends FrontendBaseController
     with I18nSupport
     with BaseController
@@ -51,17 +51,28 @@ class ViewYourReturnsController @Inject() (
     (for {
       obligationDataOption <- eclAccountService.retrieveObligationData.asResponseError
       financialDataOption  <- eclAccountService.retrieveFinancialData.asResponseError
-    } yield (obligationDataOption, financialDataOption))
+      subscriptionStatus   <- eclRegistrationService.getSubscriptionStatus(request.eclReference).asResponseError
+      response              = prepareResponse(obligationDataOption, financialDataOption, request.eclReference, subscriptionStatus)
+    } yield response)
       .fold(
-        err => Status(err.code.statusCode)(Json.toJson(err)),
-        {
-          case (Some(obligationData), Some(financialData)) =>
-            val returns = deriveReturnsOverview(obligationData, financialData)
-            Ok(returnsView(returns))
-          case _                                           => Ok(noReturnsView())
-        }
+        error => routeError(error),
+        response => response
       )
   }
+
+  private def prepareResponse(
+    obligationData: Option[ObligationData],
+    financialData: Option[FinancialData],
+    eclRegistrationReference: EclReference,
+    eclSubscriptionStatus: EclSubscriptionStatus
+  )(implicit request: Request[_], messages: Messages): Result =
+    (obligationData, financialData) match {
+      case (Some(obligationData), Some(financialData)) =>
+        val returns   = deriveReturnsOverview(obligationData, financialData)
+        val viewModel = ReturnsViewModel(returns, eclRegistrationReference, eclSubscriptionStatus)
+        Ok(returnsView(viewModel)(request, messages))
+      case _                                           => Ok(noReturnsView()(request, messages))
+    }
 
   private def deriveReturnsOverview(
     obligationData: ObligationData,
