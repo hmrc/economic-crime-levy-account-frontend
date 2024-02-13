@@ -49,19 +49,22 @@ final case class AccountViewModel(
   val canViewPayments: Boolean      = appConfig.paymentsEnabled
   val canViewReturns: Boolean       = appConfig.returnsEnabled
 
-  def getViewReturnsLinkName()(implicit messages: Messages): String =
+  private def getViewReturnsLinkName()(implicit messages: Messages): String =
     if (canAmendReturns) {
       messages("account.viewOrAmendReturns")
     } else {
       messages("account.viewReturns")
     }
 
-  def makePaymentLink: Option[String] =
+  private def makePaymentLink: Option[String] =
     if (canMakePayments) {
       optFinancialDetails.map(_ => "/economic-crime-levy-account/make-a-payment")
     } else {
       None
     }
+
+  private def submitReturnLink(): Option[String] =
+    optOpenObligation.map(o => s"${appConfig.returnsUrl}/period/${o.periodKey}")
 
   def paymentsActions()(implicit messages: Messages): Seq[CardAction] =
     addIf(
@@ -165,8 +168,5 @@ final case class AccountViewModel(
         )
       case _                                      => Html(messages("account.noneDue.return.subHeading"))
     }
-
-  def submitReturnLink(): Option[String] =
-    optOpenObligation.map(o => s"${appConfig.returnsUrl}/period/${o.periodKey}")
 
 }

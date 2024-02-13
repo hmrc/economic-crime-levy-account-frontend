@@ -17,6 +17,6 @@
 package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
 
 trait ViewModelBase {
-  def add[T](value: T): Seq[T]                         = Seq(value)
-  def addIf[T](condition: Boolean, value: T): Seq[T]    = if (condition) Seq(value) else Seq.empty
+  def add[T](value: T): Seq[T]                       = Seq(value)
+  def addIf[T](condition: Boolean, value: T): Seq[T] = if (condition) Seq(value) else Seq.empty
 }
