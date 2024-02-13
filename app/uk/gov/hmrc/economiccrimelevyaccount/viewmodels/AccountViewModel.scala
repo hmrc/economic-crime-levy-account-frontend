@@ -121,7 +121,7 @@ final case class AccountViewModel(
       Seq(
         CardAction(
           "amend-registration",
-          s"${appConfig.registrationUrl}/amend-economic-crime-levy-registration/$eclRegistrationReference",
+          s"${appConfig.registrationUrl}/amend-economic-crime-levy-registration/${eclRegistrationReference.value}",
           messages("account.registration.card.amendRegistration")
         )
       )
