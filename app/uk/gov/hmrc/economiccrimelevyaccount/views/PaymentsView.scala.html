@@ -44,7 +44,6 @@
                     HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.5")), classes = "govuk-table__header govuk-!-width-one-quarter"),
                     HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.6")), classes = "govuk-table__header govuk-!-width-one-quarter")
                 )),
-                firstCellIsHeader = true,
                 caption = Some(messages("account.viewPayments.table.outstandingPayments.header.title")),
                 captionClasses = "govuk-table__caption--m",
                 classes = "govuk-table"
@@ -75,7 +74,6 @@
                 HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.5")), classes = "govuk-table__header govuk-!-width-one-quarter"),
                 HeadCell(content = if (appConfig.disableRefund) " " else Text(messages("account.viewPayments.table.paymentsHistory.header.6")), classes = "govuk-table__header govuk-!-width-one-quarter")
             )),
-            firstCellIsHeader = true,
             caption = Some(messages("account.viewPayments.table.paymentsHistory.header.title")),
             captionClasses = "govuk-table__caption--m",
             classes = "govuk-table"
