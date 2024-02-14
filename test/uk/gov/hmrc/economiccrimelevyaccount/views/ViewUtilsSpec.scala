@@ -30,20 +30,6 @@ class ViewUtilsSpec extends SpecBase {
 
   val testTitle: String = "Test Title"
 
-  "titleWithForm" should {
-    "return a correctly formatted title when a form has no errors" in {
-      ViewUtils.titleWithForm(testForm, testTitle, None)(
-        messages
-      ) shouldBe "Test Title - Economic Crime Levy Account - GOV.UK"
-    }
-
-    "return a correctly formatted title when a form has errors" in {
-      ViewUtils.titleWithForm(testForm.withError(key = "testErrorKey", message = "testErrorMessage"), testTitle, None)(
-        messages
-      ) shouldBe "Error: Test Title - Economic Crime Levy Account - GOV.UK"
-    }
-  }
-
   "title" should {
     "return a correctly formatted title when there is no section" in {
       ViewUtils.title(testTitle, None)(
@@ -69,20 +55,6 @@ class ViewUtilsSpec extends SpecBase {
       val localDate = LocalDate.parse("2007-12-03")
 
       ViewUtils.formatLocalDate(localDate, translate = false)(messages) shouldBe "3 December 2007"
-    }
-  }
-
-  "formatInstantAsLocalDate" should {
-    "correctly format a translated instant" in {
-      val instant = Instant.parse("2007-12-03T10:04:39.528Z")
-
-      ViewUtils.formatInstantAsLocalDate(instant)(messages) shouldBe "3 December 2007"
-    }
-
-    "correctly format a non-translated instant" in {
-      val instant = Instant.parse("2007-12-03T10:04:39.528Z")
-
-      ViewUtils.formatInstantAsLocalDate(instant, translate = false)(messages) shouldBe "3 December 2007"
     }
   }
 

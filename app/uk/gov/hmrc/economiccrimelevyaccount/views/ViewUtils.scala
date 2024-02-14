@@ -28,19 +28,8 @@ object ViewUtils {
 
   private val UkZoneId = ZoneId.of("Europe/London")
 
-  def titleWithForm(form: Form[_], pageTitle: String, section: Option[String] = None)(implicit
-    messages: Messages
-  ): String =
-    title(
-      pageTitle = s"${errorPrefix(form)}${messages(pageTitle)}",
-      section = section
-    )
-
   def title(pageTitle: String, section: Option[String] = None)(implicit messages: Messages): String =
     s"${messages(pageTitle)} - ${section.fold("")(messages(_) + " - ")}${messages("service.name")} - ${messages("site.govuk")}"
-
-  private def errorPrefix(form: Form[_])(implicit messages: Messages): String =
-    if (form.hasErrors || form.hasGlobalErrors) s"${messages("error.browser.title.prefix")} " else ""
 
   def formatLocalDate(localDate: LocalDate, translate: Boolean = true)(implicit messages: Messages): String =
     if (translate) {
@@ -54,18 +43,7 @@ object ViewUtils {
       localDate.format(formatter)
     }
 
-  def formatInstantAsLocalDate(instant: Instant, translate: Boolean = true)(implicit messages: Messages): String =
-    formatLocalDate(LocalDate.ofInstant(instant, UkZoneId), translate)
-
-  def formatToday(translate: Boolean = true)(implicit messages: Messages): String =
-    formatLocalDate(LocalDate.now(UkZoneId), translate)
-
   def formatMoney(amount: BigDecimal): String =
     if (amount.isWhole) f"£$amount%,.0f" else f"£$amount%,.2f"
-
-  def formatNumber(amount: Number): String = {
-    val formatter = NumberFormat.getNumberInstance(Locale.UK)
-    formatter.format(amount)
-  }
 
 }

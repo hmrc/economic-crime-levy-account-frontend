@@ -107,10 +107,9 @@
 
 @getPaymentStatusCellContent(data: OutstandingPayments) = @{
     data.paymentType match {
-        case StandardPayment => {
+        case StandardPayment =>
             val status = resolveStatus(data.paymentStatus)
             TableRow(content = HtmlContent(messages("account.viewPayments.table.status", status._1, status._2)), classes = status._2)
-        }
         case _ => TableRow(content = Empty)
     }
 }
@@ -118,12 +117,11 @@
 @getOutstandingPaymentTypeCellContent(data: OutstandingPayments) = @{
     data.paymentType match {
         case StandardPayment => messages("account.viewPayments.table.cell.reference", data.chargeReference)
-        case Interest => {
+        case Interest =>
             data.interestChargeReference match {
                 case Some(value) => messages("account.viewPayments.outstanding.table.cell.interest.reference", value, data.chargeReference)
                 case None => messages("account.viewPayments.outstanding.table.cell.interest.reference", "", data.chargeReference)
             }
-        }
         case _ => ""
     }
 }
