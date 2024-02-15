@@ -123,6 +123,11 @@ final case class AccountViewModel(
           "amend-registration",
           s"${appConfig.registrationUrl}/amend-economic-crime-levy-registration/${eclRegistrationReference.value}",
           messages("account.registration.card.amendRegistration")
+        ),
+        CardAction(
+          "cancel-registration",
+          s"${appConfig.registrationUrl}/deregister-start",
+          messages("account.registration.card.deregister")
         )
       )
     } else {
