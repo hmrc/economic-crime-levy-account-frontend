@@ -125,7 +125,7 @@ final case class AccountViewModel(
           messages("account.registration.card.amendRegistration")
         ),
         CardAction(
-          "cancel-registration",
+          "deregister",
           s"${appConfig.registrationUrl}/deregister-start",
           messages("account.registration.card.deregister")
         )
