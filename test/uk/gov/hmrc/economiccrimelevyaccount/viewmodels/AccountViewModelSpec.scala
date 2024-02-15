@@ -279,80 +279,76 @@ class AccountViewModelSpec extends SpecBase {
   }
 
   "registrationAction" should {
-    "should return a row when amendRegistrationEnabled is true and subscribed" in forAll {
-      (eclRegistrationDate: String) =>
-        when(appConfig.amendRegistrationEnabled)
-          .thenReturn(true)
+    "return two rows when amendRegistrationEnabled is true and subscribed" in forAll { (eclRegistrationDate: String) =>
+      when(appConfig.amendRegistrationEnabled)
+        .thenReturn(true)
 
-        val sut = AccountViewModel(
-          appConfig,
-          testSubscribedSubscriptionStatus,
-          testEclReference,
-          eclRegistrationDate,
-          None,
-          None
-        )
+      val sut = AccountViewModel(
+        appConfig,
+        testSubscribedSubscriptionStatus,
+        testEclReference,
+        eclRegistrationDate,
+        None,
+        None
+      )
 
-        val action: Seq[CardAction] = sut.registrationAction()(messages)
+      val action: Seq[CardAction] = sut.registrationAction()(messages)
 
-        action should have size 1
+      action should have size 2
     }
 
-    "should return a row when amendRegistrationEnabled is false and subscribed" in forAll {
-      (eclRegistrationDate: String) =>
-        when(appConfig.amendRegistrationEnabled)
-          .thenReturn(false)
+    "return a row when amendRegistrationEnabled is false and subscribed" in forAll { (eclRegistrationDate: String) =>
+      when(appConfig.amendRegistrationEnabled)
+        .thenReturn(false)
 
-        val sut = AccountViewModel(
-          appConfig,
-          testSubscribedSubscriptionStatus,
-          testEclReference,
-          eclRegistrationDate,
-          None,
-          None
-        )
+      val sut = AccountViewModel(
+        appConfig,
+        testSubscribedSubscriptionStatus,
+        testEclReference,
+        eclRegistrationDate,
+        None,
+        None
+      )
 
-        val action: Seq[CardAction] = sut.registrationAction()(messages)
+      val action: Seq[CardAction] = sut.registrationAction()(messages)
 
-        action should have size 0
+      action should have size 0
     }
 
-    "should return a row when amendRegistrationEnabled is true and deregistered" in forAll {
-      (eclRegistrationDate: String) =>
-        when(appConfig.amendRegistrationEnabled)
-          .thenReturn(false)
+    "return a row when amendRegistrationEnabled is true and deregistered" in forAll { (eclRegistrationDate: String) =>
+      when(appConfig.amendRegistrationEnabled)
+        .thenReturn(false)
 
-        val sut = AccountViewModel(
-          appConfig,
-          testDeregisteredSubscriptionStatus,
-          testEclReference,
-          eclRegistrationDate,
-          None,
-          None
-        )
+      val sut = AccountViewModel(
+        appConfig,
+        testDeregisteredSubscriptionStatus,
+        testEclReference,
+        eclRegistrationDate,
+        None,
+        None
+      )
 
-        val action: Seq[CardAction] = sut.registrationAction()(messages)
+      val action: Seq[CardAction] = sut.registrationAction()(messages)
 
-        action should have size 0
+      action should have size 0
     }
 
-    "should return a row when amendRegistrationEnabled is false and deregistered" in forAll {
-      (eclRegistrationDate: String) =>
-        when(appConfig.amendRegistrationEnabled)
-          .thenReturn(false)
+    "`return a row when amendRegistrationEnabled is false and deregistered" in forAll { (eclRegistrationDate: String) =>
+      when(appConfig.amendRegistrationEnabled)
+        .thenReturn(false)
 
-        val sut = AccountViewModel(
-          appConfig,
-          testDeregisteredSubscriptionStatus,
-          testEclReference,
-          eclRegistrationDate,
-          None,
-          None
-        )
+      val sut = AccountViewModel(
+        appConfig,
+        testDeregisteredSubscriptionStatus,
+        testEclReference,
+        eclRegistrationDate,
+        None,
+        None
+      )
 
-        val action: Seq[CardAction] = sut.registrationAction()(messages)
+      val action: Seq[CardAction] = sut.registrationAction()(messages)
 
-        action should have size 0
+      action should have size 0
     }
   }
 
