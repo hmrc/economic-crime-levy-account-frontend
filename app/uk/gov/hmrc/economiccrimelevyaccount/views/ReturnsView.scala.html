@@ -81,9 +81,9 @@
 
 @getChargeReferenceHeader(data: ReturnsOverview) = @{
     if(data.chargeReference.isDefined) {
-        HeadCell(content = Text(messages("account.viewReturns.table.column.3")), classes = "govuk-table__header govuk-!-width-one-quarter")
+        Seq(HeadCell(content = Text(messages("account.viewReturns.table.column.3")), classes = "govuk-table__header govuk-!-width-one-quarter"))
     } else {
-        HeadCell(content = Empty)
+        Seq.empty
     }
 }
 
@@ -94,9 +94,9 @@
             head = Some(Seq(
                 HeadCell(content = Text(messages("account.viewReturns.table.column.1")), classes = "govuk-table__header govuk-!-width-one-half"),
                 HeadCell(content = Text(messages("account.viewReturns.table.column.2")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-                getChargeReferenceHeader(data),
-                HeadCell(content = Text(messages("account.viewReturns.table.column.4")), classes = "govuk-table__header govuk-!-width-one-quarter")
-            )),
+            ) ++ getChargeReferenceHeader(data)
+               ++ Seq(HeadCell(content = Text(messages("account.viewReturns.table.column.4")), classes = "govuk-table__header govuk-!-width-one-quarter"))
+            ),
             caption = Some(data.fromTo),
             captionClasses = "govuk-table__caption--m",
             classes = "govuk-table"
