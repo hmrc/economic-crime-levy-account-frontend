@@ -28,7 +28,7 @@ account.eclReferenceNumber = Cyfeirnod ECL: {0}
 account.submitEcl = Cyflwyno datganiad Ardoll Troseddau Economaidd
 account.howToComplete = Sut i lenwi a chyflwyno datganiad
 account.viewOrAmendReturns = Bwrw golwg dros neu ddiwygio eich datganiadau
-account.viewReturns = Bwrw golwg dros eich datganiadau
+account.viewReturns = Gweld eich datganiadau
 account.viewReturns.title = Eich datganiadau Ardoll Troseddau Economaidd
 account.viewReturns.heading = Eich datganiadau Ardoll Troseddau Economaidd
 account.viewReturns.table.column.1 = Datganiad a thaliad yn ddyledus erbyn
@@ -55,7 +55,7 @@ account.payments.card.title = Taliadau
 account.payments.subHeading = Mae angen i chi gwneud taliad o {0} erbyn {1} ar gyfer {2} i {3}.
 account.payments.makePayment = Gwneud taliad ECL
 account.payments.howTo = Sut i wneud taliad ECL
-account.payments.viewHistory = Bwrw golwg dros eich taliadau
+account.payments.viewHistory = Gweld eich taliadau
 account.noneDue.payments.subHeading = Nid oes gennych unrhyw daliadau'n ddyledus.
 account.due.payments.subHeading = Mae angen i chi gwneud taliad o {0} erbyn 30 Medi {1} ar gyfer {2} i {3}.
 account.overdue.payments.subHeading.1 = Mae gennych daliad sy’n hwyr ar gyfer 1 Ebrill {0} i 31 Mawrth {1}. <br> Rydym yn codi llog arnoch ar y taliad hwn. Mae arnoch {2}.
@@ -89,6 +89,7 @@ account.viewPayments.table.paymentsHistory.header.6 = Gweithredoedd
 account.viewPayments.table.paymentsHistory.cell.6 = <a href="{0}" class="govuk-link">Gofyn am ad-daliad</a>
 account.registration.card.title = Cofrestriad
 account.registration.card.amendRegistration = Diwygio cofrestriad
+account.registration.card.deregister = Cais i ddadgofrestru
 account.deregistration.p1 = Gwnaethoch ddadgofrestru'r cyfrif hwn. Gallwch barhau i weld eich datganiadau a gyflwynwyd a hanes talu.
 
 account.viewPayments.history.table.cell.interest.reference = Tâl llog ar gyfer rhif datganiad ECL {0}
