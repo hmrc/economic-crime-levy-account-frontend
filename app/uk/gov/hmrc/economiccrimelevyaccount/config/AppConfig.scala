@@ -85,7 +85,8 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
   val refundBaseUrl: String    = servicesConfig.getString("urls.refund")
   val disableRefund: Boolean   = !configuration.get[Boolean]("features.requestRefundEnabled")
 
-  val returnsEnabled: Boolean = configuration.get[Boolean]("features.returnsEnabled")
+  val returnsEnabled: Boolean    = configuration.get[Boolean]("features.returnsEnabled")
+  val deregisterEnabled: Boolean = configuration.get[Boolean]("features.deregisterEnabled")
 
   val subscriptionStatusUrl: String =
     economicCrimeLevyRegistrationBaseUrl + servicesConfig.getString(
