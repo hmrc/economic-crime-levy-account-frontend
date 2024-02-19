@@ -46,6 +46,7 @@ final case class AccountViewModel(
   private val canMakePayments: Boolean = appConfig.paymentsEnabled && isSubscribed
 
   val canAmendRegistration: Boolean = appConfig.amendRegistrationEnabled && isSubscribed
+  val canDeregister: Boolean        = appConfig.deregisterEnabled && isSubscribed
   val canViewPayments: Boolean      = appConfig.paymentsEnabled
   val canViewReturns: Boolean       = appConfig.returnsEnabled
 
@@ -117,17 +118,21 @@ final case class AccountViewModel(
     }
 
   def registrationAction()(implicit messages: Messages): Seq[CardAction] =
-    if (canAmendRegistration) {
-      Seq(
-        CardAction(
-          "amend-registration",
-          s"${appConfig.registrationUrl}/amend-economic-crime-levy-registration/${eclRegistrationReference.value}",
-          messages("account.registration.card.amendRegistration")
-        )
+    addIf(
+      canAmendRegistration,
+      CardAction(
+        "amend-registration",
+        s"${appConfig.registrationUrl}/amend-economic-crime-levy-registration/${eclRegistrationReference.value}",
+        messages("account.registration.card.amendRegistration")
       )
-    } else {
-      Seq.empty
-    }
+    ) ++ addIf(
+      canDeregister,
+      CardAction(
+        "deregister",
+        s"${appConfig.registrationUrl}/deregister-start",
+        messages("account.registration.card.deregister")
+      )
+    )
 
   def returnsActions()(implicit messages: Messages): Seq[CardAction] =
     addIf(
