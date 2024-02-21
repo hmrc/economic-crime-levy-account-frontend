@@ -67,16 +67,16 @@ class ViewYourReturnsController @Inject() (
     eclSubscriptionStatus: EclSubscriptionStatus
   )(implicit request: Request[_], messages: Messages): Result =
     (obligationData, financialData) match {
-      case (Some(obligationData), Some(financialData)) =>
+      case (Some(obligationData), financialData) =>
         val returns   = deriveReturnsOverview(obligationData, financialData)
         val viewModel = ReturnsViewModel(returns, eclRegistrationReference, eclSubscriptionStatus)
         Ok(returnsView(viewModel)(request, messages))
-      case _                                           => Ok(noReturnsView()(request, messages))
+      case _                                     => Ok(noReturnsView()(request, messages))
     }
 
   private def deriveReturnsOverview(
     obligationData: ObligationData,
-    financialData: FinancialData
+    financialData: Option[FinancialData]
   ): Seq[ReturnsOverview] =
     obligationData.obligations
       .flatMap(_.obligationDetails.sortBy(_.inboundCorrespondenceDueDate))
@@ -85,7 +85,7 @@ class ViewYourReturnsController @Inject() (
         val reference = getChargeReference(
           status = status,
           dueDate = details.inboundCorrespondenceDueDate,
-          documentDetails = financialData.documentDetails,
+          documentDetails = financialData.flatMap(_.documentDetails),
           periodKey = details.periodKey
         )
 
@@ -113,16 +113,14 @@ class ViewYourReturnsController @Inject() (
     documentDetails: Option[Seq[DocumentDetails]],
     periodKey: String
   ): Option[String] =
-    status match {
-      case Submitted =>
-        documentDetails.flatMap(details =>
-          details.collectFirst {
-            case DocumentDetails(_, Some(chargeReferenceNumber), _, _, _, _, _, Some(lineItemDetails), _, _, _, _, _, _)
-                if lineItemDetails.exists(_.periodKey.contains(periodKey)) =>
-              chargeReferenceNumber
-          }
-        )
-      case _         => None
+    (status, documentDetails) match {
+      case (Submitted, Some(details)) =>
+        details.collectFirst {
+          case DocumentDetails(_, Some(chargeReferenceNumber), _, _, _, _, _, Some(lineItemDetails), _, _, _, _, _, _)
+              if lineItemDetails.exists(_.periodKey.contains(periodKey)) =>
+            chargeReferenceNumber
+        }
+      case _                          => None
     }
 
 }
