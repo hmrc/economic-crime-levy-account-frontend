@@ -54,7 +54,7 @@ class ViewYourReturnsControllerSpec extends SpecBase {
   val fromTo                 = s"$financialYearStartYear-$financialYearEndYear"
 
   "onPageLoad" should {
-    "return OK and the correct view when return is Due" in forAll {
+    "return OK and the correct view when return is Due and financial data returned" in forAll {
       (obligationData: ObligationDataWithObligation, financialData: ValidFinancialDataResponse) =>
         when(
           mockEclAccountService.retrieveObligationData(any())
@@ -63,6 +63,41 @@ class ViewYourReturnsControllerSpec extends SpecBase {
         when(
           mockEclAccountService.retrieveFinancialData(any())
         ).thenReturn(EitherT.rightT[Future, EclAccountError](Some(financialData.financialDataResponse)))
+
+        when(
+          mockEclRegistrationService.getSubscriptionStatus(any())(any())
+        ).thenReturn(EitherT.rightT[Future, EclRegistrationError](testSubscribedSubscriptionStatus))
+
+        val result: Future[Result] = controller.onPageLoad()(fakeRequest)
+
+        val dueReturns = Seq(
+          ReturnsOverview(
+            fromTo,
+            obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
+            Due,
+            "21XY",
+            None
+          )
+        )
+
+        val viewModel: ReturnsViewModel =
+          ReturnsViewModel(dueReturns, testEclReference, testSubscribedSubscriptionStatus)
+
+        status(result)          shouldBe OK
+        contentAsString(result) shouldBe returnsView(
+          viewModel
+        )(fakeRequest, messages).toString()
+    }
+
+    "return OK and the correct view when return is Due and no financial data returned" in forAll {
+      (obligationData: ObligationDataWithObligation) =>
+        when(
+          mockEclAccountService.retrieveObligationData(any())
+        ).thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
+
+        when(
+          mockEclAccountService.retrieveFinancialData(any())
+        ).thenReturn(EitherT.rightT[Future, EclAccountError](None))
 
         when(
           mockEclRegistrationService.getSubscriptionStatus(any())(any())
@@ -123,7 +158,75 @@ class ViewYourReturnsControllerSpec extends SpecBase {
         )(fakeRequest, messages).toString()
     }
 
-    "return OK and the correct view when return is Submitted" in forAll {
+    "return OK and the correct view when return is Overdue and financial data returned" in forAll {
+      (obligationData: ObligationDataWithOverdueObligation, financialData: ValidFinancialDataResponse) =>
+        when(mockEclAccountService.retrieveObligationData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
+
+        when(
+          mockEclAccountService.retrieveFinancialData(any())
+        ).thenReturn(EitherT.rightT[Future, EclAccountError](Some(financialData.financialDataResponse)))
+
+        when(
+          mockEclRegistrationService.getSubscriptionStatus(any())(any())
+        ).thenReturn(EitherT.rightT[Future, EclRegistrationError](testSubscribedSubscriptionStatus))
+
+        val result: Future[Result] = controller.onPageLoad()(fakeRequest)
+
+        val dueReturns = Seq(
+          ReturnsOverview(
+            fromTo,
+            obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
+            Overdue,
+            "21XY",
+            None
+          )
+        )
+
+        val viewModel: ReturnsViewModel =
+          ReturnsViewModel(dueReturns, testEclReference, testSubscribedSubscriptionStatus)
+
+        status(result)          shouldBe OK
+        contentAsString(result) shouldBe returnsView(
+          viewModel
+        )(fakeRequest, messages).toString()
+    }
+
+    "return OK and the correct view when return is Overdue and no financial data returned" in forAll {
+      (obligationData: ObligationDataWithOverdueObligation) =>
+        when(mockEclAccountService.retrieveObligationData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
+
+        when(
+          mockEclAccountService.retrieveFinancialData(any())
+        ).thenReturn(EitherT.rightT[Future, EclAccountError](None))
+
+        when(
+          mockEclRegistrationService.getSubscriptionStatus(any())(any())
+        ).thenReturn(EitherT.rightT[Future, EclRegistrationError](testSubscribedSubscriptionStatus))
+
+        val result: Future[Result] = controller.onPageLoad()(fakeRequest)
+
+        val dueReturns = Seq(
+          ReturnsOverview(
+            fromTo,
+            obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
+            Overdue,
+            "21XY",
+            None
+          )
+        )
+
+        val viewModel: ReturnsViewModel =
+          ReturnsViewModel(dueReturns, testEclReference, testSubscribedSubscriptionStatus)
+
+        status(result)          shouldBe OK
+        contentAsString(result) shouldBe returnsView(
+          viewModel
+        )(fakeRequest, messages).toString()
+    }
+
+    "return OK and the correct view when return is Submitted and financial data returned" in forAll {
       (obligationData: ObligationDataWithSubmittedObligation, financialData: ValidFinancialDataResponse) =>
         when(mockEclAccountService.retrieveObligationData(any()))
           .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
@@ -150,6 +253,45 @@ class ViewYourReturnsControllerSpec extends SpecBase {
 
         val viewModel: ReturnsViewModel =
           ReturnsViewModel(dueReturns, testEclReference, testSubscribedSubscriptionStatus)
+
+        status(result)          shouldBe OK
+        contentAsString(result) shouldBe returnsView(
+          viewModel
+        )(fakeRequest, messages).toString()
+    }
+
+    "return OK and the correct view when return is Submitted and no financial data returned" in forAll {
+      (obligationData: ObligationDataWithSubmittedObligation) =>
+        when(mockEclAccountService.retrieveObligationData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
+
+        when(
+          mockEclAccountService.retrieveFinancialData(any())
+        ).thenReturn(EitherT.rightT[Future, EclAccountError](None))
+
+        when(
+          mockEclRegistrationService.getSubscriptionStatus(any())(any())
+        ).thenReturn(EitherT.rightT[Future, EclRegistrationError](testSubscribedSubscriptionStatus))
+
+        val result: Future[Result] = controller.onPageLoad()(fakeRequest)
+
+        val dueReturns = Seq(
+          ReturnsOverview(
+            fromTo,
+            obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
+            Submitted,
+            "21XY",
+            None
+          )
+        )
+
+        val viewModel: ReturnsViewModel =
+          ReturnsViewModel(dueReturns, testEclReference, testSubscribedSubscriptionStatus)
+
+        val content = contentAsString(result)
+        val view    = returnsView(
+          viewModel
+        )(fakeRequest, messages).toString()
 
         status(result)          shouldBe OK
         contentAsString(result) shouldBe returnsView(
