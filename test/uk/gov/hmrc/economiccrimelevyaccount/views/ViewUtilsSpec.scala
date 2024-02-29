@@ -20,7 +20,7 @@ import play.api.data.Form
 import play.api.data.Forms.{single, text}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 
-import java.time.{Instant, LocalDate}
+import java.time.LocalDate
 
 class ViewUtilsSpec extends SpecBase {
 

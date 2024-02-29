@@ -16,9 +16,9 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.connectors
 
-import akka.actor.ActorSystem
 import com.google.inject.Singleton
 import com.typesafe.config.Config
+import org.apache.pekko.actor.ActorSystem
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, ObligationData}
 import uk.gov.hmrc.http.{HeaderCarrier, Retries, StringContextOps}

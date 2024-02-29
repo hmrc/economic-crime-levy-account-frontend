@@ -16,17 +16,12 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.views
 
-import play.api.data.Form
 import play.api.i18n.Messages
 
-import java.text.NumberFormat
+import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.time.{Instant, LocalDate, ZoneId}
-import java.util.Locale
 
 object ViewUtils {
-
-  private val UkZoneId = ZoneId.of("Europe/London")
 
   def title(pageTitle: String, section: Option[String] = None)(implicit messages: Messages): String =
     s"${messages(pageTitle)} - ${section.fold("")(messages(_) + " - ")}${messages("service.name")} - ${messages("site.govuk")}"

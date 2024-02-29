@@ -5,8 +5,8 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.base
 
-import akka.actor.ActorSystem
-import akka.stream.Materializer
+import org.apache.pekko.actor.ActorSystem
+import org.apache.pekko.stream.Materializer
 import org.jsoup.Jsoup
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalatest.matchers.should.Matchers
@@ -62,7 +62,6 @@ abstract class ISpecBase
 
   override def fakeApplication(): Application =
     GuiceApplicationBuilder()
-      .disable[com.kenshoo.play.metrics.PlayModule]
       .configure(additionalAppConfig)
       .in(Mode.Test)
       .build()
