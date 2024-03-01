@@ -61,9 +61,14 @@
         case Overdue => ("red", "account.viewReturns.table.cell.status.overdue")
     }
 
-    Seq(TableRow(content = ViewUtils.formatLocalDate(rowData.dueDate), classes = "govuk-table__header govuk-!-width-one-half"),
+    Seq(
+        TableRow(content = ViewUtils.formatLocalDate(rowData.dueDate), classes = "govuk-table__header govuk-!-width-one-half"),
         TableRow(content = HtmlContent(messages("account.viewReturns.table.status", rowStatus._1, messages(rowStatus._2))), classes = "govuk-table__cell"),
-        TableRow(content = chargeReference, classes = "govuk-table__cell"),
+        if(rowData.chargeReference.isDefined) {
+            TableRow(content = chargeReference, classes = "govuk-table__cell")
+        } else {
+            TableRow(content = Empty)
+        },
         if (viewModel.isSubscribed){
             rowData.chargeReference match {
                 case Some(_) =>
@@ -76,14 +81,15 @@
             }
         } else {
             TableRow(content = Empty)
-        })
+        }
+    )
 }
 
 @getChargeReferenceHeader(data: ReturnsOverview) = @{
     if(data.chargeReference.isDefined) {
         Seq(HeadCell(content = Text(messages("account.viewReturns.table.column.3")), classes = "govuk-table__header govuk-!-width-one-quarter"))
     } else {
-        Seq.empty
+        Seq(HeadCell(content = Empty))
     }
 }
 
