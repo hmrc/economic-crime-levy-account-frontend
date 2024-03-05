@@ -53,13 +53,6 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
   val timeout: Int   = configuration.get[Int]("timeout-dialog.timeout")
   val countdown: Int = configuration.get[Int]("timeout-dialog.countdown")
 
-  val enrolmentStoreProxyBaseUrl: String = servicesConfig.baseUrl("enrolment-store-proxy")
-
-  val enrolmentsUrl: String =
-    enrolmentStoreProxyBaseUrl + servicesConfig.getString(
-      "microservice.services.enrolment-store-proxy.endpoints.enrolments"
-    )
-
   val financialDataUrl: String =
     economicCrimeLevyAccountBaseUrl + servicesConfig.getString(
       "microservice.services.economic-crime-levy-account.endpoints.financialData"

@@ -22,9 +22,9 @@ import play.api.mvc.Result
 import play.api.test.Helpers._
 import uk.gov.hmrc.economiccrimelevyaccount._
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{AuditError, EclAccountError, EclRegistrationError, EnrolmentStoreError}
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{AuditError, EclAccountError, EclRegistrationError}
 import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, FinancialData}
-import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, EclAccountService, EclRegistrationService, EnrolmentStoreProxyService}
+import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, EclAccountService, EclRegistrationService}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
 
@@ -33,17 +33,15 @@ import scala.concurrent.Future
 
 class EclAccountControllerSpec extends SpecBase {
 
-  val mockEnrolmentStoreProxyService: EnrolmentStoreProxyService = mock[EnrolmentStoreProxyService]
-  val mockEclAccountService: EclAccountService                   = mock[EclAccountService]
-  val mockEclRegistrationService: EclRegistrationService         = mock[EclRegistrationService]
-  val mockAuditService: AuditService                             = mock[AuditService]
+  val mockEclAccountService: EclAccountService           = mock[EclAccountService]
+  val mockEclRegistrationService: EclRegistrationService = mock[EclRegistrationService]
+  val mockAuditService: AuditService                     = mock[AuditService]
 
   val view: AccountView = app.injector.instanceOf[AccountView]
 
   val controller = new AccountController(
     mcc,
     fakeAuthorisedAction,
-    mockEnrolmentStoreProxyService,
     view,
     mockEclAccountService,
     mockAuditService,
@@ -54,14 +52,9 @@ class EclAccountControllerSpec extends SpecBase {
   "onPageLoad" should {
     "return OK and the correct view when obligationData and financialData is present" in forAll {
       (
-        eclRegistrationDate: LocalDate,
         obligationData: ObligationDataWithObligation,
         validFinancialDataResponse: ValidFinancialDataResponse
       ) =>
-        when(
-          mockEnrolmentStoreProxyService.getEclRegistrationDate(any[String].asInstanceOf[EclReference])(any())
-        ).thenReturn(EitherT.rightT[Future, EnrolmentStoreError](eclRegistrationDate))
-
         when(mockEclAccountService.retrieveObligationData(any()))
           .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
 
@@ -81,12 +74,6 @@ class EclAccountControllerSpec extends SpecBase {
     }
 
     "return OK and correct view when ObligationData is not present" in forAll { (eclRegistrationDate: LocalDate) =>
-      when(
-        mockEnrolmentStoreProxyService.getEclRegistrationDate(
-          any[String].asInstanceOf[EclReference]
-        )(any())
-      ).thenReturn(EitherT.rightT[Future, EnrolmentStoreError](eclRegistrationDate))
-
       when(mockEclAccountService.retrieveObligationData(any()))
         .thenReturn(EitherT.rightT[Future, EclAccountError](None))
 
@@ -104,13 +91,8 @@ class EclAccountControllerSpec extends SpecBase {
 
     "return OK and correct view when ObligationData is present but it's Overdue" in forAll {
       (
-        eclRegistrationDate: LocalDate,
         overdueObligationData: ObligationDataWithOverdueObligation
       ) =>
-        when(
-          mockEnrolmentStoreProxyService.getEclRegistrationDate(any[String].asInstanceOf[EclReference])(any())
-        ).thenReturn(EitherT.rightT[Future, EnrolmentStoreError](eclRegistrationDate))
-
         when(mockEclAccountService.retrieveObligationData(any()))
           .thenReturn(EitherT.rightT[Future, EclAccountError](Some(overdueObligationData.obligationData)))
 
@@ -127,13 +109,8 @@ class EclAccountControllerSpec extends SpecBase {
 
     "return OK and correct view when ObligationData is present but it's Submitted" in forAll {
       (
-        eclRegistrationDate: LocalDate,
         submittedObligationData: ObligationDataWithSubmittedObligation
       ) =>
-        when(
-          mockEnrolmentStoreProxyService.getEclRegistrationDate(any[String].asInstanceOf[EclReference])(any())
-        ).thenReturn(EitherT.rightT[Future, EnrolmentStoreError](eclRegistrationDate))
-
         when(mockEclAccountService.retrieveObligationData(any()))
           .thenReturn(EitherT.rightT[Future, EclAccountError](Some(submittedObligationData.obligationData)))
 
@@ -150,16 +127,11 @@ class EclAccountControllerSpec extends SpecBase {
 
     "return OK and the correct view when obligationData is present and financialData is not present" in forAll {
       (
-        eclRegistrationDate: LocalDate,
         obligationData: ObligationDataWithObligation,
         validFinancialDataResponse: ValidFinancialDataResponse
       ) =>
         val invalidFinancialDataResponse =
           validFinancialDataResponse.copy(financialDataResponse = FinancialData(None, None))
-
-        when(
-          mockEnrolmentStoreProxyService.getEclRegistrationDate(any[String].asInstanceOf[EclReference])(any())
-        ).thenReturn(EitherT.rightT[Future, EnrolmentStoreError](eclRegistrationDate))
 
         when(mockEclAccountService.retrieveObligationData(any()))
           .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))

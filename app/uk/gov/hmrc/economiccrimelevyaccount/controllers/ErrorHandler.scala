@@ -59,39 +59,21 @@ trait ErrorHandler extends Logging {
     def convert(error: E): ResponseError
   }
 
-  implicit val enrolmentStoreErrorConverter: Converter[EnrolmentStoreError] =
-    new Converter[EnrolmentStoreError] {
-      override def convert(error: EnrolmentStoreError): ResponseError = error match {
-        case EnrolmentStoreError.BadGateway(cause, statusCode)           => ResponseError.badGateway(cause, statusCode)
-        case EnrolmentStoreError.InternalUnexpectedError(message, cause) =>
-          ResponseError.internalServiceError(message = message, cause = cause)
-      }
-    }
+  implicit val eclAccountErrorConverter: Converter[EclAccountError] = {
+    case EclAccountError.BadGateway(cause, statusCode)           => ResponseError.badGateway(cause, statusCode)
+    case EclAccountError.InternalUnexpectedError(message, cause) =>
+      ResponseError.internalServiceError(message = message, cause = cause)
+  }
 
-  implicit val eclAccountErrorConverter: Converter[EclAccountError] =
-    new Converter[EclAccountError] {
-      override def convert(error: EclAccountError): ResponseError = error match {
-        case EclAccountError.BadGateway(cause, statusCode)           => ResponseError.badGateway(cause, statusCode)
-        case EclAccountError.InternalUnexpectedError(message, cause) =>
-          ResponseError.internalServiceError(message = message, cause = cause)
-      }
-    }
+  implicit val opsErrorConverter: Converter[OpsError] = {
+    case OpsError.BadGateway(cause, statusCode)           => ResponseError.badGateway(cause, statusCode)
+    case OpsError.InternalUnexpectedError(message, cause) =>
+      ResponseError.internalServiceError(message = message, cause = cause)
+  }
 
-  implicit val opsErrorConverter: Converter[OpsError] =
-    new Converter[OpsError] {
-      override def convert(error: OpsError): ResponseError = error match {
-        case OpsError.BadGateway(cause, statusCode)           => ResponseError.badGateway(cause, statusCode)
-        case OpsError.InternalUnexpectedError(message, cause) =>
-          ResponseError.internalServiceError(message = message, cause = cause)
-      }
-    }
-
-  implicit val eclRegistrationErrorConverter: Converter[EclRegistrationError] =
-    new Converter[EclRegistrationError] {
-      override def convert(error: EclRegistrationError): ResponseError = error match {
-        case EclRegistrationError.BadGateway(cause, statusCode)           => ResponseError.badGateway(cause, statusCode)
-        case EclRegistrationError.InternalUnexpectedError(message, cause) =>
-          ResponseError.internalServiceError(message = message, cause = cause)
-      }
-    }
+  implicit val eclRegistrationErrorConverter: Converter[EclRegistrationError] = {
+    case EclRegistrationError.BadGateway(cause, statusCode)           => ResponseError.badGateway(cause, statusCode)
+    case EclRegistrationError.InternalUnexpectedError(message, cause) =>
+      ResponseError.internalServiceError(message = message, cause = cause)
+  }
 }
