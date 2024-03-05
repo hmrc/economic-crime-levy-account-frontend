@@ -33,17 +33,17 @@ class AccountViewModelSpec extends SpecBase {
     reset(appConfig)
 
   "canAmendRegistration" should {
-    "return true when amendRegistrationEnabled is true and subscribed" in forAll { (eclRegistrationDate: String) =>
+    "return true when amendRegistrationEnabled is true and subscribed" in {
       when(appConfig.amendRegistrationEnabled)
         .thenReturn(true)
 
       val sut =
-        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, eclRegistrationDate, None, None)
+        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, None, None)
 
       sut.canAmendRegistration shouldBe true
     }
 
-    "return false when amendRegistrationEnabled is true and deregistered" in forAll { (eclRegistrationDate: String) =>
+    "return false when amendRegistrationEnabled is true and deregistered" in {
       when(appConfig.amendRegistrationEnabled)
         .thenReturn(true)
 
@@ -51,7 +51,6 @@ class AccountViewModelSpec extends SpecBase {
         appConfig,
         testDeregisteredSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
         None,
         None
       )
@@ -59,17 +58,17 @@ class AccountViewModelSpec extends SpecBase {
       sut.canAmendRegistration shouldBe false
     }
 
-    "return false when amendRegistrationEnabled is false and subscribed" in forAll { (eclRegistrationDate: String) =>
+    "return false when amendRegistrationEnabled is false and subscribed" in {
       when(appConfig.amendRegistrationEnabled)
         .thenReturn(false)
 
       val sut =
-        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, eclRegistrationDate, None, None)
+        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, None, None)
 
       sut.canAmendRegistration shouldBe false
     }
 
-    "return false when amendRegistrationEnabled is false and deregistered" in forAll { (eclRegistrationDate: String) =>
+    "return false when amendRegistrationEnabled is false and deregistered" in {
       when(appConfig.amendRegistrationEnabled)
         .thenReturn(false)
 
@@ -77,7 +76,6 @@ class AccountViewModelSpec extends SpecBase {
         appConfig,
         testDeregisteredSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
         None,
         None
       )
@@ -87,17 +85,17 @@ class AccountViewModelSpec extends SpecBase {
   }
 
   "canViewPayments" should {
-    "return true when paymentsEnabled is true" in forAll { (eclRegistrationDate: String) =>
+    "return true when paymentsEnabled is true" in {
       when(appConfig.paymentsEnabled)
         .thenReturn(true)
 
       val sut =
-        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, eclRegistrationDate, None, None)
+        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, None, None)
 
       sut.canViewPayments shouldBe true
     }
 
-    "return false when paymentsEnabled is false" in forAll { (eclRegistrationDate: String) =>
+    "return false when paymentsEnabled is false" in {
       when(appConfig.paymentsEnabled)
         .thenReturn(false)
 
@@ -105,7 +103,6 @@ class AccountViewModelSpec extends SpecBase {
         appConfig,
         testDeregisteredSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
         None,
         None
       )
@@ -115,17 +112,17 @@ class AccountViewModelSpec extends SpecBase {
   }
 
   "canViewReturns" should {
-    "return true when returnsEnabled is true" in forAll { (eclRegistrationDate: String) =>
+    "return true when returnsEnabled is true" in {
       when(appConfig.returnsEnabled)
         .thenReturn(true)
 
       val sut =
-        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, eclRegistrationDate, None, None)
+        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, None, None)
 
       sut.canViewReturns shouldBe true
     }
 
-    "return false when returnsEnabled is false" in forAll { (eclRegistrationDate: String) =>
+    "return false when returnsEnabled is false" in {
       when(appConfig.returnsEnabled)
         .thenReturn(false)
 
@@ -134,7 +131,6 @@ class AccountViewModelSpec extends SpecBase {
           appConfig,
           testDeregisteredSubscriptionStatus,
           testEclReference,
-          eclRegistrationDate,
           None,
           None
         )
@@ -144,12 +140,11 @@ class AccountViewModelSpec extends SpecBase {
   }
 
   "isDeRegistered" should {
-    "return true when subscriptionStatus is deregistered" in forAll { (eclRegistrationDate: String) =>
+    "return true when subscriptionStatus is deregistered" in {
       val sut = AccountViewModel(
         appConfig,
         testDeregisteredSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
         None,
         None
       )
@@ -157,28 +152,27 @@ class AccountViewModelSpec extends SpecBase {
       sut.isDeRegistered shouldBe true
     }
 
-    "return false when subscriptionStatus is subscribed" in forAll { (eclRegistrationDate: String) =>
+    "return false when subscriptionStatus is subscribed" in {
       val sut =
-        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, eclRegistrationDate, None, None)
+        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, None, None)
 
       sut.isDeRegistered shouldBe false
     }
   }
 
   "isSubscribed" should {
-    "return true when subscriptionStatus is subscribed" in forAll { (eclRegistrationDate: String) =>
+    "return true when subscriptionStatus is subscribed" in {
       val sut =
-        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, eclRegistrationDate, None, None)
+        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, None, None)
 
       sut.isSubscribed shouldBe true
     }
 
-    "return false when subscriptionStatus is deregistered" in forAll { (eclRegistrationDate: String) =>
+    "return false when subscriptionStatus is deregistered" in {
       val sut = AccountViewModel(
         appConfig,
         testDeregisteredSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
         None,
         None
       )
@@ -188,7 +182,7 @@ class AccountViewModelSpec extends SpecBase {
   }
 
   "paymentsActions" should {
-    "return multiple rows when paymentsEnabled is true and subscribed" in forAll { (eclRegistrationDate: String) =>
+    "return multiple rows when paymentsEnabled is true and subscribed" in {
       when(appConfig.paymentsEnabled)
         .thenReturn(true)
 
@@ -196,7 +190,6 @@ class AccountViewModelSpec extends SpecBase {
         appConfig,
         testSubscribedSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
         None,
         None
       )
@@ -206,7 +199,7 @@ class AccountViewModelSpec extends SpecBase {
       actions.size should be > 1
     }
 
-    "return single row if paymentsEnabled is false and subscribed" in forAll { (eclRegistrationDate: String) =>
+    "return single row if paymentsEnabled is false and subscribed" in {
       when(appConfig.paymentsEnabled)
         .thenReturn(false)
 
@@ -214,7 +207,6 @@ class AccountViewModelSpec extends SpecBase {
         appConfig,
         testSubscribedSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
         None,
         None
       )
@@ -224,7 +216,7 @@ class AccountViewModelSpec extends SpecBase {
       actions should have size 1
     }
 
-    "return single row if paymentsEnabled is false and deregistered" in forAll { (eclRegistrationDate: String) =>
+    "return single row if paymentsEnabled is false and deregistered" in {
       when(appConfig.paymentsEnabled)
         .thenReturn(false)
 
@@ -232,7 +224,6 @@ class AccountViewModelSpec extends SpecBase {
         appConfig,
         testDeregisteredSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
         None,
         None
       )
@@ -242,7 +233,7 @@ class AccountViewModelSpec extends SpecBase {
       actions should have size 1
     }
 
-    "return single row if paymentsEnabled is true and deregistered" in forAll { (eclRegistrationDate: String) =>
+    "return single row if paymentsEnabled is true and deregistered" in {
       when(appConfig.paymentsEnabled)
         .thenReturn(false)
 
@@ -250,7 +241,6 @@ class AccountViewModelSpec extends SpecBase {
         appConfig,
         testDeregisteredSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
         None,
         None
       )
@@ -262,12 +252,11 @@ class AccountViewModelSpec extends SpecBase {
   }
 
   "paymentsSubHeading" should {
-    "return no due payments content if there are no financial details" in forAll { (eclRegistrationDate: String) =>
+    "return no due payments content if there are no financial details" in {
       val sut = AccountViewModel(
         appConfig,
         testSubscribedSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
         None,
         None
       )
@@ -279,103 +268,77 @@ class AccountViewModelSpec extends SpecBase {
   }
 
   "registrationAction" should {
-    "return two rows when amendRegistrationEnabled and deregisterEnabled are true and subscribed" in forAll {
-      (eclRegistrationDate: String) =>
-        when(appConfig.amendRegistrationEnabled)
-          .thenReturn(true)
-
-        when(appConfig.deregisterEnabled)
-          .thenReturn(true)
-
-        val sut = AccountViewModel(
-          appConfig,
-          testSubscribedSubscriptionStatus,
-          testEclReference,
-          eclRegistrationDate,
-          None,
-          None
-        )
-
-        val action: Seq[CardAction] = sut.registrationAction()(messages)
-
-        action should have size 2
-    }
-
-    "return one row when amendRegistrationEnabled os true, deregisterEnabled is false and subscribed" in forAll {
-      (eclRegistrationDate: String) =>
-        when(appConfig.amendRegistrationEnabled)
-          .thenReturn(true)
-
-        when(appConfig.deregisterEnabled)
-          .thenReturn(false)
-
-        val sut = AccountViewModel(
-          appConfig,
-          testSubscribedSubscriptionStatus,
-          testEclReference,
-          eclRegistrationDate,
-          None,
-          None
-        )
-
-        val action: Seq[CardAction] = sut.registrationAction()(messages)
-
-        action should have size 1
-    }
-
-    "return one row when amendRegistrationEnabled os false, deregisterEnabled is true and subscribed" in forAll {
-      (eclRegistrationDate: String) =>
-        when(appConfig.amendRegistrationEnabled)
-          .thenReturn(false)
-
-        when(appConfig.deregisterEnabled)
-          .thenReturn(true)
-
-        val sut = AccountViewModel(
-          appConfig,
-          testSubscribedSubscriptionStatus,
-          testEclReference,
-          eclRegistrationDate,
-          None,
-          None
-        )
-
-        val action: Seq[CardAction] = sut.registrationAction()(messages)
-
-        action should have size 1
-    }
-
-    "return no rows when amendRegistrationEnabled and deregisterEnabled are false and subscribed" in forAll {
-      (eclRegistrationDate: String) =>
-        when(appConfig.amendRegistrationEnabled)
-          .thenReturn(false)
-
-        when(appConfig.deregisterEnabled)
-          .thenReturn(false)
-
-        val sut = AccountViewModel(
-          appConfig,
-          testSubscribedSubscriptionStatus,
-          testEclReference,
-          eclRegistrationDate,
-          None,
-          None
-        )
-
-        val action: Seq[CardAction] = sut.registrationAction()(messages)
-
-        action should have size 0
-    }
-
-    "return no rows when amendRegistrationEnabled is true and deregistered" in forAll { (eclRegistrationDate: String) =>
+    "return two rows when amendRegistrationEnabled and deregisterEnabled are true and subscribed" in {
       when(appConfig.amendRegistrationEnabled)
+        .thenReturn(true)
+
+      when(appConfig.deregisterEnabled)
+        .thenReturn(true)
+
+      val sut = AccountViewModel(
+        appConfig,
+        testSubscribedSubscriptionStatus,
+        testEclReference,
+        None,
+        None
+      )
+
+      val action: Seq[CardAction] = sut.registrationAction()(messages)
+
+      action should have size 2
+    }
+
+    "return one row when amendRegistrationEnabled os true, deregisterEnabled is false and subscribed" in {
+      when(appConfig.amendRegistrationEnabled)
+        .thenReturn(true)
+
+      when(appConfig.deregisterEnabled)
         .thenReturn(false)
 
       val sut = AccountViewModel(
         appConfig,
-        testDeregisteredSubscriptionStatus,
+        testSubscribedSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
+        None,
+        None
+      )
+
+      val action: Seq[CardAction] = sut.registrationAction()(messages)
+
+      action should have size 1
+    }
+
+    "return one row when amendRegistrationEnabled os false, deregisterEnabled is true and subscribed" in {
+      when(appConfig.amendRegistrationEnabled)
+        .thenReturn(false)
+
+      when(appConfig.deregisterEnabled)
+        .thenReturn(true)
+
+      val sut = AccountViewModel(
+        appConfig,
+        testSubscribedSubscriptionStatus,
+        testEclReference,
+        None,
+        None
+      )
+
+      val action: Seq[CardAction] = sut.registrationAction()(messages)
+
+      action should have size 1
+    }
+
+    "return no rows when amendRegistrationEnabled and deregisterEnabled are false and subscribed" in {
+      when(appConfig.amendRegistrationEnabled)
+        .thenReturn(false)
+
+      when(appConfig.deregisterEnabled)
+        .thenReturn(false)
+
+      val sut = AccountViewModel(
+        appConfig,
+        testSubscribedSubscriptionStatus,
+        testEclReference,
         None,
         None
       )
@@ -385,33 +348,47 @@ class AccountViewModelSpec extends SpecBase {
       action should have size 0
     }
 
-    "return no rows when amendRegistrationEnabled is false and deregistered" in forAll {
-      (eclRegistrationDate: String) =>
-        when(appConfig.amendRegistrationEnabled)
-          .thenReturn(false)
+    "return no rows when amendRegistrationEnabled is true and deregistered" in {
+      when(appConfig.amendRegistrationEnabled)
+        .thenReturn(false)
 
-        val sut = AccountViewModel(
-          appConfig,
-          testDeregisteredSubscriptionStatus,
-          testEclReference,
-          eclRegistrationDate,
-          None,
-          None
-        )
+      val sut = AccountViewModel(
+        appConfig,
+        testDeregisteredSubscriptionStatus,
+        testEclReference,
+        None,
+        None
+      )
 
-        val action: Seq[CardAction] = sut.registrationAction()(messages)
+      val action: Seq[CardAction] = sut.registrationAction()(messages)
 
-        action should have size 0
+      action should have size 0
+    }
+
+    "return no rows when amendRegistrationEnabled is false and deregistered" in {
+      when(appConfig.amendRegistrationEnabled)
+        .thenReturn(false)
+
+      val sut = AccountViewModel(
+        appConfig,
+        testDeregisteredSubscriptionStatus,
+        testEclReference,
+        None,
+        None
+      )
+
+      val action: Seq[CardAction] = sut.registrationAction()(messages)
+
+      action should have size 0
     }
   }
 
   "returnsActions" should {
-    "return multiple rows when subscribed" in forAll { (eclRegistrationDate: String) =>
+    "return multiple rows when subscribed" in {
       val sut = AccountViewModel(
         appConfig,
         testSubscribedSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
         None,
         None
       )
@@ -421,12 +398,11 @@ class AccountViewModelSpec extends SpecBase {
       actions.size should be > 1
     }
 
-    "return single row when deregistered" in forAll { (eclRegistrationDate: String) =>
+    "return single row when deregistered" in {
       val sut = AccountViewModel(
         appConfig,
         testDeregisteredSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
         None,
         None
       )
@@ -439,12 +415,11 @@ class AccountViewModelSpec extends SpecBase {
 
   "returnsSubHeading" should {
     "return overdue return content if overdue and subscribed" in forAll {
-      (eclRegistrationDate: String, obligationData: ObligationDataWithObligation) =>
+      (obligationData: ObligationDataWithObligation) =>
         val sut = AccountViewModel(
           appConfig,
           testSubscribedSubscriptionStatus,
           testEclReference,
-          eclRegistrationDate,
           obligationData.obligationData.latestObligation,
           None
         )
@@ -454,60 +429,54 @@ class AccountViewModelSpec extends SpecBase {
         subHeading.body should startWith("Your return for")
     }
 
-    "return due return content if due and subscribed" in forAll {
-      (eclRegistrationDate: String, obligationData: ObligationDataWithObligation) =>
-        val sut = AccountViewModel(
-          appConfig,
-          testSubscribedSubscriptionStatus,
-          testEclReference,
-          eclRegistrationDate,
-          obligationData.obligationData.latestObligation,
-          None
-        )
-
-        val subHeading: Html = sut.returnsSubHeading()(messages)
-
-        subHeading.body should startWith("Your return for")
-    }
-
-    "return no return due content if overdue and deregistered" in forAll {
-      (eclRegistrationDate: String, obligationData: ObligationDataWithOverdueObligation) =>
-        val sut = AccountViewModel(
-          appConfig,
-          testDeregisteredSubscriptionStatus,
-          testEclReference,
-          eclRegistrationDate,
-          obligationData.obligationData.latestObligation,
-          None
-        )
-
-        val subHeading: Html = sut.returnsSubHeading()(messages)
-
-        subHeading.body should startWith("You have no returns due")
-    }
-
-    "return no return due content if due and deregistered" in forAll {
-      (eclRegistrationDate: String, obligationData: ObligationDataWithObligation) =>
-        val sut = AccountViewModel(
-          appConfig,
-          testDeregisteredSubscriptionStatus,
-          testEclReference,
-          eclRegistrationDate,
-          obligationData.obligationData.latestObligation,
-          None
-        )
-
-        val subHeading: Html = sut.returnsSubHeading()(messages)
-
-        subHeading.body should startWith("You have no returns due")
-    }
-
-    "return no return due content if there are no obligations" in forAll { (eclRegistrationDate: String) =>
+    "return due return content if due and subscribed" in forAll { (obligationData: ObligationDataWithObligation) =>
       val sut = AccountViewModel(
         appConfig,
         testSubscribedSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
+        obligationData.obligationData.latestObligation,
+        None
+      )
+
+      val subHeading: Html = sut.returnsSubHeading()(messages)
+
+      subHeading.body should startWith("Your return for")
+    }
+
+    "return no return due content if overdue and deregistered" in forAll {
+      (obligationData: ObligationDataWithOverdueObligation) =>
+        val sut = AccountViewModel(
+          appConfig,
+          testDeregisteredSubscriptionStatus,
+          testEclReference,
+          obligationData.obligationData.latestObligation,
+          None
+        )
+
+        val subHeading: Html = sut.returnsSubHeading()(messages)
+
+        subHeading.body should startWith("You have no returns due")
+    }
+
+    "return no return due content if due and deregistered" in forAll { (obligationData: ObligationDataWithObligation) =>
+      val sut = AccountViewModel(
+        appConfig,
+        testDeregisteredSubscriptionStatus,
+        testEclReference,
+        obligationData.obligationData.latestObligation,
+        None
+      )
+
+      val subHeading: Html = sut.returnsSubHeading()(messages)
+
+      subHeading.body should startWith("You have no returns due")
+    }
+
+    "return no return due content if there are no obligations" in {
+      val sut = AccountViewModel(
+        appConfig,
+        testSubscribedSubscriptionStatus,
+        testEclReference,
         None,
         None
       )
@@ -519,17 +488,17 @@ class AccountViewModelSpec extends SpecBase {
   }
 
   "canDeregister" should {
-    "return true when deregisterEnabled is true and subscribed" in forAll { (eclRegistrationDate: String) =>
+    "return true when deregisterEnabled is true and subscribed" in {
       when(appConfig.deregisterEnabled)
         .thenReturn(true)
 
       val sut =
-        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, eclRegistrationDate, None, None)
+        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, None, None)
 
       sut.canDeregister shouldBe true
     }
 
-    "return false when deregisterEnabled is true and deregistered" in forAll { (eclRegistrationDate: String) =>
+    "return false when deregisterEnabled is true and deregistered" in {
       when(appConfig.deregisterEnabled)
         .thenReturn(true)
 
@@ -537,7 +506,6 @@ class AccountViewModelSpec extends SpecBase {
         appConfig,
         testDeregisteredSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
         None,
         None
       )
@@ -545,17 +513,17 @@ class AccountViewModelSpec extends SpecBase {
       sut.canDeregister shouldBe false
     }
 
-    "return false when deregisterEnabled is false and subscribed" in forAll { (eclRegistrationDate: String) =>
+    "return false when deregisterEnabled is false and subscribed" in {
       when(appConfig.deregisterEnabled)
         .thenReturn(false)
 
       val sut =
-        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, eclRegistrationDate, None, None)
+        AccountViewModel(appConfig, testSubscribedSubscriptionStatus, testEclReference, None, None)
 
       sut.canDeregister shouldBe false
     }
 
-    "return false when deregisterEnabled is false and deregistered" in forAll { (eclRegistrationDate: String) =>
+    "return false when deregisterEnabled is false and deregistered" in {
       when(appConfig.deregisterEnabled)
         .thenReturn(false)
 
@@ -563,7 +531,6 @@ class AccountViewModelSpec extends SpecBase {
         appConfig,
         testDeregisteredSubscriptionStatus,
         testEclReference,
-        eclRegistrationDate,
         None,
         None
       )

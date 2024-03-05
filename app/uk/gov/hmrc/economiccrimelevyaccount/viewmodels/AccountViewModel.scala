@@ -29,7 +29,6 @@ final case class AccountViewModel(
   appConfig: AppConfig,
   eclSubscriptionStatus: EclSubscriptionStatus,
   eclRegistrationReference: EclReference,
-  eclRegistrationDate: String,
   optOpenObligation: Option[ObligationDetails],
   optFinancialDetails: Option[FinancialDetails]
 ) extends ViewModelBase {

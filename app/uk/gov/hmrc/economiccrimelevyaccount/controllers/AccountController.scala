@@ -22,15 +22,13 @@ import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
 import uk.gov.hmrc.economiccrimelevyaccount.models.{EclSubscriptionStatus, FinancialData, FinancialDetails, ObligationDetails}
-import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, EclAccountService, EclRegistrationService, EnrolmentStoreProxyService}
+import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, EclAccountService, EclRegistrationService}
 import uk.gov.hmrc.economiccrimelevyaccount.utils.CorrelationIdHelper
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.AccountViewModel
-import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{AccountView, ErrorTemplate}
 import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
-import java.time.LocalDate
 import javax.inject.{Inject, Singleton}
 import scala.concurrent.ExecutionContext
 
@@ -38,7 +36,6 @@ import scala.concurrent.ExecutionContext
 class AccountController @Inject() (
   val controllerComponents: MessagesControllerComponents,
   authorise: AuthorisedAction,
-  enrolmentStoreProxyService: EnrolmentStoreProxyService,
   view: AccountView,
   eclAccountService: EclAccountService,
   auditService: AuditService,
@@ -53,14 +50,12 @@ class AccountController @Inject() (
   def onPageLoad: Action[AnyContent] = authorise.async { implicit request =>
     implicit val hc: HeaderCarrier = CorrelationIdHelper.getOrCreateCorrelationId(request)
     (for {
-      registrationDate             <-
-        enrolmentStoreProxyService.getEclRegistrationDate(request.eclReference).asResponseError
       obligationDataOption         <- eclAccountService.retrieveObligationData.asResponseError
       latestObligationDetailsOption = obligationDataOption.flatMap(_.latestObligation)
       financialDataOption          <- eclAccountService.retrieveFinancialData.asResponseError
       subscriptionStatus           <- eclRegistrationService.getSubscriptionStatus(request.eclReference).asResponseError
       response                      =
-        determineResponse(registrationDate, latestObligationDetailsOption, financialDataOption, subscriptionStatus)
+        determineResponse(latestObligationDetailsOption, financialDataOption, subscriptionStatus)
       _                             =
         auditService
           .auditAccountViewed(request.internalId, request.eclReference, obligationDataOption, financialDataOption)
@@ -71,7 +66,6 @@ class AccountController @Inject() (
   }
 
   private def determineResponse(
-    registrationDate: LocalDate,
     latestObligationDetailsOption: Option[ObligationDetails],
     financialDataOption: Option[FinancialData],
     eclSubscriptionStatus: EclSubscriptionStatus
@@ -82,7 +76,6 @@ class AccountController @Inject() (
           appConfig,
           eclSubscriptionStatus,
           request.eclReference,
-          ViewUtils.formatLocalDate(registrationDate),
           latestObligationDetailsOption,
           financialData.latestFinancialObligation.flatMap(FinancialDetails.applyOptional)
         )
@@ -91,7 +84,6 @@ class AccountController @Inject() (
           appConfig,
           eclSubscriptionStatus,
           request.eclReference,
-          ViewUtils.formatLocalDate(registrationDate),
           latestObligationDetailsOption,
           None
         )

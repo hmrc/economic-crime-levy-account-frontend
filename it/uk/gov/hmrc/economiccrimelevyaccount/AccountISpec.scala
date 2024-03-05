@@ -32,10 +32,8 @@ class AccountISpec extends ISpecBase with AuthorisedBehaviour {
     "respond with 200 status and the start HTML view" in {
       stubAuthorised()
 
-      val eclRegistrationDate = "20230901"
-      val obligationData      = random[ObligationData]
+      val obligationData = random[ObligationData]
 
-      stubQueryKnownFacts(testEclRegistrationReference, eclRegistrationDate)
       stubGetObligations(obligationData)
       stubFinancialData()
       stubGetSubscriptionStatus(testEclReference, testSubscribedSubscriptionStatus)
