@@ -59,11 +59,6 @@ If this is disabled then the registration tile on the My ECL Account home page w
 
 Enables/disables the amend returns feature.
 
-> `enrolmentStoreProxyStubEnabled`
-
-Enables/disables the stub used for enrolments.
-Should be set to 'true' in LOCAL and DEV environments only.
-
 > `paymentsEnabled`
 
 Enables/disables the payments feature.
