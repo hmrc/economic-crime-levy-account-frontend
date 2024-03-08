@@ -31,6 +31,7 @@
 
 @head = {
     <link rel="stylesheet" href="@{controllers.routes.Assets.versioned("stylesheets/cards.css")}" @{CSPNonce.attr}>
+    <link rel="stylesheet" href="@{controllers.routes.Assets.versioned("stylesheets/custom-styles.css")}" @{CSPNonce.attr}>
 
 @if(timeout) {
     @hmrcTimeoutDialog(TimeoutDialog(
