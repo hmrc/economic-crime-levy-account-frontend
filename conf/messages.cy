@@ -121,3 +121,7 @@ date.month.9 = Medi
 date.month.10 = Hydref
 date.month.11 = Tachwedd
 date.month.12 = Rhagfyr
+
+signedOut.title = Er eich diogelwch, gwnaethom eich allgofnodi
+signedOut.heading = Er eich diogelwch, gwnaethom eich allgofnodi
+signedOut.guidance = Gwnaethom gadw’ch atebion.
