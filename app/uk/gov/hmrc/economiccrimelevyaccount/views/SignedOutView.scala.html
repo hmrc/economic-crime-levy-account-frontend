@@ -34,10 +34,9 @@
 
     <p class="govuk-body">
         @govukButton(
-            Button(
-                element = Some(messages("site.signIn")),
-                href    = Some(AccountController.onPageLoad.url)
-            )
+        ButtonViewModel(messages("site.signIn"))
+        .asLink(AccountController.onPageLoad().url)
+        .preventingDoubleClick()
         )
     </p>
 }
