@@ -23,7 +23,9 @@ import uk.gov.hmrc.economiccrimelevyaccount.connectors.EclAccountConnector
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, PartiallyPaid}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, StandardPayment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
+import uk.gov.hmrc.time.TaxYear
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class EclAccountServiceSpec extends SpecBase {
@@ -94,7 +96,7 @@ class EclAccountServiceSpec extends SpecBase {
         )
     }
 
-    "return empty payment history where there is a reversal item" in forAll {
+    "return filled payment history where there is a reversal item" in forAll {
       validResponse: ValidFinancialDataResponseForLatestObligation =>
         val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head.copy(
           clearingReason = Some("Reversal")
@@ -135,14 +137,25 @@ class EclAccountServiceSpec extends SpecBase {
                   interestChargeReference = None
                 )
               ),
-              paymentHistory = Seq.empty,
+              paymentHistory = Seq(
+                PaymentHistory(
+                  paymentDate = LocalDate.now,
+                  chargeReference = Some("test-ecl-registration-reference"),
+                  fyFrom = Some(TaxYear.current.starts),
+                  fyTo = Some(TaxYear.current.starts),
+                  amount = BigDecimal(1000),
+                  paymentStatus = PartiallyPaid,
+                  paymentType = StandardPayment,
+                  paymentDocument = "clearing-document",
+                  refundAmount = 0
+                )
+              ),
               testEclReference,
               testSubscribedSubscriptionStatus
             )
           )
         )
     }
-
     "return empty payment history where there is no clearing reason in response" in forAll {
       validResponse: ValidFinancialDataResponseForLatestObligation =>
         val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head.copy(
