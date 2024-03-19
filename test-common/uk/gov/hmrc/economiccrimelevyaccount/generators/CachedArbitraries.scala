@@ -22,6 +22,7 @@ import org.scalacheck.derive.MkArbitrary
 import uk.gov.hmrc.auth.core.{Enrolment, Enrolments}
 import uk.gov.hmrc.economiccrimelevyaccount.EclTestData
 import uk.gov.hmrc.economiccrimelevyaccount.models._
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.ErrorCode
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType
 
 object CachedArbitraries extends EclTestData with Generators {
@@ -37,4 +38,5 @@ object CachedArbitraries extends EclTestData with Generators {
   implicit lazy val arbEclSubscriptionStatus: Arbitrary[EclSubscriptionStatus] = mkArb
   implicit lazy val arbPaymentType: Arbitrary[PaymentType]                     = mkArb
   implicit lazy val arbPenaltyTotals: Arbitrary[PenaltyTotals]                 = mkArb
+  implicit lazy val arbErrorCodes: Arbitrary[ErrorCode]                        = mkArb
 }
