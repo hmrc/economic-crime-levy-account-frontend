@@ -17,14 +17,15 @@
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import org.mockito.ArgumentMatchers.any
+import play.api.http.Status.BAD_REQUEST
 import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponseForLatestObligation
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EclAccountConnector
-import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialData
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EclAccountError
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, PartiallyPaid}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, StandardPayment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
+import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.time.TaxYear
 
 import java.time.LocalDate
@@ -274,6 +275,62 @@ class EclAccountServiceSpec extends SpecBase {
             )
           )
         )
+    }
+  }
+
+  "retrieveFinancialData" should {
+    "return Left with EclAccountError-InternalServerError when connector fails with 4xx error" in {
+      val errorCode  = BAD_REQUEST
+      val errMessage = "ErrorMessage"
+
+      when(mockECLAccountConnector.getFinancialData(any()))
+        .thenReturn(Future.failed(UpstreamErrorResponse(errMessage, errorCode)))
+
+      val result = await(service.retrieveFinancialData(any()).value)
+
+      result shouldBe Left(EclAccountError.BadGateway(errMessage, errorCode))
+
+    }
+
+    "return Left with EclAccountError-InternalUnexpectedError when connector fails with an unexpected error" in {
+      val errMessage           = "ErrorMessage"
+      val throwable: Exception = new Exception(errMessage)
+
+      when(mockECLAccountConnector.getFinancialData(any()))
+        .thenReturn(Future.failed(throwable))
+
+      val result = await(service.retrieveFinancialData(any()).value)
+
+      result shouldBe Left(EclAccountError.InternalUnexpectedError(errMessage, Some(throwable)))
+
+    }
+  }
+
+  "retrieveObligationData" should {
+    "return Left with EclAccountError-InternalServerError when connector fails with 4xx error" in {
+      val errorCode  = BAD_REQUEST
+      val errMessage = "ErrorMessage"
+
+      when(mockECLAccountConnector.getObligationData(any()))
+        .thenReturn(Future.failed(UpstreamErrorResponse(errMessage, errorCode)))
+
+      val result = await(service.retrieveObligationData(any()).value)
+
+      result shouldBe Left(EclAccountError.BadGateway(errMessage, errorCode))
+
+    }
+
+    "return Left with EclAccountError-InternalUnexpectedError when connector fails with an unexpected error" in {
+      val errMessage           = "ErrorMessage"
+      val throwable: Exception = new Exception(errMessage)
+
+      when(mockECLAccountConnector.getObligationData(any()))
+        .thenReturn(Future.failed(throwable))
+
+      val result = await(service.retrieveObligationData(any()).value)
+
+      result shouldBe Left(EclAccountError.InternalUnexpectedError(errMessage, Some(throwable)))
+
     }
   }
 }
