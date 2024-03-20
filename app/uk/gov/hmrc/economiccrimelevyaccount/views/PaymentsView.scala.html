@@ -37,12 +37,12 @@
             Table(
                 rows = tableRowsOutstandingPayments(outstandingPayments),
                 head = Some(Seq(
-                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.1")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.2")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.3")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.4")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.5")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.6")), classes = "govuk-table__header govuk-!-width-one-quarter")
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.1")), classes = "govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.2")), classes = "govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.3")), classes = "govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.4")), classes = "govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.5")), classes = "govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.6")), classes = "govuk-!-width-one-quarter")
                 )),
                 caption = Some(messages("account.viewPayments.table.outstandingPayments.header.title")),
                 captionClasses = "govuk-table__caption--m",
@@ -67,12 +67,12 @@
         table(Table(
             rows = tableRowsPaymentHistory(paymentHistory),
             head = Some(Seq(
-                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.1")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.2")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.3")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.4")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.5")), classes = "govuk-table__header govuk-!-width-one-quarter"),
-                HeadCell(content = if (appConfig.disableRefund) " " else Text(messages("account.viewPayments.table.paymentsHistory.header.6")), classes = "govuk-table__header govuk-!-width-one-quarter")
+                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.1")), classes = "govuk-!-width-one-quarter"),
+                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.2")), classes = "govuk-!-width-one-quarter"),
+                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.3")), classes = "govuk-!-width-one-quarter"),
+                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.4")), classes = "govuk-!-width-one-quarter"),
+                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.5")), classes = "govuk-!-width-one-quarter"),
+                HeadCell(content = if (appConfig.disableRefund) " " else Text(messages("account.viewPayments.table.paymentsHistory.header.6")), classes = "govuk-!-width-one-quarter")
             )),
             caption = Some(messages("account.viewPayments.table.paymentsHistory.header.title")),
             captionClasses = "govuk-table__caption--m",
