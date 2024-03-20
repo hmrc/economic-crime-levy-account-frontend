@@ -46,9 +46,6 @@ object ResponseError {
     BadGateway(message, ErrorCode.BadGateway, code)
   }
 
-  def badRequestError(message: String): ResponseError =
-    StandardError(message, ErrorCode.BadRequest)
-
   def internalServiceError(
     message: String = "Internal server error",
     code: ErrorCode = ErrorCode.InternalServerError,
@@ -85,22 +82,13 @@ object ResponseError {
 
 case class StandardError(message: String, code: ErrorCode) extends ResponseError
 
-case class UpstreamServiceError(
-  message: String = "Internal server error",
-  code: ErrorCode = ErrorCode.InternalServerError,
-  cause: UpstreamErrorResponse
-) extends ResponseError
-
 case class BadGateway(
   message: String = "Internal server error",
   code: ErrorCode = ErrorCode.BadGateway,
   responseCode: Int
 ) extends ResponseError
 
-object BadGateway {
-  def causedBy(message: String, code: Int): ResponseError =
-    ResponseError.badGateway(message = message, code = code)
-}
+object BadGateway {}
 
 case class InternalServiceError(
   message: String = "Internal server error",
@@ -108,7 +96,4 @@ case class InternalServiceError(
   cause: Option[Throwable] = None
 ) extends ResponseError
 
-object InternalServiceError {
-  def causedBy(cause: Throwable): ResponseError =
-    ResponseError.internalServiceError(cause = Some(cause))
-}
+object InternalServiceError {}
