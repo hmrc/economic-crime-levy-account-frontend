@@ -18,7 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.http.Status.BAD_GATEWAY
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{EclAccountError, OpsError, ResponseError}
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{EclAccountError, EclRegistrationError, OpsError, ResponseError}
 
 class ErrorHandlerSpec extends SpecBase with ErrorHandler {
 
@@ -46,6 +46,44 @@ class ErrorHandlerSpec extends SpecBase with ErrorHandler {
       val result = opsErrorConverter.convert(opsError)
 
       result shouldBe ResponseError.badGateway(message, code)
+    }
+
+    "return ResponseError.internalServiceError when OpsError.InternalUnexpectedError.InternalUnexpectedError is converted" in {
+
+      val message   = "Error message"
+      val exception = new Exception()
+
+      val opsError = OpsError.InternalUnexpectedError(message, Some(exception))
+
+      val result = opsErrorConverter.convert(opsError)
+
+      result shouldBe ResponseError.internalServiceError(message = message, cause = Some(exception))
+    }
+  }
+
+  "eclRegistrationErrorConverter" should {
+    "return ResponseError.badGateway when EclRegistrationError.BadGateway is converted" in {
+
+      val code    = BAD_GATEWAY
+      val message = "Error message"
+
+      val eclRegistrationError = EclRegistrationError.BadGateway(message, code)
+
+      val result = eclRegistrationErrorConverter.convert(eclRegistrationError)
+
+      result shouldBe ResponseError.badGateway(message, code)
+    }
+
+    "return ResponseError.internalServiceError when EclRegistrationError.InternalUnexpectedError.InternalUnexpectedError is converted" in {
+
+      val message   = "Error message"
+      val exception = new Exception()
+
+      val eclRegistrationError = EclRegistrationError.InternalUnexpectedError(message, Some(exception))
+
+      val result = eclRegistrationErrorConverter.convert(eclRegistrationError)
+
+      result shouldBe ResponseError.internalServiceError(message = message, cause = Some(exception))
     }
   }
 }
