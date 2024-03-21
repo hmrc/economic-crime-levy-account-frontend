@@ -67,7 +67,7 @@
         if(rowData.chargeReference.isDefined) {
             TableRow(content = chargeReference, classes = "govuk-table__cell")
         } else {
-            TableRow(content = Empty)
+            TableRow(content = Empty, classes = "govuk-!-display-none")
         },
         if(viewModel.isSubscribed) {
             rowData.chargeReference match {
