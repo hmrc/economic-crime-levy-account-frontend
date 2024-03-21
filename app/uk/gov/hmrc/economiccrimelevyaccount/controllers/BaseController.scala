@@ -19,7 +19,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.controllers
 import play.api.http.HeaderNames.CACHE_CONTROL
 import play.api.i18n.{I18nSupport, Messages}
 import play.api.mvc.Results.InternalServerError
-import play.api.mvc.{Request, Result, Results}
+import play.api.mvc.{Request, Result}
 import play.twirl.api.Html
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{ErrorCode, ResponseError}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.ErrorTemplate
@@ -39,21 +39,12 @@ trait BaseController extends I18nSupport {
       Messages("error.problemWithService.message")
     )
 
-  private def fallbackClientErrorTemplate(implicit request: Request[_], errorTemplate: ErrorTemplate): Html =
-    standardErrorTemplate(
-      Messages("global.error.fallbackClientError4xx.title"),
-      Messages("global.error.fallbackClientError4xx.heading"),
-      Messages("global.error.fallbackClientError4xx.message")
-    )
-
   def routeError(error: ResponseError)(implicit request: Request[_], errorTemplate: ErrorTemplate): Result =
     error.code match {
       case ErrorCode.InternalServerError | ErrorCode.BadGateway | ErrorCode.BadRequest =>
         InternalServerError(internalServerErrorTemplate(request, errorTemplate)).withHeaders(
           CACHE_CONTROL -> "no-cache"
         )
-      case errorCode                                                                   =>
-        Results.Status(errorCode.statusCode)(fallbackClientErrorTemplate(request, errorTemplate))
     }
 
 }

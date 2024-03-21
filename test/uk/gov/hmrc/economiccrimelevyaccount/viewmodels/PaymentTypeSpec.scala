@@ -19,6 +19,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
 import play.api.libs.json.{JsResultException, JsString, Json}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.Unknown
 
 class PaymentTypeSpec extends SpecBase {
 
@@ -27,6 +28,12 @@ class PaymentTypeSpec extends SpecBase {
       val json = Json.toJson(paymentType)
 
       json.as[PaymentType] shouldBe paymentType
+    }
+
+    "return the payments type deserialized from it's JSON representation for unknown type" in {
+      val json = Json.toJson("Unknown")
+
+      json.as[PaymentType] shouldBe Unknown
     }
 
     "return error when trying to deserialize unknown payment type" in forAll { (paymentType: PaymentType) =>

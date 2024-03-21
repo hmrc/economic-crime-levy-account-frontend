@@ -23,7 +23,7 @@ import play.api.test.Helpers._
 import uk.gov.hmrc.economiccrimelevyaccount._
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{AuditError, EclAccountError, EclRegistrationError}
-import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, FinancialData}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, FinancialData, ObligationData}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, EclAccountService, EclRegistrationService}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
@@ -130,11 +130,36 @@ class EclAccountControllerSpec extends SpecBase {
         obligationData: ObligationDataWithObligation,
         validFinancialDataResponse: ValidFinancialDataResponse
       ) =>
+        when(mockEclAccountService.retrieveObligationData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
+
+        when(mockAuditService.auditAccountViewed(any(), any[String].asInstanceOf[EclReference], any(), any())(any()))
+          .thenReturn(EitherT.rightT[Future, AuditError](AuditResult.Success))
+
+        when(mockEclAccountService.retrieveFinancialData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](None))
+
+        when(mockEclRegistrationService.getSubscriptionStatus(any())(any()))
+          .thenReturn(EitherT.rightT[Future, EclRegistrationError](testSubscribedSubscriptionStatus))
+
+        val result: Future[Result] = controller.onPageLoad()(fakeRequest)
+
+        status(result) shouldBe OK
+    }
+
+    "return INTERNAL_SERVER_ERROR when we receive error from eclAccount service for retrieveObligationData call" in forAll {
+      (
+        validFinancialDataResponse: ValidFinancialDataResponse
+      ) =>
         val invalidFinancialDataResponse =
           validFinancialDataResponse.copy(financialDataResponse = FinancialData(None, None))
 
         when(mockEclAccountService.retrieveObligationData(any()))
-          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(obligationData.obligationData)))
+          .thenReturn(
+            EitherT.leftT[Future, Option[ObligationData]](
+              EclAccountError.InternalUnexpectedError("Error message", Some(new Exception("Error message")))
+            )
+          )
 
         when(mockAuditService.auditAccountViewed(any(), any[String].asInstanceOf[EclReference], any(), any())(any()))
           .thenReturn(EitherT.rightT[Future, AuditError](AuditResult.Success))
@@ -147,7 +172,7 @@ class EclAccountControllerSpec extends SpecBase {
 
         val result: Future[Result] = controller.onPageLoad()(fakeRequest)
 
-        status(result) shouldBe OK
+        status(result) shouldBe INTERNAL_SERVER_ERROR
     }
   }
 

@@ -18,11 +18,12 @@ package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import cats.data.EitherT
 import org.mockito.ArgumentMatchers.any
-import play.api.http.Status.OK
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.mvc.Result
 import play.api.test.Helpers.{contentAsString, status}
 import uk.gov.hmrc.economiccrimelevyaccount.{ValidFinancialDataResponse, ValidPaymentsViewModel}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
+import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialData
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{EclAccountError, EclRegistrationError}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{EclAccountService, EclRegistrationService}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoPaymentsView, PaymentsView}
@@ -77,6 +78,23 @@ class ViewYourPaymentsControllerSpec extends SpecBase {
       val result: Future[Result] = controller.onPageLoad()(fakeRequest)
       status(result)          shouldBe OK
       contentAsString(result) shouldBe noPaymentsView()(fakeRequest, messages).toString()
+    }
+
+    "return INTERNAL_SERVER_ERROR when retrieveFinancialData call fails" in {
+      val message = "Error message"
+
+      when(mockEclAccountService.retrieveFinancialData(any()))
+        .thenReturn(
+          EitherT.leftT[Future, Option[FinancialData]](
+            EclAccountError.InternalUnexpectedError(message, Some(new Exception(message)))
+          )
+        )
+
+      when(mockEclAccountService.prepareViewModel(any(), any(), any()))
+        .thenReturn(EitherT.rightT[Future, EclAccountError](None))
+
+      val result: Future[Result] = controller.onPageLoad()(fakeRequest)
+      status(result) shouldBe INTERNAL_SERVER_ERROR
     }
   }
 }

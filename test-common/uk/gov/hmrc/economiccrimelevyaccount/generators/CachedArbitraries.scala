@@ -22,6 +22,7 @@ import org.scalacheck.derive.MkArbitrary
 import uk.gov.hmrc.auth.core.{Enrolment, Enrolments}
 import uk.gov.hmrc.economiccrimelevyaccount.EclTestData
 import uk.gov.hmrc.economiccrimelevyaccount.models._
+import uk.gov.hmrc.economiccrimelevyaccount.models.audit.AccountViewedAuditFinancialDetails
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.ErrorCode
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType
 
@@ -29,15 +30,19 @@ object CachedArbitraries extends EclTestData with Generators {
 
   private def mkArb[T](implicit mkArb: MkArbitrary[T]): Arbitrary[T] = MkArbitrary[T].arbitrary
 
-  implicit lazy val arbEnrolment: Arbitrary[Enrolment]                                 = mkArb
-  implicit lazy val arbEnrolments: Arbitrary[Enrolments]                               = mkArb
-  implicit lazy val arbObligationData: Arbitrary[ObligationData]                       = mkArb
-  implicit lazy val arbObligation: Arbitrary[Obligation]                               = mkArb
-  implicit lazy val arbFinancialDataResponse: Arbitrary[FinancialData]                 = mkArb
-  implicit lazy val arbSubscriptionStatus: Arbitrary[SubscriptionStatus]               = mkArb
-  implicit lazy val arbEclSubscriptionStatus: Arbitrary[EclSubscriptionStatus]         = mkArb
-  implicit lazy val arbPaymentType: Arbitrary[PaymentType]                             = mkArb
-  implicit lazy val arbPenaltyTotals: Arbitrary[PenaltyTotals]                         = mkArb
-  implicit lazy val arbErrorCodes: Arbitrary[ErrorCode]                                = mkArb
-  implicit lazy val arbFinancialDataDocumentType: Arbitrary[FinancialDataDocumentType] = mkArb
+  implicit lazy val arbEnrolment: Arbitrary[Enrolment]                                                   = mkArb
+  implicit lazy val arbEnrolments: Arbitrary[Enrolments]                                                 = mkArb
+  implicit lazy val arbObligationData: Arbitrary[ObligationData]                                         = mkArb
+  implicit lazy val arbObligation: Arbitrary[Obligation]                                                 = mkArb
+  implicit lazy val arbFinancialDataResponse: Arbitrary[FinancialData]                                   = mkArb
+  implicit lazy val arbSubscriptionStatus: Arbitrary[SubscriptionStatus]                                 = mkArb
+  implicit lazy val arbEclSubscriptionStatus: Arbitrary[EclSubscriptionStatus]                           = mkArb
+  implicit lazy val arbPaymentType: Arbitrary[PaymentType]                                               = mkArb
+  implicit lazy val arbPenaltyTotals: Arbitrary[PenaltyTotals]                                           = mkArb
+  implicit lazy val arbErrorCodes: Arbitrary[ErrorCode]                                                  = mkArb
+  implicit lazy val arbFinancialDataDocumentType: Arbitrary[FinancialDataDocumentType]                   = mkArb
+  implicit lazy val arbObligationStatus: Arbitrary[ObligationStatus]                                     = mkArb
+  implicit lazy val arbAccountViewedAuditFinancialDetails: Arbitrary[AccountViewedAuditFinancialDetails] = mkArb
+  implicit lazy val arbDocumentDetails: Arbitrary[DocumentDetails]                                       = mkArb
+  implicit lazy val arbLineItemDetails: Arbitrary[LineItemDetails]                                       = mkArb
 }

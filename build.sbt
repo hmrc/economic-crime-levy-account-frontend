@@ -93,6 +93,7 @@ val excludedScoveragePackages: Seq[String] = Seq(
   "testOnly.*",
   "testOnlyDoNotUseInAppConf.*",
   ".*viewmodels.govuk.*",
+  ".*views.html.*"
 )
 
 val scoverageSettings: Seq[Setting[_]] = Seq(

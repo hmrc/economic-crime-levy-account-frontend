@@ -21,6 +21,7 @@ import play.api.http.Status.BAD_REQUEST
 import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponseForLatestObligation
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EclAccountConnector
+import uk.gov.hmrc.economiccrimelevyaccount.models.InterestCharge
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EclAccountError
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, PartiallyPaid}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, StandardPayment}
@@ -96,6 +97,31 @@ class EclAccountServiceSpec extends SpecBase {
               testSubscribedSubscriptionStatus
             )
           )
+        )
+    }
+
+    "return EclAccountError.InternalUnexpectedError when getFinancialData call fails" in forAll {
+      validResponse: ValidFinancialDataResponseForLatestObligation =>
+        val updatedDocumentDetails =
+          validResponse.financialDataResponse.documentDetails.get(0) copy (documentType = Some(InterestCharge))
+
+        val updatedResponse =
+          validResponse.financialDataResponse.copy(documentDetails = Some(Seq(updatedDocumentDetails)))
+
+        when(mockECLAccountConnector.getFinancialData(any()))
+          .thenReturn(Future.successful(Some(updatedResponse)))
+
+        val response = await(
+          service
+            .prepareViewModel(
+              Some(updatedResponse),
+              testEclReference,
+              testSubscribedSubscriptionStatus
+            )
+            .value
+        )
+        response shouldBe Left(
+          EclAccountError.InternalUnexpectedError("Missing data required for PaymentsViewModel", None)
         )
     }
 

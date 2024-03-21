@@ -17,16 +17,13 @@
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
 import org.mockito.ArgumentMatchers.any
-import play.api.http.Status.BAD_GATEWAY
-import uk.gov.hmrc.economiccrimelevyaccount.{ObligationDataWithObligation, ValidFinancialDataResponse}
+import play.api.http.Status.{BAD_GATEWAY, BAD_REQUEST}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.models.EclReference
-import org.mockito.ArgumentMatchers
-import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EclAccountError
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.AuditError
+import uk.gov.hmrc.economiccrimelevyaccount.{ObligationDataWithObligation, ValidFinancialDataResponse}
 import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
-import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
-import uk.gov.hmrc.economiccrimelevyaccount.models.audit.{AccountViewedAuditEvent, AccountViewedAuditFinancialDetails}
 
 import scala.concurrent.Future
 
@@ -51,24 +48,93 @@ class AuditServiceSpec extends SpecBase {
 
         when(
           mockAuditConnector.sendExtendedEvent(
-            AccountViewedAuditEvent(
-              internalId = internalId,
-              eclReference = eclReference.value,
-              obligationDetails = obligationDataWithObligation.map(_.obligations.flatMap(_.obligationDetails)).get,
-              financialDetails = financialDataResponse.map(AccountViewedAuditFinancialDetails.apply)
-            ).extendedDataEvent
+            any()
           )(any(), any())
         )
           .thenReturn(Future.failed(UpstreamErrorResponse(errMessage, errorCode)))
 
-        val result = service.auditAccountViewed(
-          ArgumentMatchers.eq(internalId),
-          ArgumentMatchers.eq(eclReference),
-          ArgumentMatchers.eq(Some(obligationData.obligationData)),
-          ArgumentMatchers.eq(Some(financialData.financialDataResponse))
-        )(any())
+        val result = await(
+          service
+            .auditAccountViewed(
+              internalId,
+              eclReference,
+              obligationDataWithObligation,
+              financialDataResponse
+            )
+            .value
+        )
 
-        result shouldBe Left(EclAccountError.BadGateway(errMessage, errorCode))
+        result shouldBe Left(AuditError.BadGateway(errMessage, errorCode))
+
+    }
+
+    "return AuditError.BadGateway when call to AuditConnector fails with 4xx error" in forAll {
+      (
+        obligationData: ObligationDataWithObligation,
+        financialData: ValidFinancialDataResponse
+      ) =>
+        val errorCode  = BAD_REQUEST
+        val errMessage = "ErrorMessage"
+
+        val eclReference                 = EclReference("eclreference")
+        val obligationDataWithObligation = Some(obligationData.obligationData)
+        val financialDataResponse        = Some(financialData.financialDataResponse)
+        val internalId                   = "internalId"
+
+        when(
+          mockAuditConnector.sendExtendedEvent(
+            any()
+          )(any(), any())
+        )
+          .thenReturn(Future.failed(UpstreamErrorResponse(errMessage, errorCode)))
+
+        val result = await(
+          service
+            .auditAccountViewed(
+              internalId,
+              eclReference,
+              obligationDataWithObligation,
+              financialDataResponse
+            )
+            .value
+        )
+
+        result shouldBe Left(AuditError.BadGateway(errMessage, errorCode))
+
+    }
+
+    "return AuditError.InternalUnexpectedError when call to AuditConnector fails with NonFatal error" in forAll {
+      (
+        obligationData: ObligationDataWithObligation,
+        financialData: ValidFinancialDataResponse
+      ) =>
+        val errMessage = "ErrorMessage"
+        val exception  = new Exception(errMessage)
+
+        val eclReference                 = EclReference("eclreference")
+        val obligationDataWithObligation = Some(obligationData.obligationData)
+        val financialDataResponse        = Some(financialData.financialDataResponse)
+        val internalId                   = "internalId"
+
+        when(
+          mockAuditConnector.sendExtendedEvent(
+            any()
+          )(any(), any())
+        )
+          .thenReturn(Future.failed(exception))
+
+        val result = await(
+          service
+            .auditAccountViewed(
+              internalId,
+              eclReference,
+              obligationDataWithObligation,
+              financialDataResponse
+            )
+            .value
+        )
+
+        result shouldBe Left(AuditError.InternalUnexpectedError(errMessage, Some(exception)))
 
     }
   }
