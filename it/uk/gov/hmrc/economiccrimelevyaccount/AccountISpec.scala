@@ -85,6 +85,31 @@ class AccountISpec extends ISpecBase with AuthorisedBehaviour {
         )
       }
     }
+
+    "retry get retrieveObligationData call 3 times without calling retrieveFinancialData at all" in {
+      stubAuthorised()
+
+      stubGetObligationsError()
+      stubFinancialData()
+
+      val result = callRoute(FakeRequest(routes.AccountController.onPageLoad()))
+
+      status(result) shouldBe INTERNAL_SERVER_ERROR
+
+      eventually {
+        verify(
+          expectedCallsOnRetry,
+          getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/obligation-data"))
+            .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+        )
+
+        verify(
+          0,
+          getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/financial-data"))
+            .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+        )
+      }
+    }
   }
 
 }
