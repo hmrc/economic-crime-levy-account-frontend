@@ -93,11 +93,12 @@ val excludedScoveragePackages: Seq[String] = Seq(
   "testOnly.*",
   "testOnlyDoNotUseInAppConf.*",
   ".*viewmodels.govuk.*",
+  ".*views.html.*"
 )
 
 val scoverageSettings: Seq[Setting[_]] = Seq(
   ScoverageKeys.coverageExcludedFiles := excludedScoveragePackages.mkString(";"),
-  ScoverageKeys.coverageMinimumStmtTotal := 80,
+  ScoverageKeys.coverageMinimumStmtTotal := 90,
   ScoverageKeys.coverageFailOnMinimum := true,
   ScoverageKeys.coverageHighlighting := true
 )

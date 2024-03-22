@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
+package uk.gov.hmrc.economiccrimelevyaccount.models
 
-import play.api.data.Field
-import play.api.i18n.Messages
-import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Text
-import uk.gov.hmrc.govukfrontend.views.viewmodels.errormessage.ErrorMessage
+import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.WithCssClass
 
-trait ErrorMessageAwareness {
+class WithCssClassSpec extends SpecBase {
 
-  def errorMessage(field: Field)(implicit messages: Messages): Option[ErrorMessage] =
-    field.error
-      .map { err =>
-        ErrorMessage(content = Text(messages(err.message, err.args: _*)))
-      }
+  "toString" should {
+    "return String representation of input value for className" in {
+
+      val testClass = TestWithCssClass("testClassName")
+
+      testClass.toString shouldBe "testClassName"
+    }
+  }
 }
+
+case class TestWithCssClass(className: String) extends WithCssClass(className) {}

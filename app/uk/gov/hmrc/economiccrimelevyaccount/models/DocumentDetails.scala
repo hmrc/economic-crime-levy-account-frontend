@@ -105,7 +105,6 @@ case class DocumentDetails(
           case NewCharge | AmendedCharge => StandardPayment
           case InterestCharge            => Interest
           case Payment                   => Overpayment
-          case _                         => Unknown
         }
     }
 

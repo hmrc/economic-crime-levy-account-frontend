@@ -19,10 +19,12 @@ package uk.gov.hmrc.economiccrimelevyaccount.controllers
 import cats.data.EitherT
 import org.mockito.ArgumentMatchers
 import org.mockito.ArgumentMatchers.any
-import play.api.http.Status.INTERNAL_SERVER_ERROR
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, SEE_OTHER}
+import play.api.test.Helpers.status
+import uk.gov.hmrc.economiccrimelevyaccount.ValidFinancialDataResponse
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{EclAccountError, OpsError}
-import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, OpsJourneyResponse}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, OpsJourneyResponse, Payment}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{EclAccountService, OpsService}
 
 import java.time.LocalDate
@@ -33,7 +35,7 @@ class PaymentsControllerSpec extends SpecBase {
   val mockOpsService: OpsService               = mock[OpsService]
   val mockECLAccountService: EclAccountService = mock[EclAccountService]
 
-  val date                = LocalDate.now()
+  val date: LocalDate     = LocalDate.now()
   val expectedUrl: String = "http://test-url.co.uk"
 
   val controller = new PaymentsController(
@@ -73,6 +75,9 @@ class PaymentsControllerSpec extends SpecBase {
         val result = await(controller.onPageLoad(Some(chargeReference))(fakeRequest))
 
         result shouldBe Redirect(expectedUrl)
+
+        reset(mockOpsService)
+        reset(mockECLAccountService)
     }
 
     "redirect to URL if charge to pay with no charge reference" in {
@@ -104,6 +109,9 @@ class PaymentsControllerSpec extends SpecBase {
         val result = await(controller.onPageLoad(None)(fakeRequest))
 
         result shouldBe Redirect(expectedUrl)
+
+        reset(mockOpsService)
+        reset(mockECLAccountService)
     }
 
     "redirect to account page if no data" in {
@@ -132,6 +140,42 @@ class PaymentsControllerSpec extends SpecBase {
         val result = await(controller.onPageLoad(Some(chargeReference))(fakeRequest))
 
         result shouldBe Redirect(routes.AccountController.onPageLoad())
+
+        reset(mockOpsService)
+        reset(mockECLAccountService)
+    }
+
+    "return INTERNAL_SERVER_ERROR when document type is Payment" in forAll {
+      (
+        chargeReference: String,
+        financialData: ValidFinancialDataResponse
+      ) =>
+        val documentDetails =
+          financialData.financialDataResponse.documentDetails.get(0).copy(documentType = Some(Payment))
+
+        val updatedResponse = financialData.financialDataResponse.copy(documentDetails = Some(Seq(documentDetails)))
+
+        when(mockECLAccountService.retrieveFinancialData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](Some(updatedResponse)))
+
+        val result = controller.onPageLoad(Some(chargeReference))(fakeRequest)
+
+        status(result) shouldBe INTERNAL_SERVER_ERROR
+
+        reset(mockECLAccountService)
+    }
+
+    "return INTERNAL_SERVER_ERROR when ETMP didn't return financial data" in forAll {
+      (
+        chargeReference: String,
+      ) =>
+        when(mockECLAccountService.retrieveFinancialData(any()))
+          .thenReturn(EitherT.rightT[Future, EclAccountError](None))
+
+        val result = controller.onPageLoad(Some(chargeReference))(fakeRequest)
+
+        status(result) shouldBe SEE_OTHER
+        reset(mockECLAccountService)
     }
   }
 }

@@ -19,7 +19,6 @@ package uk.gov.hmrc.economiccrimelevyaccount.models.errors
 import play.api.libs.Files.logger
 import play.api.libs.functional.syntax.{toFunctionalBuilderOps, unlift}
 import play.api.libs.json.{OWrites, Reads, __}
-import uk.gov.hmrc.http.UpstreamErrorResponse
 
 sealed abstract class ResponseError extends Product with Serializable {
   def message: String
@@ -45,9 +44,6 @@ object ResponseError {
 
     BadGateway(message, ErrorCode.BadGateway, code)
   }
-
-  def badRequestError(message: String): ResponseError =
-    StandardError(message, ErrorCode.BadRequest)
 
   def internalServiceError(
     message: String = "Internal server error",
@@ -85,22 +81,13 @@ object ResponseError {
 
 case class StandardError(message: String, code: ErrorCode) extends ResponseError
 
-case class UpstreamServiceError(
-  message: String = "Internal server error",
-  code: ErrorCode = ErrorCode.InternalServerError,
-  cause: UpstreamErrorResponse
-) extends ResponseError
-
 case class BadGateway(
   message: String = "Internal server error",
   code: ErrorCode = ErrorCode.BadGateway,
   responseCode: Int
 ) extends ResponseError
 
-object BadGateway {
-  def causedBy(message: String, code: Int): ResponseError =
-    ResponseError.badGateway(message = message, code = code)
-}
+object BadGateway {}
 
 case class InternalServiceError(
   message: String = "Internal server error",
@@ -108,7 +95,4 @@ case class InternalServiceError(
   cause: Option[Throwable] = None
 ) extends ResponseError
 
-object InternalServiceError {
-  def causedBy(cause: Throwable): ResponseError =
-    ResponseError.internalServiceError(cause = Some(cause))
-}
+object InternalServiceError {}

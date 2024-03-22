@@ -83,4 +83,28 @@ class OpsServiceSpec extends SpecBase {
 
     result shouldBe Left(OpsError.BadGateway("invalid request", BAD_REQUEST))
   }
+
+  "return OpsError.InternalUnexpectedError when OPS call fails" in forAll {
+    (chargeReference: String, amount: BigDecimal) =>
+      val url               = appConfig.dashboardUrl
+      val message           = "Error message"
+      val exception         = new Exception(message)
+      val opsJourneyRequest = OpsJourneyRequest(
+        chargeReference,
+        amount.abs * 100,
+        url,
+        url,
+        None
+      )
+
+      when(
+        mockOpsConnector.createOpsJourney(
+          ArgumentMatchers.eq(opsJourneyRequest)
+        )(any())
+      ).thenReturn(Future.failed(exception))
+
+      val result = await(service.startOpsJourney(chargeReference, amount.abs, None).value)
+
+      result shouldBe Left(OpsError.InternalUnexpectedError(message, Some(exception)))
+  }
 }

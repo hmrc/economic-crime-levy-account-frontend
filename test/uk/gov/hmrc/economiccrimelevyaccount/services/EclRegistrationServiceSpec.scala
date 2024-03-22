@@ -16,7 +16,7 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.services
 
-import play.api.http.Status.INTERNAL_SERVER_ERROR
+import play.api.http.Status.{BAD_REQUEST, INTERNAL_SERVER_ERROR}
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EclRegistrationConnector
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
@@ -46,6 +46,19 @@ class EclRegistrationServiceSpec extends SpecBase {
     "return EclRegistrationError.BadGateway when when call to EclRegistrationConnector fails with 5xx error" in forAll {
       (eclReference: EclReference, errorMessage: String) =>
         val errorCode = INTERNAL_SERVER_ERROR
+
+        when(mockEclRegistrationConnector.getSubscriptionStatus(eclReference))
+          .thenReturn(Future.failed(UpstreamErrorResponse.apply(errorMessage, errorCode)))
+
+        val result: Either[EclRegistrationError, EclSubscriptionStatus] =
+          await(service.getSubscriptionStatus(eclReference).value)
+
+        result shouldBe Left(EclRegistrationError.BadGateway(errorMessage, errorCode))
+    }
+
+    "return EclRegistrationError.BadGateway when when call to EclRegistrationConnector fails with 4xx error" in forAll {
+      (eclReference: EclReference, errorMessage: String) =>
+        val errorCode = BAD_REQUEST
 
         when(mockEclRegistrationConnector.getSubscriptionStatus(eclReference))
           .thenReturn(Future.failed(UpstreamErrorResponse.apply(errorMessage, errorCode)))

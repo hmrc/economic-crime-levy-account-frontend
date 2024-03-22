@@ -16,16 +16,18 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount
 
-import com.danielasfregola.randomdatagenerator.RandomDataGenerator.random
+import com.github.tomakehurst.wiremock.client.WireMock._
+import org.scalatest.concurrent.Eventually.eventually
 import play.api.test.FakeRequest
 import uk.gov.hmrc.economiccrimelevyaccount.base.ISpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.behaviours.AuthorisedBehaviour
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
-import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
-import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationData
+import uk.gov.hmrc.economiccrimelevyaccount.utils.HttpHeader
 
 class PaymentsISpec extends ISpecBase with AuthorisedBehaviour {
-  val expectedUrl = "http://test-url.co.uk"
+
+  val expectedUrl                       = "http://test-url.co.uk"
+  private val expectedCallsOnRetry: Int = 4
 
   s"GET ${routes.PaymentsController.onPageLoad(None).url}" should {
     behave like authorisedActionRoute(routes.AccountController.onPageLoad())
@@ -35,9 +37,6 @@ class PaymentsISpec extends ISpecBase with AuthorisedBehaviour {
     "respond with 200 status and the start HTML view with no charge reference" in {
       stubAuthorised()
 
-      val obligationData = random[ObligationData]
-
-      stubGetObligations(obligationData)
       stubFinancialData()
       stubStartJourney(expectedUrl)
 
@@ -45,14 +44,24 @@ class PaymentsISpec extends ISpecBase with AuthorisedBehaviour {
 
       status(result)                 shouldBe SEE_OTHER
       redirectLocation(result).value shouldBe expectedUrl
+
+      verify(
+        1,
+        getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/financial-data"))
+          .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+      )
+
+      verify(
+        1,
+        postRequestedFor(urlEqualTo(s"/pay-api/economic-crime-levy/journey/start"))
+          .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+      )
+
     }
 
     "respond with 200 status and the start HTML view with charge reference" in {
       stubAuthorised()
 
-      val obligationData = random[ObligationData]
-
-      stubGetObligations(obligationData)
       stubFinancialData()
       stubStartJourney(expectedUrl)
 
@@ -60,6 +69,40 @@ class PaymentsISpec extends ISpecBase with AuthorisedBehaviour {
 
       status(result)                 shouldBe SEE_OTHER
       redirectLocation(result).value shouldBe expectedUrl
+
+      verify(
+        1,
+        getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/financial-data"))
+          .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+      )
+
+      verify(
+        1,
+        postRequestedFor(urlEqualTo(s"/pay-api/economic-crime-levy/journey/start"))
+          .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+      )
+
     }
+
+    "retry the get submission call 3 times after the initial attempt if it fails with a 500 INTERNAL_SERVER_ERROR response" in {
+
+      stubAuthorised()
+
+      stubFinancialDataError()
+      stubStartJourney(expectedUrl)
+
+      val result = callRoute(FakeRequest(routes.PaymentsController.onPageLoad(Some(chargeReference))))
+
+      status(result) shouldBe INTERNAL_SERVER_ERROR
+
+      eventually {
+        verify(
+          expectedCallsOnRetry,
+          getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/financial-data"))
+            .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+        )
+      }
+    }
+
   }
 }

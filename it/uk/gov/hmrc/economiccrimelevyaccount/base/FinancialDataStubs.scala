@@ -2,7 +2,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.base
 
 import com.github.tomakehurst.wiremock.client.WireMock.{aResponse, get, urlEqualTo}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
-import play.api.http.Status.OK
+import play.api.http.Status.{INTERNAL_SERVER_ERROR, OK}
 import play.api.libs.json.Json
 import uk.gov.hmrc.economiccrimelevyaccount.base.WireMockHelper.stub
 import uk.gov.hmrc.economiccrimelevyaccount.models._
@@ -64,4 +64,11 @@ trait FinancialDataStubs {
         )
     )
 
+  def stubFinancialDataError(): StubMapping =
+    stub(
+      get(urlEqualTo("/economic-crime-levy-account/financial-data")),
+      aResponse()
+        .withStatus(INTERNAL_SERVER_ERROR)
+        .withBody("Internal server error")
+    )
 }
