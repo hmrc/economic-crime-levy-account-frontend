@@ -29,8 +29,6 @@ import uk.gov.hmrc.economiccrimelevyaccount.utils.HttpHeader
 
 class AccountISpec extends ISpecBase with AuthorisedBehaviour {
 
-  private val expectedCallsOnRetry: Int = 4
-
   s"GET ${routes.AccountController.onPageLoad().url}" should {
     behave like authorisedActionRoute(routes.AccountController.onPageLoad())
 
@@ -79,7 +77,7 @@ class AccountISpec extends ISpecBase with AuthorisedBehaviour {
 
       eventually {
         verify(
-          expectedCallsOnRetry,
+          1,
           getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/obligation-data"))
             .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
         )
@@ -98,7 +96,7 @@ class AccountISpec extends ISpecBase with AuthorisedBehaviour {
 
       eventually {
         verify(
-          expectedCallsOnRetry,
+          1,
           getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/obligation-data"))
             .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
         )

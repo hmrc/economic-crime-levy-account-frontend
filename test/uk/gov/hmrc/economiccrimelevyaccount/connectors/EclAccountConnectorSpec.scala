@@ -81,7 +81,7 @@ class EclAccountConnectorSpec extends SpecBase {
         case _                                            => fail("expected UpstreamErrorResponse when an error is received from ECL account backend")
       }
 
-      verify(mockRequestBuilder, times(2))
+      verify(mockRequestBuilder, times(1))
         .execute(any(), any())
     }
   }

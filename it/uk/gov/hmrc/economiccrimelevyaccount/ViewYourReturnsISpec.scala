@@ -13,8 +13,6 @@ import java.time.LocalDate
 
 class ViewYourReturnsISpec extends ISpecBase with AuthorisedBehaviour {
 
-  private val expectedCallsOnRetry: Int = 4
-
   s"GET ${routes.ViewYourReturnsController.onPageLoad().url}" should {
     behave like authorisedActionRoute(routes.ViewYourReturnsController.onPageLoad())
 
@@ -81,7 +79,7 @@ class ViewYourReturnsISpec extends ISpecBase with AuthorisedBehaviour {
 
       eventually {
         verify(
-          expectedCallsOnRetry,
+          1,
           getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/obligation-data"))
             .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
         )
@@ -101,7 +99,7 @@ class ViewYourReturnsISpec extends ISpecBase with AuthorisedBehaviour {
 
       eventually {
         verify(
-          expectedCallsOnRetry,
+          1,
           getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/obligation-data"))
             .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
         )
