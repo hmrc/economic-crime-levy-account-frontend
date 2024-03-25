@@ -13,8 +13,6 @@ import java.time.LocalDate
 
 class ViewYourReturnsISpec extends ISpecBase with AuthorisedBehaviour {
 
-  private val expectedCallsOnRetry: Int = 4
-
   s"GET ${routes.ViewYourReturnsController.onPageLoad().url}" should {
     behave like authorisedActionRoute(routes.ViewYourReturnsController.onPageLoad())
 
@@ -73,8 +71,26 @@ class ViewYourReturnsISpec extends ISpecBase with AuthorisedBehaviour {
     "retry the get submission call 3 times after the initial attempt if it fails with a 500 INTERNAL_SERVER_ERROR response" in {
 
       stubAuthorised()
-      stubFinancialData()
       stubGetObligationsError()
+
+      val result = callRoute(FakeRequest(routes.ViewYourReturnsController.onPageLoad()))
+
+      status(result) shouldBe INTERNAL_SERVER_ERROR
+
+      eventually {
+        verify(
+          1,
+          getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/obligation-data"))
+            .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+        )
+      }
+    }
+
+    "retry get retrieveObligationData call 3 times without calling retrieveFinancialData and getSubscriptionStatus at all" in {
+
+      stubAuthorised()
+      stubGetObligationsError()
+      stubFinancialData()
       stubGetSubscriptionStatus(testEclReference, testSubscribedSubscriptionStatus)
 
       val result = callRoute(FakeRequest(routes.ViewYourReturnsController.onPageLoad()))
@@ -83,8 +99,22 @@ class ViewYourReturnsISpec extends ISpecBase with AuthorisedBehaviour {
 
       eventually {
         verify(
-          expectedCallsOnRetry,
+          1,
           getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/obligation-data"))
+            .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+        )
+
+        verify(
+          0,
+          getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/financial-data"))
+            .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+        )
+
+        verify(
+          0,
+          getRequestedFor(
+            urlEqualTo(s"/economic-crime-levy-registration/subscription-status/ZECL/${testEclReference.value}")
+          )
             .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
         )
       }
