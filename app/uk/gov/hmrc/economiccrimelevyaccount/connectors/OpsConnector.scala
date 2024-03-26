@@ -46,7 +46,7 @@ class OpsConnector @Inject() (
       httpClient
         .post(url"${appConfig.opsStartJourneyUrl}")
         .withBody(Json.toJson(opsJourneyRequest))
-        .transform(_.addHttpHeaders((HttpHeader.SessionId, opsJourneyRequest.chargeReference)))
+        .transform(_.addHttpHeaders((HttpHeader.xSessionId, opsJourneyRequest.chargeReference)))
         .executeAndDeserialise[OpsJourneyResponse]
     }
 

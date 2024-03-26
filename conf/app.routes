@@ -1,19 +1,19 @@
 # microservice specific routes
 
-->         /hmrc-frontend                              hmrcfrontend.Routes
+->  /hmrc-frontend                       hmrcfrontend.Routes
 
-GET        /                                           uk.gov.hmrc.economiccrimelevyaccount.controllers.AccountController.onPageLoad()
+GET /                                    uk.gov.hmrc.economiccrimelevyaccount.controllers.AccountController.onPageLoad()
 
-GET        /not-registered                             uk.gov.hmrc.economiccrimelevyaccount.controllers.NotableErrorController.notRegistered()
+GET /not-registered                      uk.gov.hmrc.economiccrimelevyaccount.controllers.NotableErrorController.notRegistered()
 
-GET        /agent-cannot-access-service                uk.gov.hmrc.economiccrimelevyaccount.controllers.NotableErrorController.agentCannotAccessService()
+GET /agent-cannot-access-service         uk.gov.hmrc.economiccrimelevyaccount.controllers.NotableErrorController.agentCannotAccessService()
 
-GET        /account/sign-out-survey                    uk.gov.hmrc.economiccrimelevyaccount.controllers.SignOutController.signOut()
-GET        /account/sign-out                           uk.gov.hmrc.economiccrimelevyaccount.controllers.SignOutController.signOutNoSurvey()
-GET        /account/signed-out                         uk.gov.hmrc.economiccrimelevyaccount.controllers.SignOutController.signedOut()
+GET /account/sign-out-survey             uk.gov.hmrc.economiccrimelevyaccount.controllers.SignOutController.signOut()
+GET /account/sign-out                    uk.gov.hmrc.economiccrimelevyaccount.controllers.SignOutController.signOutNoSurvey()
+GET /account/signed-out                  uk.gov.hmrc.economiccrimelevyaccount.controllers.SignOutController.signedOut()
 
-GET        /your-ecl-returns                           uk.gov.hmrc.economiccrimelevyaccount.controllers.ViewYourReturnsController.onPageLoad()
-GET        /economic-crime-levy-payment-history        uk.gov.hmrc.economiccrimelevyaccount.controllers.ViewYourPaymentsController.onPageLoad()
-GET        /assets/*file                               controllers.Assets.versioned(path = "/public", file: Asset)
+GET /your-ecl-returns                    uk.gov.hmrc.economiccrimelevyaccount.controllers.ViewYourReturnsController.onPageLoad()
+GET /economic-crime-levy-payment-history uk.gov.hmrc.economiccrimelevyaccount.controllers.ViewYourPaymentsController.onPageLoad()
+GET /assets/*file                        controllers.Assets.versioned(path = "/public", file: Asset)
 
-GET        /make-a-payment                             uk.gov.hmrc.economiccrimelevyaccount.controllers.PaymentsController.onPageLoad(chargeReference: Option[String])
+GET /make-a-payment                      uk.gov.hmrc.economiccrimelevyaccount.controllers.PaymentsController.onPageLoad(chargeReference: Option[String])

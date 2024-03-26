@@ -49,10 +49,10 @@ class FinancialDataDocumentTypeSpec extends SpecBase {
         val json = Json.toJson(financialDataDocumentType)
 
         val matchedType = financialDataDocumentType match {
-          case NewCharge      => JsString(DocumentType.TrmNewCharge)
-          case AmendedCharge  => JsString(DocumentType.TrmAmendCharge)
-          case InterestCharge => JsString(DocumentType.InterestDocument)
-          case Payment        => JsString(DocumentType.Payment)
+          case NewCharge      => JsString(DocumentType.trmNewCharge)
+          case AmendedCharge  => JsString(DocumentType.trmAmendCharge)
+          case InterestCharge => JsString(DocumentType.interestDocument)
+          case Payment        => JsString(DocumentType.payment)
         }
 
         json shouldBe matchedType

@@ -59,6 +59,10 @@ If this is disabled then the registration tile on the My ECL Account home page w
 
 Enables/disables the amend returns feature.
 
+> `deregisterEnabled`
+
+Enables/disables the request to deregister link on the main dashboard page.
+
 > `paymentsEnabled`
 
 Enables/disables the payments feature.

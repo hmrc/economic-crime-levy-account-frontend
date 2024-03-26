@@ -18,14 +18,5 @@ package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
 
 package object govuk {
 
-  object all
-      extends ImplicitConversions
-      with BackLinkFluency
-      with ButtonFluency
-      with ErrorSummaryFluency
-      with FieldsetFluency
-      with HintFluency
-      with LabelFluency
-      with SummaryListFluency
-      with TagFluency
+  object all extends ImplicitConversions with ButtonFluency
 }

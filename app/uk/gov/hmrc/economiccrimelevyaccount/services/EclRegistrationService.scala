@@ -43,7 +43,7 @@ class EclRegistrationService @Inject() (
               if UpstreamErrorResponse.Upstream5xxResponse
                 .unapply(error)
                 .isDefined || UpstreamErrorResponse.Upstream4xxResponse.unapply(error).isDefined =>
-            Left(EclRegistrationError.BadGateway(message, code))
+            Left(EclRegistrationError.BadGateway(s"Get Subscription Status Failed - $message", code))
           case NonFatal(thr) => Left(EclRegistrationError.InternalUnexpectedError(thr.getMessage, Some(thr)))
         }
     }

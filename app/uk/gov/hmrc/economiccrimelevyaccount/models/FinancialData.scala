@@ -27,7 +27,7 @@ case class FinancialData(totalisation: Option[Totalisation], documentDetails: Op
   ): Option[Seq[DocumentDetails]] =
     documentDetails.map {
       _.filter(document =>
-        document.contractObjectType.contains(Constants.Ecl)
+        document.contractObjectType.contains(Constants.ecl)
           && document.contractObjectNumber.contains(contractObjectNumber)
       )
     }

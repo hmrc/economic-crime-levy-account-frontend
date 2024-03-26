@@ -54,7 +54,7 @@ class AuditService @Inject() (auditConnector: AuditConnector)(implicit ec: Execu
               if UpstreamErrorResponse.Upstream5xxResponse
                 .unapply(error)
                 .isDefined || UpstreamErrorResponse.Upstream4xxResponse.unapply(error).isDefined =>
-            Left(AuditError.BadGateway(reason = message, code = code))
+            Left(AuditError.BadGateway(reason = s"Audit Account Viewed Failed - $message", code = code))
           case NonFatal(thr) => Left(AuditError.InternalUnexpectedError(thr.getMessage, Some(thr)))
         }
     }

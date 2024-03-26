@@ -22,9 +22,9 @@ import uk.gov.hmrc.time.TaxYear
 object EclTaxYear {
 
   private def startYear = TaxYear.taxYearFor(LocalDate.now()).startYear
-  private val MonthDue  = 9
-  private val DayDue    = 30
+  private val dayDue    = 30
+  private val monthDue  = 9
 
   def dueDate: LocalDate =
-    LocalDate.of(startYear, MonthDue, DayDue)
+    LocalDate.of(startYear, monthDue, dayDue)
 }
