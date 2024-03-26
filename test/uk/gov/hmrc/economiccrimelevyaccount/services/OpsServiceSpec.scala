@@ -63,7 +63,8 @@ class OpsServiceSpec extends SpecBase {
   }
 
   "redirect to account page if error" in forAll { (chargeReference: String, amount: BigDecimal) =>
-    val url = appConfig.dashboardUrl
+    val url          = appConfig.dashboardUrl
+    val errorMessage = "invalid request"
 
     val opsJourneyRequest = OpsJourneyRequest(
       chargeReference,
@@ -77,11 +78,11 @@ class OpsServiceSpec extends SpecBase {
       mockOpsConnector.createOpsJourney(
         ArgumentMatchers.eq(opsJourneyRequest)
       )(any())
-    ).thenReturn(Future.failed(UpstreamErrorResponse("invalid request", BAD_REQUEST)))
+    ).thenReturn(Future.failed(UpstreamErrorResponse(errorMessage, BAD_REQUEST)))
 
     val result = await(service.startOpsJourney(chargeReference, amount.abs, None).value)
 
-    result shouldBe Left(OpsError.BadGateway("invalid request", BAD_REQUEST))
+    result shouldBe Left(OpsError.BadGateway(s"Start OPS Journey Failed - $errorMessage", BAD_REQUEST))
   }
 
   "return OpsError.InternalUnexpectedError when OPS call fails" in forAll {

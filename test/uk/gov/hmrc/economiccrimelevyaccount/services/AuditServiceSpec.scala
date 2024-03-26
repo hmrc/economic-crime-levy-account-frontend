@@ -38,8 +38,8 @@ class AuditServiceSpec extends SpecBase {
         obligationData: ObligationDataWithObligation,
         financialData: ValidFinancialDataResponse
       ) =>
-        val errorCode  = BAD_GATEWAY
-        val errMessage = "ErrorMessage"
+        val errorCode    = BAD_GATEWAY
+        val errorMessage = "ErrorMessage"
 
         val eclReference                 = EclReference("eclreference")
         val obligationDataWithObligation = Some(obligationData.obligationData)
@@ -51,7 +51,7 @@ class AuditServiceSpec extends SpecBase {
             any()
           )(any(), any())
         )
-          .thenReturn(Future.failed(UpstreamErrorResponse(errMessage, errorCode)))
+          .thenReturn(Future.failed(UpstreamErrorResponse(errorMessage, errorCode)))
 
         val result = await(
           service
@@ -64,7 +64,7 @@ class AuditServiceSpec extends SpecBase {
             .value
         )
 
-        result shouldBe Left(AuditError.BadGateway(errMessage, errorCode))
+        result shouldBe Left(AuditError.BadGateway(s"Audit Account Viewed Failed - $errorMessage", errorCode))
 
     }
 
@@ -73,8 +73,8 @@ class AuditServiceSpec extends SpecBase {
         obligationData: ObligationDataWithObligation,
         financialData: ValidFinancialDataResponse
       ) =>
-        val errorCode  = BAD_REQUEST
-        val errMessage = "ErrorMessage"
+        val errorCode    = BAD_REQUEST
+        val errorMessage = "ErrorMessage"
 
         val eclReference                 = EclReference("eclreference")
         val obligationDataWithObligation = Some(obligationData.obligationData)
@@ -86,7 +86,7 @@ class AuditServiceSpec extends SpecBase {
             any()
           )(any(), any())
         )
-          .thenReturn(Future.failed(UpstreamErrorResponse(errMessage, errorCode)))
+          .thenReturn(Future.failed(UpstreamErrorResponse(errorMessage, errorCode)))
 
         val result = await(
           service
@@ -99,7 +99,7 @@ class AuditServiceSpec extends SpecBase {
             .value
         )
 
-        result shouldBe Left(AuditError.BadGateway(errMessage, errorCode))
+        result shouldBe Left(AuditError.BadGateway(s"Audit Account Viewed Failed - $errorMessage", errorCode))
 
     }
 
@@ -108,8 +108,8 @@ class AuditServiceSpec extends SpecBase {
         obligationData: ObligationDataWithObligation,
         financialData: ValidFinancialDataResponse
       ) =>
-        val errMessage = "ErrorMessage"
-        val exception  = new Exception(errMessage)
+        val errorMessage = "ErrorMessage"
+        val exception    = new Exception(errorMessage)
 
         val eclReference                 = EclReference("eclreference")
         val obligationDataWithObligation = Some(obligationData.obligationData)
@@ -134,7 +134,9 @@ class AuditServiceSpec extends SpecBase {
             .value
         )
 
-        result shouldBe Left(AuditError.InternalUnexpectedError(errMessage, Some(exception)))
+        result shouldBe Left(
+          AuditError.InternalUnexpectedError(errorMessage, Some(exception))
+        )
 
     }
   }

@@ -185,6 +185,7 @@ class EclAccountServiceSpec extends SpecBase {
           )
         )
     }
+
     "return empty payment history where there is no clearing reason in response" in forAll {
       validResponse: ValidFinancialDataResponseForLatestObligation =>
         val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head.copy(
@@ -306,43 +307,45 @@ class EclAccountServiceSpec extends SpecBase {
 
   "retrieveFinancialData" should {
     "return Left with EclAccountError-InternalServerError when connector fails with 4xx error" in {
-      val errorCode  = BAD_REQUEST
-      val errMessage = "ErrorMessage"
+      val errorCode    = BAD_REQUEST
+      val errorMessage = "ErrorMessage"
 
       when(mockECLAccountConnector.getFinancialData(any()))
-        .thenReturn(Future.failed(UpstreamErrorResponse(errMessage, errorCode)))
+        .thenReturn(Future.failed(UpstreamErrorResponse(errorMessage, errorCode)))
 
       val result = await(service.retrieveFinancialData(any()).value)
 
-      result shouldBe Left(EclAccountError.BadGateway(errMessage, errorCode))
+      result shouldBe Left(EclAccountError.BadGateway(s"Get Financial Data Failed - $errorMessage", errorCode))
 
     }
 
     "return Left with EclAccountError-InternalUnexpectedError when connector fails with an unexpected error" in {
-      val errMessage           = "ErrorMessage"
-      val throwable: Exception = new Exception(errMessage)
+      val errorMessage         = "ErrorMessage"
+      val throwable: Exception = new Exception(errorMessage)
 
       when(mockECLAccountConnector.getFinancialData(any()))
         .thenReturn(Future.failed(throwable))
 
       val result = await(service.retrieveFinancialData(any()).value)
 
-      result shouldBe Left(EclAccountError.InternalUnexpectedError(errMessage, Some(throwable)))
+      result shouldBe Left(
+        EclAccountError.InternalUnexpectedError(errorMessage, Some(throwable))
+      )
 
     }
   }
 
   "retrieveObligationData" should {
     "return Left with EclAccountError-InternalServerError when connector fails with 4xx error" in {
-      val errorCode  = BAD_REQUEST
-      val errMessage = "ErrorMessage"
+      val errorCode    = BAD_REQUEST
+      val errorMessage = "ErrorMessage"
 
       when(mockECLAccountConnector.getObligationData(any()))
-        .thenReturn(Future.failed(UpstreamErrorResponse(errMessage, errorCode)))
+        .thenReturn(Future.failed(UpstreamErrorResponse(errorMessage, errorCode)))
 
       val result = await(service.retrieveObligationData(any()).value)
 
-      result shouldBe Left(EclAccountError.BadGateway(errMessage, errorCode))
+      result shouldBe Left(EclAccountError.BadGateway(s"Get Obligation Data Failed - $errorMessage", errorCode))
 
     }
 
