@@ -29,12 +29,15 @@
 
 @(pageTitle: String, showBackLink: Boolean = true, timeout: Boolean = true, showSignOut: Boolean = true, fullWidthContent: Boolean = false)(contentBlock: Html)(implicit request: Request[_], messages: Messages)
 
+@language_key = @{"PLAY_LANG"}
+
 @head = {
     <link rel="stylesheet" href="@{controllers.routes.Assets.versioned("stylesheets/cards.css")}" @{CSPNonce.attr}>
     <link rel="stylesheet" href="@{controllers.routes.Assets.versioned("stylesheets/custom-styles.css")}" @{CSPNonce.attr}>
 
 @if(timeout) {
     @hmrcTimeoutDialog(TimeoutDialog(
+        language = request.cookies.get(language_key).map(c => c.value),
         timeout = Some(appConfig.timeout),
         countdown = Some(appConfig.countdown),
         keepAliveUrl = Some(uk.gov.hmrc.hmrcfrontend.controllers.routes.KeepAliveController.keepAlive.url),
