@@ -22,30 +22,31 @@ import play.api.libs.json._
 sealed abstract class ErrorCode(val code: String, val statusCode: Int) extends Product with Serializable
 
 object ErrorCode {
-  case object BadRequest extends ErrorCode("BAD_REQUEST", BAD_REQUEST)
   case object BadGateway extends ErrorCode("BAD_GATEWAY", BAD_GATEWAY)
 
-  case object NotFound extends ErrorCode("NOT_FOUND", NOT_FOUND)
+  case object BadRequest extends ErrorCode("BAD_REQUEST", BAD_REQUEST)
 
   case object Forbidden extends ErrorCode("FORBIDDEN", FORBIDDEN)
 
-  case object InternalServerError extends ErrorCode("INTERNAL_SERVER_ERROR", INTERNAL_SERVER_ERROR)
-
   case object GatewayTimeout extends ErrorCode("GATEWAY_TIMEOUT", GATEWAY_TIMEOUT)
 
-  case object UnsupportedMediaType extends ErrorCode("UNSUPPORTED_MEDIA_TYPE", UNSUPPORTED_MEDIA_TYPE)
+  case object InternalServerError extends ErrorCode("INTERNAL_SERVER_ERROR", INTERNAL_SERVER_ERROR)
+
+  case object NotFound extends ErrorCode("NOT_FOUND", NOT_FOUND)
 
   case object Unauthorized extends ErrorCode("UNAUTHORIZED", UNAUTHORIZED)
 
+  case object UnsupportedMediaType extends ErrorCode("UNSUPPORTED_MEDIA_TYPE", UNSUPPORTED_MEDIA_TYPE)
+
   lazy val errorCodes: Seq[ErrorCode] = Seq(
-    BadRequest,
     BadGateway,
-    NotFound,
+    BadRequest,
     Forbidden,
-    InternalServerError,
     GatewayTimeout,
-    UnsupportedMediaType,
-    Unauthorized
+    InternalServerError,
+    NotFound,
+    Unauthorized,
+    UnsupportedMediaType
   )
 
   implicit val errorCodeWrites: Writes[ErrorCode] = Writes { errorCode =>

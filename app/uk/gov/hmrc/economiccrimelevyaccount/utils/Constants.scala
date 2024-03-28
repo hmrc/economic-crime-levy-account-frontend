@@ -19,17 +19,17 @@ package uk.gov.hmrc.economiccrimelevyaccount.utils
 trait Constants
 
 object DocumentType extends Constants {
-  val TrmNewCharge     = "TRM New Charge"
-  val TrmAmendCharge   = "TRM Amend Charge"
-  val InterestDocument = "Interest Document"
-  val Payment          = "Payment"
+  val interestDocument = "Interest Document"
+  val payment          = "Payment"
+  val trmAmendCharge   = "TRM Amend Charge"
+  val trmNewCharge     = "TRM New Charge"
 }
 
 object HttpHeader extends Constants {
-  val SessionId     = "x-session-id"
-  val CorrelationId = "x-correlation-id"
+  val xCorrelationId = "x-correlation-id"
+  val xSessionId     = "x-session-id"
 }
 
 object Constants {
-  val Ecl = "ECL"
+  val ecl = "ECL"
 }

@@ -53,7 +53,9 @@ class EclRegistrationServiceSpec extends SpecBase {
         val result: Either[EclRegistrationError, EclSubscriptionStatus] =
           await(service.getSubscriptionStatus(eclReference).value)
 
-        result shouldBe Left(EclRegistrationError.BadGateway(errorMessage, errorCode))
+        result shouldBe Left(
+          EclRegistrationError.BadGateway(s"Get Subscription Status Failed - $errorMessage", errorCode)
+        )
     }
 
     "return EclRegistrationError.BadGateway when when call to EclRegistrationConnector fails with 4xx error" in forAll {
@@ -66,7 +68,9 @@ class EclRegistrationServiceSpec extends SpecBase {
         val result: Either[EclRegistrationError, EclSubscriptionStatus] =
           await(service.getSubscriptionStatus(eclReference).value)
 
-        result shouldBe Left(EclRegistrationError.BadGateway(errorMessage, errorCode))
+        result shouldBe Left(
+          EclRegistrationError.BadGateway(s"Get Subscription Status Failed - $errorMessage", errorCode)
+        )
     }
 
     "return EclRegistrationError.InternalUnexpectedError when when call to EclRegistrationConnector fails with an unexpected error" in forAll {

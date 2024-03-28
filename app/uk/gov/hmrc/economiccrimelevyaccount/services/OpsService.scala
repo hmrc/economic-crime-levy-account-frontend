@@ -58,7 +58,7 @@ class OpsService @Inject() (
               if UpstreamErrorResponse.Upstream5xxResponse
                 .unapply(error)
                 .isDefined || UpstreamErrorResponse.Upstream4xxResponse.unapply(error).isDefined =>
-            Left(OpsError.BadGateway(reason = message, code = code))
+            Left(OpsError.BadGateway(reason = s"Start OPS Journey Failed - $message", code = code))
           case NonFatal(thr) => Left(OpsError.InternalUnexpectedError(thr.getMessage, Some(thr)))
         }
     }

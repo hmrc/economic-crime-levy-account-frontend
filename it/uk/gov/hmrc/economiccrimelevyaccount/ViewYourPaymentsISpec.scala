@@ -26,7 +26,7 @@ class ViewYourPaymentsISpec extends ISpecBase with AuthorisedBehaviour {
       verify(
         1,
         getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/financial-data"))
-          .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+          .withHeader(HttpHeader.xCorrelationId, matching(uuidRegex))
       )
 
       verify(
@@ -34,7 +34,7 @@ class ViewYourPaymentsISpec extends ISpecBase with AuthorisedBehaviour {
         getRequestedFor(
           urlEqualTo(s"/economic-crime-levy-registration/subscription-status/ZECL/${testEclReference.value}")
         )
-          .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+          .withHeader(HttpHeader.xCorrelationId, matching(uuidRegex))
       )
     }
     "retry the get submission call 3 times after the initial attempt if it fails with a 500 INTERNAL_SERVER_ERROR response" in {
@@ -49,7 +49,7 @@ class ViewYourPaymentsISpec extends ISpecBase with AuthorisedBehaviour {
         verify(
           1,
           getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/financial-data"))
-            .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+            .withHeader(HttpHeader.xCorrelationId, matching(uuidRegex))
         )
       }
     }

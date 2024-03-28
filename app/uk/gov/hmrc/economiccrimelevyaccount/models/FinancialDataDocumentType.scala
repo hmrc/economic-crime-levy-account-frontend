@@ -34,19 +34,19 @@ object FinancialDataDocumentType {
     override def reads(json: JsValue): JsResult[FinancialDataDocumentType] = json.validate[String] match {
       case JsSuccess(value, _) =>
         value match {
-          case DocumentType.TrmNewCharge     => JsSuccess(NewCharge)
-          case DocumentType.TrmAmendCharge   => JsSuccess(AmendedCharge)
-          case DocumentType.InterestDocument => JsSuccess(InterestCharge)
-          case DocumentType.Payment          => JsSuccess(Payment)
+          case DocumentType.`trmNewCharge`     => JsSuccess(NewCharge)
+          case DocumentType.`trmAmendCharge`   => JsSuccess(AmendedCharge)
+          case DocumentType.`interestDocument` => JsSuccess(InterestCharge)
+          case DocumentType.`payment`          => JsSuccess(Payment)
         }
       case e: JsError          => e
     }
 
     override def writes(o: FinancialDataDocumentType): JsValue = o match {
-      case NewCharge      => JsString(DocumentType.TrmNewCharge)
-      case AmendedCharge  => JsString(DocumentType.TrmAmendCharge)
-      case InterestCharge => JsString(DocumentType.InterestDocument)
-      case Payment        => JsString(DocumentType.Payment)
+      case NewCharge      => JsString(DocumentType.trmNewCharge)
+      case AmendedCharge  => JsString(DocumentType.trmAmendCharge)
+      case InterestCharge => JsString(DocumentType.interestDocument)
+      case Payment        => JsString(DocumentType.payment)
     }
   }
 }

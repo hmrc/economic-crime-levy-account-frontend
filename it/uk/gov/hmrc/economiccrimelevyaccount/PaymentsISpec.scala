@@ -47,13 +47,13 @@ class PaymentsISpec extends ISpecBase with AuthorisedBehaviour {
       verify(
         1,
         getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/financial-data"))
-          .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+          .withHeader(HttpHeader.xCorrelationId, matching(uuidRegex))
       )
 
       verify(
         1,
         postRequestedFor(urlEqualTo(s"/pay-api/economic-crime-levy/journey/start"))
-          .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+          .withHeader(HttpHeader.xCorrelationId, matching(uuidRegex))
       )
 
     }
@@ -72,13 +72,13 @@ class PaymentsISpec extends ISpecBase with AuthorisedBehaviour {
       verify(
         1,
         getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/financial-data"))
-          .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+          .withHeader(HttpHeader.xCorrelationId, matching(uuidRegex))
       )
 
       verify(
         1,
         postRequestedFor(urlEqualTo(s"/pay-api/economic-crime-levy/journey/start"))
-          .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+          .withHeader(HttpHeader.xCorrelationId, matching(uuidRegex))
       )
 
     }
@@ -98,7 +98,7 @@ class PaymentsISpec extends ISpecBase with AuthorisedBehaviour {
         verify(
           1,
           getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/financial-data"))
-            .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+            .withHeader(HttpHeader.xCorrelationId, matching(uuidRegex))
         )
       }
     }

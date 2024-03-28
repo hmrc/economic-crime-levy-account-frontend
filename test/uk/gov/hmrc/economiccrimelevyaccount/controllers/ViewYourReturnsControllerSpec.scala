@@ -288,11 +288,6 @@ class ViewYourReturnsControllerSpec extends SpecBase {
         val viewModel: ReturnsViewModel =
           ReturnsViewModel(dueReturns, testEclReference, testSubscribedSubscriptionStatus)
 
-        val content = contentAsString(result)
-        val view    = returnsView(
-          viewModel
-        )(fakeRequest, messages).toString()
-
         status(result)          shouldBe OK
         contentAsString(result) shouldBe returnsView(
           viewModel

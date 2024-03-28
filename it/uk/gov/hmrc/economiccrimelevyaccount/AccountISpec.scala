@@ -49,12 +49,12 @@ class AccountISpec extends ISpecBase with AuthorisedBehaviour {
       verify(
         1,
         getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/obligation-data"))
-          .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+          .withHeader(HttpHeader.xCorrelationId, matching(uuidRegex))
       )
       verify(
         1,
         getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/financial-data"))
-          .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+          .withHeader(HttpHeader.xCorrelationId, matching(uuidRegex))
       )
 
       verify(
@@ -62,7 +62,7 @@ class AccountISpec extends ISpecBase with AuthorisedBehaviour {
         getRequestedFor(
           urlEqualTo(s"/economic-crime-levy-registration/subscription-status/ZECL/${testEclReference.value}")
         )
-          .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+          .withHeader(HttpHeader.xCorrelationId, matching(uuidRegex))
       )
     }
 
@@ -79,7 +79,7 @@ class AccountISpec extends ISpecBase with AuthorisedBehaviour {
         verify(
           1,
           getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/obligation-data"))
-            .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+            .withHeader(HttpHeader.xCorrelationId, matching(uuidRegex))
         )
       }
     }
@@ -98,13 +98,13 @@ class AccountISpec extends ISpecBase with AuthorisedBehaviour {
         verify(
           1,
           getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/obligation-data"))
-            .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+            .withHeader(HttpHeader.xCorrelationId, matching(uuidRegex))
         )
 
         verify(
           0,
           getRequestedFor(urlEqualTo(s"/economic-crime-levy-account/financial-data"))
-            .withHeader(HttpHeader.CorrelationId, matching(uuidRegex))
+            .withHeader(HttpHeader.xCorrelationId, matching(uuidRegex))
         )
       }
     }
