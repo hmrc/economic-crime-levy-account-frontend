@@ -18,12 +18,14 @@
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus._
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnStatus, ReturnsOverview, ReturnsViewModel}
 @import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
+@import uk.gov.hmrc.economiccrimelevyaccount.views.html.templates.Layout
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Empty
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.table.HeadCell
+
 @import java.time.LocalDate
 
 @this(
-        layout: templates.Layout,
+        layout: Layout,
         appConfig: AppConfig,
         table: GovukTable
 )
@@ -72,7 +74,7 @@
         if(viewModel.isSubscribed) {
             rowData.chargeReference match {
                 case Some(_) =>
-                    if(rowData.dueDate.plusYears(1).isAfter(LocalDate.now()) && appConfig.amendReturnsEnabled) {
+                    if(appConfig.amendReturnsEnabled) {
                         (TableRow(content = amendLink))
                     } else {
                         TableRow(content = Empty)
