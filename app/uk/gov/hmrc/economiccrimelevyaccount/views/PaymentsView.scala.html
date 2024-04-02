@@ -15,15 +15,15 @@
  *@
 
 @import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{OutstandingPayments, PaymentStatus, PaymentsViewModel}
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
-@import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
-@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentHistory
-@import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType._
+@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{OutstandingPayments, PaymentHistory, PaymentStatus, PaymentsViewModel}
+@import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
+@import uk.gov.hmrc.economiccrimelevyaccount.views.html.templates.Layout
+@import uk.gov.hmrc.govukfrontend.views.viewmodels.table.Table
 
 @this(
-        layout: templates.Layout,
+        layout: Layout,
         table: GovukTable
 )
 

@@ -15,15 +15,11 @@
  *@
 
 @import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.CardAction
-@import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
-@import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialDetails
-@import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.StandardPayment
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.AccountViewModel
-
+@import uk.gov.hmrc.economiccrimelevyaccount.views.html.templates.Layout
 
 @this(
-        layout: templates.Layout,
+        layout: Layout,
         summaryList: GovukSummaryList,
         button: GovukButton,
         appConfig: AppConfig,
