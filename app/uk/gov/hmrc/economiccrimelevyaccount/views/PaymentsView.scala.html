@@ -88,11 +88,7 @@
             TableRow(content = HtmlContent(messages("account.viewPayments.table.cell.period",
                 ViewUtils.formatLocalDate(data.fyFrom), ViewUtils.formatLocalDate(data.fyTo))), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(ViewUtils.formatMoney(data.amount)), classes = "govuk-table__cell"), getPaymentStatusCellContent(data),
-            if (viewModel.isSubscribed) {
-                TableRow(content = HtmlContent(getPaymentActionCellContent(data)), classes = "govuk-table__cell")
-            } else {
-                TableRow(content = Empty)
-            }
+            TableRow(content = HtmlContent(getPaymentActionCellContent(data)), classes = "govuk-table__cell")
         )
     }
     )
@@ -160,11 +156,7 @@
                 ViewUtils.formatLocalDate(data.fyTo.get))), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(ViewUtils.formatMoney(data.amount)), classes = "govuk-table__cell"),
             TableRow(content = HtmlContent(messages("account.viewPayments.table.status", status._1, status._2)), classes = status._2),
-            if (viewModel.isSubscribed) {
-                TableRow(content = HtmlContent(if (appConfig.disableRefund) "&nbsp;" else messages("account.viewPayments.table.paymentsHistory.cell.6", link)), classes = "govuk-table__cell")
-            } else {
-                TableRow(content = Empty)
-            }
+            TableRow(content = HtmlContent(if (appConfig.disableRefund) "&nbsp;" else messages("account.viewPayments.table.paymentsHistory.cell.6", link)), classes = "govuk-table__cell")
         )
     })
 }

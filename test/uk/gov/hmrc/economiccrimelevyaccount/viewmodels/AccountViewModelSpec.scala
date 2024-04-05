@@ -283,7 +283,7 @@ class AccountViewModelSpec extends SpecBase {
         None
       )
 
-      val action: Seq[CardAction] = sut.registrationAction()(messages)
+      val action: Seq[CardAction] = sut.registrationActions()(messages)
 
       action should have size 2
     }
@@ -303,7 +303,7 @@ class AccountViewModelSpec extends SpecBase {
         None
       )
 
-      val action: Seq[CardAction] = sut.registrationAction()(messages)
+      val action: Seq[CardAction] = sut.registrationActions()(messages)
 
       action should have size 1
     }
@@ -323,7 +323,7 @@ class AccountViewModelSpec extends SpecBase {
         None
       )
 
-      val action: Seq[CardAction] = sut.registrationAction()(messages)
+      val action: Seq[CardAction] = sut.registrationActions()(messages)
 
       action should have size 1
     }
@@ -343,7 +343,7 @@ class AccountViewModelSpec extends SpecBase {
         None
       )
 
-      val action: Seq[CardAction] = sut.registrationAction()(messages)
+      val action: Seq[CardAction] = sut.registrationActions()(messages)
 
       action should have size 0
     }
@@ -360,7 +360,7 @@ class AccountViewModelSpec extends SpecBase {
         None
       )
 
-      val action: Seq[CardAction] = sut.registrationAction()(messages)
+      val action: Seq[CardAction] = sut.registrationActions()(messages)
 
       action should have size 0
     }
@@ -377,7 +377,7 @@ class AccountViewModelSpec extends SpecBase {
         None
       )
 
-      val action: Seq[CardAction] = sut.registrationAction()(messages)
+      val action: Seq[CardAction] = sut.registrationActions()(messages)
 
       action should have size 0
     }
@@ -396,20 +396,6 @@ class AccountViewModelSpec extends SpecBase {
       val actions: Seq[CardAction] = sut.returnsActions()(messages)
 
       actions.size should be > 1
-    }
-
-    "return single row when deregistered" in {
-      val sut = AccountViewModel(
-        appConfig,
-        testDeregisteredSubscriptionStatus,
-        testEclReference,
-        None,
-        None
-      )
-
-      val actions: Seq[CardAction] = sut.returnsActions()(messages)
-
-      actions should have size 1
     }
   }
 
@@ -441,35 +427,6 @@ class AccountViewModelSpec extends SpecBase {
       val subHeading: Html = sut.returnsSubHeading()(messages)
 
       subHeading.body should startWith("Your return for")
-    }
-
-    "return no return due content if overdue and deregistered" in forAll {
-      (obligationData: ObligationDataWithOverdueObligation) =>
-        val sut = AccountViewModel(
-          appConfig,
-          testDeregisteredSubscriptionStatus,
-          testEclReference,
-          obligationData.obligationData.latestObligation,
-          None
-        )
-
-        val subHeading: Html = sut.returnsSubHeading()(messages)
-
-        subHeading.body should startWith("You have no returns due")
-    }
-
-    "return no return due content if due and deregistered" in forAll { (obligationData: ObligationDataWithObligation) =>
-      val sut = AccountViewModel(
-        appConfig,
-        testDeregisteredSubscriptionStatus,
-        testEclReference,
-        obligationData.obligationData.latestObligation,
-        None
-      )
-
-      val subHeading: Html = sut.returnsSubHeading()(messages)
-
-      subHeading.body should startWith("You have no returns due")
     }
 
     "return no return due content if there are no obligations" in {
@@ -536,6 +493,80 @@ class AccountViewModelSpec extends SpecBase {
       )
 
       sut.canDeregister shouldBe false
+    }
+  }
+
+  "canViewRegistration" should {
+    "return true when subscribed and amendRegistrationEnabled is true and deregisterEnabled is false" in {
+      when(appConfig.deregisterEnabled)
+        .thenReturn(false)
+
+      when(appConfig.amendRegistrationEnabled)
+        .thenReturn(true)
+
+      val sut = AccountViewModel(
+        appConfig,
+        testSubscribedSubscriptionStatus,
+        testEclReference,
+        None,
+        None
+      )
+
+      sut.canViewRegistration shouldBe true
+    }
+
+    "return true when subscribed and amendRegistrationEnabled is false and deregisterEnabled is true" in {
+      when(appConfig.deregisterEnabled)
+        .thenReturn(true)
+
+      when(appConfig.amendRegistrationEnabled)
+        .thenReturn(false)
+
+      val sut = AccountViewModel(
+        appConfig,
+        testSubscribedSubscriptionStatus,
+        testEclReference,
+        None,
+        None
+      )
+
+      sut.canViewRegistration shouldBe true
+    }
+
+    "return true when deregistered and canAmendRegistration is true and canDeregister is false" in {
+      when(appConfig.deregisterEnabled)
+        .thenReturn(false)
+
+      when(appConfig.amendRegistrationEnabled)
+        .thenReturn(true)
+
+      val sut = AccountViewModel(
+        appConfig,
+        testDeregisteredSubscriptionStatus,
+        testEclReference,
+        None,
+        None
+      )
+
+      sut.canViewRegistration shouldBe false
+    }
+
+    "return true when deregistered and canAmendRegistration is false and canDeregister is true" in {
+      when(appConfig.deregisterEnabled)
+        .thenReturn(true)
+
+      when(appConfig.amendRegistrationEnabled)
+        .thenReturn(false)
+
+      val sut = AccountViewModel(
+        appConfig,
+        testDeregisteredSubscriptionStatus,
+        testEclReference,
+        None,
+        None
+      )
+
+      sut.canViewRegistration shouldBe false
     }
   }
 }

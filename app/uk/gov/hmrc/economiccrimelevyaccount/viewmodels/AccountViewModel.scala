@@ -41,13 +41,14 @@ final case class AccountViewModel(
   val isSubscribed: Boolean =
     eclSubscriptionStatus.subscriptionStatus == Subscribed(eclRegistrationReference.value)
 
-  private val canAmendReturns: Boolean = appConfig.amendReturnsEnabled && isSubscribed
-  private val canMakePayments: Boolean = appConfig.paymentsEnabled && isSubscribed
+  private val canAmendReturns: Boolean = appConfig.amendReturnsEnabled
+  private val canMakePayments: Boolean = appConfig.paymentsEnabled
 
   val canAmendRegistration: Boolean = appConfig.amendRegistrationEnabled && isSubscribed
   val canDeregister: Boolean        = appConfig.deregisterEnabled && isSubscribed
   val canViewPayments: Boolean      = appConfig.paymentsEnabled
   val canViewReturns: Boolean       = appConfig.returnsEnabled
+  val canViewRegistration: Boolean  = isSubscribed && (canAmendRegistration || canDeregister)
 
   private def getViewReturnsLinkName()(implicit messages: Messages): String =
     if (canAmendReturns) {
@@ -90,7 +91,7 @@ final case class AccountViewModel(
   def paymentsSubHeading()(implicit messages: Messages): Html =
     optFinancialDetails match {
       case financialData @ Some(FinancialDetails(amount, Some(fromDate), Some(toDate), _, _, _))
-          if financialData.get.isPaymentType(StandardPayment) && isSubscribed =>
+          if financialData.get.isPaymentType(StandardPayment) =>
         if (financialData.get.isOverdue.contains(true)) {
           Html(
             messages(
@@ -111,12 +112,12 @@ final case class AccountViewModel(
             )
           )
         }
-      case Some(financialDetails) if !financialDetails.isPaymentType(StandardPayment) && isSubscribed =>
+      case Some(financialDetails) if !financialDetails.isPaymentType(StandardPayment) =>
         Html(messages("account.interest.payments.subHeading"))
-      case _                                                                                          => Html(messages("account.noneDue.payments.subHeading"))
+      case _                                                                          => Html(messages("account.noneDue.payments.subHeading"))
     }
 
-  def registrationAction()(implicit messages: Messages): Seq[CardAction] =
+  def registrationActions()(implicit messages: Messages): Seq[CardAction] =
     addIf(
       canAmendRegistration,
       CardAction(
@@ -134,26 +135,21 @@ final case class AccountViewModel(
     )
 
   def returnsActions()(implicit messages: Messages): Seq[CardAction] =
-    addIf(
-      isSubscribed,
+    Seq(
+      submitReturnLink().map(CardAction("submit-return", _, messages("account.submitEcl"))).toSeq,
       Seq(
-        submitReturnLink().map(CardAction("submit-return", _, messages("account.submitEcl"))).toSeq,
-        Seq(
-          CardAction(
-            "how-to-complete-return",
-            "https://www.gov.uk/guidance/submit-a-return-for-the-economic-crime-levy",
-            messages("account.howToComplete")
-          )
-        )
-      ).flatten
-    ).flatten ++
-      add(
+        CardAction(
+          "how-to-complete-return",
+          "https://www.gov.uk/guidance/submit-a-return-for-the-economic-crime-levy",
+          messages("account.howToComplete")
+        ),
         CardAction("view-returns", routes.ViewYourReturnsController.onPageLoad().url, getViewReturnsLinkName())
       )
+    ).flatten
 
   def returnsSubHeading()(implicit messages: Messages): Html =
     optOpenObligation match {
-      case Some(o) if o.isOverdue && isSubscribed =>
+      case Some(o) if o.isOverdue =>
         Html(
           messages(
             "account.overdue.return.subHeading",
@@ -161,7 +157,7 @@ final case class AccountViewModel(
             ViewUtils.formatLocalDate(o.inboundCorrespondenceToDate)
           )
         )
-      case Some(o) if isSubscribed                =>
+      case Some(o)                =>
         Html(
           messages(
             "account.due.return.subHeading",
@@ -170,7 +166,7 @@ final case class AccountViewModel(
             ViewUtils.formatLocalDate(o.inboundCorrespondenceDueDate)
           )
         )
-      case _                                      => Html(messages("account.noneDue.return.subHeading"))
+      case _                      => Html(messages("account.noneDue.return.subHeading"))
     }
 
 }

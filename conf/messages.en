@@ -90,7 +90,7 @@ account.viewPayments.table.paymentsHistory.cell.6 = <a href="{0}" class="govuk-l
 account.registration.card.title = Registration
 account.registration.card.amendRegistration = Amend registration
 account.registration.card.deregister = Request to deregister
-account.deregistration.p1 = You deregistered this account. You can still view your submitted returns and payment history.
+account.deregistration.p1 = You deregistered this account.
 
 account.viewPayments.history.table.cell.interest.reference = Interest charge for ECL return number {0}
 account.viewPayments.outstanding.table.cell.interest.reference = Interest charge {0} for ECL return number {1}
