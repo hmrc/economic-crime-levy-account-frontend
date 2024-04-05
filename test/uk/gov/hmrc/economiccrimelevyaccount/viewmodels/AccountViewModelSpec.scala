@@ -19,7 +19,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.viewmodels
 import play.api.inject.bind
 import play.api.inject.guice.GuiceableModule
 import play.twirl.api.Html
-import uk.gov.hmrc.economiccrimelevyaccount.{ObligationDataWithObligation, ObligationDataWithOverdueObligation}
+import uk.gov.hmrc.economiccrimelevyaccount.ObligationDataWithObligation
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 
