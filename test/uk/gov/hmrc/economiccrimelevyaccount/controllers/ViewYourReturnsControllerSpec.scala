@@ -29,8 +29,8 @@ import uk.gov.hmrc.economiccrimelevyaccount.services.{EclAccountService, EclRegi
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.ReturnStatus.{Due, Overdue, Submitted}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.{ReturnsOverview, ReturnsViewModel}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoReturnsView, ReturnsView}
-import uk.gov.hmrc.time.TaxYear
 
+import java.time.LocalDate
 import scala.concurrent.Future
 
 class ViewYourReturnsControllerSpec extends SpecBase {
@@ -49,8 +49,8 @@ class ViewYourReturnsControllerSpec extends SpecBase {
     mockEclRegistrationService
   )
 
-  val financialYearStartYear = s"${TaxYear.current.startYear}"
-  val financialYearEndYear   = s"${TaxYear.current.finishYear}"
+  val financialYearStartYear = s"${LocalDate.now().minusYears(1).getYear}"
+  val financialYearEndYear   = s"${LocalDate.now().getYear}"
   val fromTo                 = s"$financialYearStartYear-$financialYearEndYear"
 
   "onPageLoad" should {
