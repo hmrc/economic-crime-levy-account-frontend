@@ -16,10 +16,12 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
+import cats.data.EitherT
 import play.api.i18n.I18nSupport
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Result}
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
+import uk.gov.hmrc.economiccrimelevyaccount.models.errors.ResponseError
 import uk.gov.hmrc.economiccrimelevyaccount.models.requests.AuthorisedRequest
 import uk.gov.hmrc.economiccrimelevyaccount.models.{EclSubscriptionStatus, FinancialData, FinancialDetails, ObligationDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, EclAccountService, EclRegistrationService}
@@ -30,7 +32,7 @@ import uk.gov.hmrc.http.HeaderCarrier
 import uk.gov.hmrc.play.bootstrap.frontend.controller.FrontendBaseController
 
 import javax.inject.{Inject, Singleton}
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ExecutionContext, Future}
 
 @Singleton
 class AccountController @Inject() (
@@ -52,7 +54,10 @@ class AccountController @Inject() (
     (for {
       obligationDataOption         <- eclAccountService.retrieveObligationData.asResponseError
       latestObligationDetailsOption = obligationDataOption.flatMap(_.latestObligation)
-      financialDataOption          <- eclAccountService.retrieveFinancialData.asResponseError
+      financialDataOption          <- {
+        if (obligationDataOption.isDefined) { eclAccountService.retrieveFinancialData.asResponseError }
+        else { EitherT.rightT[Future, ResponseError](None) }
+      }
       subscriptionStatus           <- eclRegistrationService.getSubscriptionStatus(request.eclReference).asResponseError
       response                      =
         determineResponse(latestObligationDetailsOption, financialDataOption, subscriptionStatus)

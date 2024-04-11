@@ -23,7 +23,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.connectors.EclAccountConnector
 import uk.gov.hmrc.economiccrimelevyaccount.models.InterestCharge
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.EclAccountError
-import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Overdue, PartiallyPaid}
+import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus.{Due, Overdue, PartiallyPaid}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, StandardPayment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.http.UpstreamErrorResponse
@@ -54,7 +54,7 @@ class EclAccountServiceSpec extends SpecBase {
         when(mockECLAccountConnector.getFinancialData(any()))
           .thenReturn(Future.successful(Some(validResponse.financialDataResponse)))
 
-        val response        = await(
+        val response                     = await(
           service
             .prepareViewModel(
               Some(validResponse.financialDataResponse),
@@ -63,8 +63,11 @@ class EclAccountServiceSpec extends SpecBase {
             )
             .value
         )
-        val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
-        val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head
+        val documentDetails              = validResponse.financialDataResponse.documentDetails.get.head
+        val firstItem                    = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head
+        val paymentStatus: PaymentStatus = if (documentDetails.isOverdue) { Overdue }
+        else { Due }
+
         response shouldBe Right(
           Some(
             PaymentsViewModel(
@@ -75,7 +78,7 @@ class EclAccountServiceSpec extends SpecBase {
                   fyFrom = firstItem.periodFromDate.get,
                   fyTo = firstItem.periodToDate.get,
                   amount = documentDetails.documentOutstandingAmount.get,
-                  paymentStatus = Overdue,
+                  paymentStatus = paymentStatus,
                   paymentType = StandardPayment,
                   interestChargeReference = None
                 )
@@ -127,10 +130,12 @@ class EclAccountServiceSpec extends SpecBase {
 
     "return filled payment history where there is a reversal item" in forAll {
       validResponse: ValidFinancialDataResponseForLatestObligation =>
-        val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head.copy(
+        val firstItem                    = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head.copy(
           clearingReason = Some("Reversal")
         )
-        val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
+        val documentDetails              = validResponse.financialDataResponse.documentDetails.get.head
+        val paymentStatus: PaymentStatus = if (documentDetails.isOverdue) { Overdue }
+        else { Due }
 
         val financialDataResponse = Some(
           validResponse.financialDataResponse.copy(
@@ -161,7 +166,7 @@ class EclAccountServiceSpec extends SpecBase {
                   fyFrom = firstItem.periodFromDate.get,
                   fyTo = firstItem.periodToDate.get,
                   amount = documentDetails.documentOutstandingAmount.get,
-                  paymentStatus = Overdue,
+                  paymentStatus = paymentStatus,
                   paymentType = StandardPayment,
                   interestChargeReference = None
                 )
@@ -188,12 +193,13 @@ class EclAccountServiceSpec extends SpecBase {
 
     "return empty payment history where there is no clearing reason in response" in forAll {
       validResponse: ValidFinancialDataResponseForLatestObligation =>
-        val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head.copy(
+        val firstItem                    = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head.copy(
           clearingReason = None
         )
-        val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
-
-        val financialDataResponse = Some(
+        val documentDetails              = validResponse.financialDataResponse.documentDetails.get.head
+        val paymentStatus: PaymentStatus = if (documentDetails.isOverdue) { Overdue }
+        else { Due }
+        val financialDataResponse        = Some(
           validResponse.financialDataResponse.copy(
             documentDetails = Some(
               Seq(
@@ -222,7 +228,7 @@ class EclAccountServiceSpec extends SpecBase {
                   fyFrom = firstItem.periodFromDate.get,
                   fyTo = firstItem.periodToDate.get,
                   amount = documentDetails.documentOutstandingAmount.get,
-                  paymentStatus = Overdue,
+                  paymentStatus = paymentStatus,
                   paymentType = StandardPayment,
                   interestChargeReference = None
                 )
@@ -253,8 +259,11 @@ class EclAccountServiceSpec extends SpecBase {
         when(mockECLAccountConnector.getFinancialData(any()))
           .thenReturn(Future.successful(Some(validFinancialDataResponse)))
 
-        val documentDetails = validResponse.financialDataResponse.documentDetails.get.head
-        val firstItem       = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head
+        val documentDetails              = validResponse.financialDataResponse.documentDetails.get.head
+        val firstItem                    = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head
+        val paymentStatus: PaymentStatus = if (documentDetails.isOverdue) { Overdue }
+        else { Due }
+
         await(
           service
             .prepareViewModel(Some(validFinancialDataResponse), testEclReference, testSubscribedSubscriptionStatus)
@@ -269,7 +278,7 @@ class EclAccountServiceSpec extends SpecBase {
                   fyFrom = firstItem.periodFromDate.get,
                   fyTo = firstItem.periodToDate.get,
                   amount = documentDetails.documentOutstandingAmount.get,
-                  paymentStatus = Overdue,
+                  paymentStatus = paymentStatus,
                   paymentType = StandardPayment,
                   interestChargeReference = None
                 ),
@@ -279,7 +288,7 @@ class EclAccountServiceSpec extends SpecBase {
                   fyFrom = firstItem.periodFromDate.get,
                   fyTo = firstItem.periodToDate.get,
                   amount = BigDecimal(15.00),
-                  paymentStatus = Overdue,
+                  paymentStatus = paymentStatus,
                   paymentType = Interest,
                   interestChargeReference = None
                 )
