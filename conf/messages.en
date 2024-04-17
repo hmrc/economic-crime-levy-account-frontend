@@ -99,7 +99,7 @@ account.interest.payments.subHeading = You owe an interest payment. Interest wil
 agentCannotAccessService.title = You cannot use this service
 agentCannotAccessService.heading = You cannot use this service
 agentCannotAccessService.p1 = Agents cannot use this service on behalf of a client.
-agentCannotAccessService.p2 = Your client must access the service using their own Government Gateway ID.
+agentCannotAccessService.p2 = Your client must access the service using their own user ID and password.
 agentCannotAccessService.p3 = Go to your {0}.
 agentCannotAccessService.p3.link = <a href="https://www.gov.uk/guidance/sign-in-to-your-agent-services-account" class="govuk-link">agent services account</a>
 
