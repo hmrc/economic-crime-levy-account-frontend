@@ -98,7 +98,7 @@ account.interest.payments.subHeading = Mae arnoch chi daliad llog. Bydd llog yn 
 
 agentCannotAccessService.title = Ni allwch ddefnyddio’r gwasanaeth hwn
 agentCannotAccessService.heading = Ni allwch ddefnyddio’r gwasanaeth hwn
-agentCannotAccessService.p1 = Ni all asiantau ddefnyddio’r gwasanaeth hwn ar ran cleient.
+agentCannotAccessService.p1 = Ni all asiantiaid ddefnyddio’r gwasanaeth hwn ar ran cleient.
 agentCannotAccessService.p2 = Rhaid i’ch cleient gael mynediad i’r gwasanaeth gan ddefnyddio ei ID defnyddiwr a’i gyfrinair ei hun.
 agentCannotAccessService.p3 = Ewch i’ch {0}.
 agentCannotAccessService.p3.link = <a href="https://www.gov.uk/guidance/sign-in-to-your-agent-services-account" class="govuk-link">cyfrif gwasanaethau asiant</a>
