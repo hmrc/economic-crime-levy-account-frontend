@@ -5,7 +5,7 @@ and access other parts of the service such as returns and payments.
 
 ## Running the service
 
-> `sbt run -Dplay.http.router=testOnlyDoNotUseInAppConf.Routes`
+> `sbt run -Dplay.http.router=testOnlyDoNotUseInAppConf.Routes`a
 
 The service runs on port `14008` by default.
 
