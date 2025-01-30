@@ -9,8 +9,6 @@ lazy val root = (project in file("."))
   .enablePlugins(PlayScala, SbtDistributablesPlugin)
   .disablePlugins(JUnitXmlReportPlugin) //Required to prevent https://github.com/scalatest/scalatest/issues/1427
   .settings(inConfig(Test)(testSettings): _*)
-  .configs(IntegrationTest)
-  .settings(inConfig(IntegrationTest)(itSettings): _*)
   .settings(majorVersion := 0)
   .settings(inThisBuild(buildSettings))
   .settings(scoverageSettings: _*)
@@ -60,25 +58,12 @@ lazy val root = (project in file("."))
   )
 
 lazy val testSettings: Seq[Def.Setting[_]] = Seq(
-  unmanagedSourceDirectories := Seq(
-    baseDirectory.value / "test",
-    baseDirectory.value / "test-common"
-  ),
   fork := true
 )
 
 lazy val buildSettings = Def.settings(
   scalafmtOnCompile := true,
   useSuperShell := false
-)
-
-lazy val itSettings: Seq[Def.Setting[_]] = Defaults.itSettings ++ Seq(
-  unmanagedSourceDirectories := Seq(
-    baseDirectory.value / "it",
-    baseDirectory.value / "test-common"
-  ),
-  parallelExecution := false,
-  fork := true
 )
 
 val excludedScoveragePackages: Seq[String] = Seq(
@@ -112,4 +97,4 @@ val scalaCompilerOptions: Def.Setting[Task[Seq[String]]] = scalacOptions ++= Seq
   "-Xlint:-byname-implicit"
 )
 
-addCommandAlias("runAllChecks", ";clean;compile;scalafmtCheckAll;coverage;test;it:test;scalastyle;coverageReport")
+addCommandAlias("runAllChecks", ";clean;compile;scalafmtCheckAll;coverage;test;scalastyle;coverageReport")
