@@ -26,7 +26,7 @@
         hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper
 )
 
-@(pageTitle: String, showBackLink: Boolean = true, timeout: Boolean = true, showSignOut: Boolean = true, fullWidthContent: Boolean = false)(contentBlock: Html)(implicit request: Request[_], messages: Messages)
+@(pageTitle: String, showBackLink: Boolean = true, timeout: Boolean = true, showSignOut: Boolean = true, fullWidthContent: Boolean = false)(contentBlock: Html)(implicit request: RequestHeader, messages: Messages)
 
 @language_key = @{"PLAY_LANG"}
 
