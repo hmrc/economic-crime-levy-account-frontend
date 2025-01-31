@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package uk.gov.hmrc.economiccrimelevyaccount
+package uk.gov.hmrc.economiccrimelevyaccount.it
 
 import play.api.test.FakeRequest
-import uk.gov.hmrc.economiccrimelevyaccount.base.ISpecBase
-import uk.gov.hmrc.economiccrimelevyaccount.behaviours.AuthorisedBehaviour
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
+import uk.gov.hmrc.economiccrimelevyaccount.it.base.ISpecBase
+import uk.gov.hmrc.economiccrimelevyaccount.it.behaviours.AuthorisedBehaviour
 
 class NotableErrorISpec extends ISpecBase with AuthorisedBehaviour {
 

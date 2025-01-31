@@ -1,5 +1,5 @@
-@*
- * Copyright 2023 HM Revenue & Customs
+/*
+ * Copyright 2022 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -12,18 +12,22 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *@
+ */
 
-@import uk.gov.hmrc.economiccrimelevyaccount.views.html.templates.Layout
+package uk.gov.hmrc.economiccrimelevyaccount.it
 
-@this(
-    layout: Layout
-)
+import play.api.mvc.Call
+import play.api.test.FakeRequest
+import uk.gov.hmrc.economiccrimelevyaccount.it.base.ISpecBase
 
-@(pageTitle: String, heading: String, message: String)(implicit request: RequestHeader, messages: Messages)
+class HealthEndpointISpec extends ISpecBase {
 
-@layout(pageTitle = title(pageTitle)) {
-    <h1 class="govuk-heading-xl">@messages(heading)</h1>
+  "GET /ping/ping" should {
+    "respond with 200 status" in {
+      val result = callRoute(FakeRequest(Call("GET", "/ping/ping")))
 
-    <p class="govuk-body">@messages(message)</p>
+      status(result) shouldBe OK
+    }
+  }
+
 }
