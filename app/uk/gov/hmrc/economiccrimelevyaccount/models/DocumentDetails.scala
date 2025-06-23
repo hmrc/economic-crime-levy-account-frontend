@@ -121,6 +121,15 @@ case class DocumentDetails(
 object DocumentDetails {
   implicit val format: OFormat[DocumentDetails] = Json.format[DocumentDetails]
 
+  private val eclMainId = "6220"
+  private val eclSubId  = "3410"
+
+  private val eclInterestMainId = "6225"
+  private val eclInterestSubId  = "3415"
+
+  private val paymentsOnAccountMainId = "0060"
+  private val paymentsOnAccountSubId  = "0100"
+
   private def filterItemsThatHaveAccruingInterestAmount: PartialFunction[DocumentDetails, DocumentDetails] = {
     case x: DocumentDetails if x.interestAccruingAmount.nonEmpty => x
   }
@@ -150,6 +159,30 @@ object DocumentDetails {
 
   def filterOutstandingPayment: PartialFunction[DocumentDetails, DocumentDetails] = {
     case document: DocumentDetails if !document.isCleared && !document.documentType.contains(Payment) => document
+  }
+
+  def filterTransactionType: PartialFunction[DocumentDetails, DocumentDetails] = {
+    case document @ DocumentDetails(
+          _,
+          _,
+          _,
+          _,
+          _,
+          _,
+          _,
+          Some(lineItems),
+          _,
+          _,
+          _,
+          _,
+          _,
+          _
+        ) if lineItems.exists { x =>
+          (x.mainTransaction.contains(eclMainId) && x.subTransaction.contains(eclSubId)) ||
+          (x.mainTransaction.contains(eclInterestMainId) && x.subTransaction.contains(eclInterestSubId)) ||
+          (x.mainTransaction.contains(paymentsOnAccountMainId) && x.subTransaction.contains(paymentsOnAccountSubId))
+        } =>
+      document
   }
 
   private def containsValue[T](value: Option[T], expectedMatch: T) =

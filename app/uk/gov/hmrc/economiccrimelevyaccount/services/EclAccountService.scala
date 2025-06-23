@@ -72,9 +72,8 @@ class EclAccountService @Inject() (
         response.documentDetails.map { documentDetailsList =>
           val outstandingPayments = documentDetailsList
             .collect(DocumentDetails.filterOutstandingPayment)
-            .collect {
-              getOutstandingPayments(documentDetailsList)
-            }
+            .collect(DocumentDetails.filterTransactionType)
+            .collect(getOutstandingPayments(documentDetailsList))
 
           val paymentsHistory = documentDetailsList
             .collect(DocumentDetails.filterOutOverPayment)
@@ -120,6 +119,8 @@ class EclAccountService @Inject() (
           _,
           Some(clearingDate),
           Some(clearingDocument),
+          _,
+          _,
           _,
           _,
           _,
