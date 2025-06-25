@@ -61,7 +61,9 @@ trait FinancialDataStubs {
                             amount = Some(BigDecimal("0")),
                             clearingDate = None,
                             clearingDocument = None,
-                            clearingReason = Some("Incoming Payment")
+                            clearingReason = Some("Incoming Payment"),
+                            mainTransaction = Some("6220"),
+                            subTransaction = Some("3410")
                           )
                         )
                       ),
