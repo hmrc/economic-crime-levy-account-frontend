@@ -201,7 +201,9 @@ trait EclTestData {
                     clearingDate = Some(LocalDate.now),
                     periodFromDate = Some(LocalDate.now),
                     periodToDate = Some(LocalDate.now),
-                    periodKey = Some("21XY")
+                    periodKey = Some("21XY"),
+                    mainTransaction = Some("6220"),
+                    subTransaction = Some("3410")
                   )
                 )
               )
@@ -254,7 +256,9 @@ trait EclTestData {
                     periodToDate = Some(TaxYear.current.starts),
                     periodKey = Some("21XY"),
                     clearingDocument = Some("clearing-document"),
-                    clearingReason = Some("Incoming Payment")
+                    clearingReason = Some("Incoming Payment"),
+                    mainTransaction = Some("6220"),
+                    subTransaction = Some("3410")
                   )
                 )
               )

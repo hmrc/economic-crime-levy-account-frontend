@@ -55,7 +55,12 @@ class ViewYourPaymentsController @Inject() (
       error => routeError(error),
       viewModelOption =>
         viewModelOption
-          .map(viewModel => Ok(view(viewModel, appConfig)))
+          .map(viewModel =>
+            if (viewModel.outstandingPayments.nonEmpty || viewModel.paymentHistory.nonEmpty)
+              Ok(view(viewModel, appConfig))
+            else
+              Ok(noPaymentsView())
+          )
           .getOrElse(Ok(noPaymentsView()))
     )
   }

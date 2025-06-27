@@ -29,7 +29,9 @@ case class LineItemDetails(
   netDueDate: Option[LocalDate],
   periodFromDate: Option[LocalDate],
   periodToDate: Option[LocalDate],
-  periodKey: Option[String]
+  periodKey: Option[String],
+  mainTransaction: Option[String],
+  subTransaction: Option[String]
 ) {
   val isCleared: Boolean = clearingDate.nonEmpty
 }
