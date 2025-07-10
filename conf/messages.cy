@@ -13,7 +13,7 @@ site.signIn = Mewngofnodi
 site.govuk = GOV.UK
 
 timeout.title = Rydych ar fin cael eich allgofnodi
-timeout.message = Am resymau diogelwch, cewch eich allgofnodi o’r gwasanaeth hwn ymhen
+timeout.message = Er eich diogelwch, byddwn yn eich allgofnodi ymhen
 timeout.keepAlive = Parhau i fod wedi’ch mewngofnodi
 timeout.signOut = Allgofnodi
 
@@ -124,4 +124,4 @@ date.month.12 = Rhagfyr
 
 signedOut.title = Er eich diogelwch, gwnaethom eich allgofnodi
 signedOut.heading = Er eich diogelwch, gwnaethom eich allgofnodi
-signedOut.guidance = Gwnaethom gadw’ch atebion.
+signedOut.guidance = Gwnaethom gadw’ch atebion am 15 o funudau.
