@@ -18,7 +18,7 @@ sm2 --start ECONOMIC_CRIME_LEVY_ALL
 To stop the frontend microservice from running on service manager (e.g. to run your own version locally), you can run:
 
 ```
-sm2 -stop ECONOMIC_CRIME_LEVY_ACCOUNT_FRONTEND 
+sm2 --stop ECONOMIC_CRIME_LEVY_ACCOUNT_FRONTEND 
 ```
 
 
