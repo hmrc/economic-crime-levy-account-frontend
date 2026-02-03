@@ -24,6 +24,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.models.errors.AuditError
 import uk.gov.hmrc.economiccrimelevyaccount.{ObligationDataWithObligation, ValidFinancialDataResponse}
 import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.play.audit.http.connector.AuditConnector
+import org.mockito.Mockito.{reset, times, verify, when}
 
 import scala.concurrent.Future
 

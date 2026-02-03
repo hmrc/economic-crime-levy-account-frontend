@@ -90,7 +90,7 @@ case class DocumentDetails(
 
   private def newestLineItem(): Option[LineItemDetails] = lineItemDetails match {
     case Some(lineItems) =>
-      implicit val lineItemDetailsOrdering: Ordering[LineItemDetails] = Ordering.by { l: LineItemDetails =>
+      implicit val lineItemDetailsOrdering: Ordering[LineItemDetails] = Ordering.by { (l: LineItemDetails) =>
         (l.clearingDate, l.clearingDocument)
       }
       lineItems.sorted.reverse.headOption

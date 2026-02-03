@@ -18,7 +18,7 @@ package uk.gov.hmrc.economiccrimelevyaccount.base
 
 import com.typesafe.config.Config
 import org.apache.pekko.actor.ActorSystem
-import org.mockito.MockitoSugar
+import org.scalatestplus.mockito.MockitoSugar
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.wordspec.AnyWordSpec
 import org.scalatest.{BeforeAndAfterEach, OptionValues, TryValues}

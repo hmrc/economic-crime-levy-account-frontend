@@ -55,7 +55,7 @@
 
 @generateTablePaymentHistory() = @{
 
-    implicit val paymentHistoryOrdering: Ordering[PaymentHistory] = Ordering.by { p: PaymentHistory =>
+    implicit val paymentHistoryOrdering: Ordering[PaymentHistory] = Ordering.by { (p: PaymentHistory) =>
         (p.paymentDate, p.paymentDocument)
     }
 
@@ -185,6 +185,6 @@
     <h1 class="govuk-heading-xl">@messages("account.viewPayments.heading")</h1>
 
     @generateTableOutstandingPayments
-    @generateTablePaymentHistory
+    @generateTablePaymentHistory()
 
 }

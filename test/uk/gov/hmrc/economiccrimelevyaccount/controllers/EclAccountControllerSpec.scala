@@ -27,6 +27,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, FinancialData,
 import uk.gov.hmrc.economiccrimelevyaccount.services.{AuditService, EclAccountService, EclRegistrationService}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.AccountView
 import uk.gov.hmrc.play.audit.http.connector.AuditResult
+import org.mockito.Mockito.{reset, times, verify, when}
 
 import java.time.LocalDate
 import scala.concurrent.Future

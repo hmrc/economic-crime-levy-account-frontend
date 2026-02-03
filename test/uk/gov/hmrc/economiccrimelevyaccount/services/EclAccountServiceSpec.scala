@@ -28,6 +28,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, St
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.http.UpstreamErrorResponse
 import uk.gov.hmrc.time.TaxYear
+import org.mockito.Mockito.{reset, times, verify, when}
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -50,7 +51,7 @@ class EclAccountServiceSpec extends SpecBase {
     }
 
     "return Some with PaymentsViewModel if we receive correct response from financialDataConnector" in forAll {
-      validResponse: ValidFinancialDataResponseForLatestObligation =>
+      (validResponse: ValidFinancialDataResponseForLatestObligation) =>
         when(mockECLAccountConnector.getFinancialData(any()))
           .thenReturn(Future.successful(Some(validResponse.financialDataResponse)))
 
@@ -104,7 +105,7 @@ class EclAccountServiceSpec extends SpecBase {
     }
 
     "return EclAccountError.InternalUnexpectedError when getFinancialData call fails" in forAll {
-      validResponse: ValidFinancialDataResponseForLatestObligation =>
+      (validResponse: ValidFinancialDataResponseForLatestObligation) =>
         val updatedDocumentDetails =
           validResponse.financialDataResponse.documentDetails.get(0) copy (documentType = Some(InterestCharge))
 
@@ -129,7 +130,7 @@ class EclAccountServiceSpec extends SpecBase {
     }
 
     "return filled payment history where there is a reversal item" in forAll {
-      validResponse: ValidFinancialDataResponseForLatestObligation =>
+      (validResponse: ValidFinancialDataResponseForLatestObligation) =>
         val firstItem                    = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head.copy(
           clearingReason = Some("Reversal")
         )
@@ -192,7 +193,7 @@ class EclAccountServiceSpec extends SpecBase {
     }
 
     "return empty payment history where there is no clearing reason in response" in forAll {
-      validResponse: ValidFinancialDataResponseForLatestObligation =>
+      (validResponse: ValidFinancialDataResponseForLatestObligation) =>
         val firstItem                    = validResponse.financialDataResponse.documentDetails.get.head.lineItemDetails.get.head.copy(
           clearingReason = None
         )
@@ -242,7 +243,7 @@ class EclAccountServiceSpec extends SpecBase {
     }
 
     "return Some with PaymentsViewModel with interest that is not yet formed into interest document" in forAll {
-      validResponse: ValidFinancialDataResponseForLatestObligation =>
+      (validResponse: ValidFinancialDataResponseForLatestObligation) =>
         val documentDetailsFirstItem = validResponse.financialDataResponse.documentDetails.get.head
 
         val updatedDocumentDetailsFirstItem = documentDetailsFirstItem.copy(

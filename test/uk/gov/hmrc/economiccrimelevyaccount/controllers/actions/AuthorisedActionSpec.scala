@@ -28,6 +28,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.routes
 import uk.gov.hmrc.economiccrimelevyaccount.models.eacd.EclEnrolment
 import uk.gov.hmrc.economiccrimelevyaccount.{EnrolmentsWithEcl, EnrolmentsWithoutEcl}
+import org.mockito.Mockito.{reset, times, verify, when}
 
 import scala.concurrent.Future
 

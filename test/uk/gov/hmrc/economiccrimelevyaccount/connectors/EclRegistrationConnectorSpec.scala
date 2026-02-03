@@ -25,6 +25,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._
 import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, EclSubscriptionStatus}
 import uk.gov.hmrc.http.{HttpResponse, StringContextOps}
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
+import org.mockito.Mockito.{reset, times, verify, when}
 
 import java.net.URL
 import scala.concurrent.Future
