@@ -24,6 +24,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.connectors.OpsConnector
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.OpsError
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
 import uk.gov.hmrc.http.UpstreamErrorResponse
+import org.mockito.Mockito.{reset, times, verify, when}
 
 import scala.concurrent.Future
 

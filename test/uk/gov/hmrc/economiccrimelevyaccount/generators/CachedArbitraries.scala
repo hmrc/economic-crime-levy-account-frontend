@@ -16,19 +16,20 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.generators
 
-import com.danielasfregola.randomdatagenerator.RandomDataGenerator.derivedArbitrary
-import org.scalacheck.Arbitrary
-import org.scalacheck.derive.MkArbitrary
 import uk.gov.hmrc.auth.core.{Enrolment, Enrolments}
 import uk.gov.hmrc.economiccrimelevyaccount.EclTestData
 import uk.gov.hmrc.economiccrimelevyaccount.models._
 import uk.gov.hmrc.economiccrimelevyaccount.models.audit.AccountViewedAuditFinancialDetails
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.ErrorCode
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType
+import org.scalacheck.Arbitrary
+import io.github.martinhh.derived.scalacheck.deriveArbitrary
+import scala.deriving.Mirror
 
 object CachedArbitraries extends EclTestData with Generators {
 
-  private def mkArb[T](implicit mkArb: MkArbitrary[T]): Arbitrary[T] = MkArbitrary[T].arbitrary
+  private inline def mkArb[T](using Mirror.Of[T]): Arbitrary[T] =
+    deriveArbitrary[T]
 
   implicit lazy val arbEnrolment: Arbitrary[Enrolment]                                                   = mkArb
   implicit lazy val arbEnrolments: Arbitrary[Enrolments]                                                 = mkArb

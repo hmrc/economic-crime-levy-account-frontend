@@ -27,6 +27,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.models.FinancialData
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{EclAccountError, EclRegistrationError}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{EclAccountService, EclRegistrationService}
 import uk.gov.hmrc.economiccrimelevyaccount.views.html.{NoPaymentsView, PaymentsView}
+import org.mockito.Mockito.{reset, times, verify, when}
 
 import scala.concurrent.Future
 

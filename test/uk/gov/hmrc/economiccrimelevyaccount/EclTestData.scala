@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount
 
-import com.danielasfregola.randomdatagenerator.RandomDataGenerator.derivedArbitrary
 import org.scalacheck.{Arbitrary, Gen}
 import uk.gov.hmrc.auth.core.{Enrolment, EnrolmentIdentifier, Enrolments}
 import uk.gov.hmrc.economiccrimelevyaccount.generators.CachedArbitraries._

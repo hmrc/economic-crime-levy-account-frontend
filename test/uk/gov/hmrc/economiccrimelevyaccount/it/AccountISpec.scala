@@ -16,7 +16,6 @@
 
 package uk.gov.hmrc.economiccrimelevyaccount.it
 
-import com.danielasfregola.randomdatagenerator.RandomDataGenerator.random
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.concurrent.Eventually.eventually
 import play.api.test.FakeRequest
@@ -26,6 +25,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.it.base.ISpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.it.behaviours.AuthorisedBehaviour
 import uk.gov.hmrc.economiccrimelevyaccount.models.ObligationData
 import uk.gov.hmrc.economiccrimelevyaccount.utils.HttpHeader
+import org.scalacheck.Arbitrary.arbitrary
 
 class AccountISpec extends ISpecBase with AuthorisedBehaviour {
 
@@ -35,7 +35,7 @@ class AccountISpec extends ISpecBase with AuthorisedBehaviour {
     "respond with 200 status and the start HTML view" in {
       stubAuthorised()
 
-      val obligationData = random[ObligationData]
+      val obligationData = arbitrary[ObligationData].sample.get
 
       stubGetObligations(obligationData)
       stubFinancialData()

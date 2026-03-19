@@ -25,6 +25,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.models.{OpsJourneyRequest, OpsJourneyResponse}
 import uk.gov.hmrc.http.client.{HttpClientV2, RequestBuilder}
 import uk.gov.hmrc.http.{HttpResponse, StringContextOps, UpstreamErrorResponse}
+import org.mockito.Mockito.{reset, times, verify, when}
 
 import scala.concurrent.Future
 import scala.util.{Failure, Try}

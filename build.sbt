@@ -14,7 +14,7 @@ lazy val root = (project in file("."))
   .settings(scoverageSettings: _*)
   .settings(scalaCompilerOptions: _*)
   .settings(
-    scalaVersion := "2.13.18",
+    scalaVersion := "3.3.7",
     name := appName,
     RoutesKeys.routesImport ++= Seq(
       "uk.gov.hmrc.economiccrimelevyaccount.models._",

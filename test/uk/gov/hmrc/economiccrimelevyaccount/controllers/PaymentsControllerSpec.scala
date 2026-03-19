@@ -26,6 +26,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.models.errors.{EclAccountError, OpsError}
 import uk.gov.hmrc.economiccrimelevyaccount.models.{FinancialData, OpsJourneyResponse, Payment}
 import uk.gov.hmrc.economiccrimelevyaccount.services.{EclAccountService, OpsService}
+import org.mockito.Mockito.{reset, times, verify, when}
 
 import java.time.LocalDate
 import scala.concurrent.Future
@@ -167,7 +168,7 @@ class PaymentsControllerSpec extends SpecBase {
 
     "return INTERNAL_SERVER_ERROR when ETMP didn't return financial data" in forAll {
       (
-        chargeReference: String,
+        chargeReference: String
       ) =>
         when(mockECLAccountService.retrieveFinancialData(any()))
           .thenReturn(EitherT.rightT[Future, EclAccountError](None))
