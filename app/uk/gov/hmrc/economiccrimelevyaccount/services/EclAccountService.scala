@@ -24,7 +24,6 @@ import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentStatus._
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.{Interest, Overpayment}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels._
 import uk.gov.hmrc.http.{HeaderCarrier, UpstreamErrorResponse}
-import play.api.Logging
 
 import javax.inject.Inject
 import scala.concurrent.{ExecutionContext, Future}
@@ -33,8 +32,7 @@ import scala.util.control.NonFatal
 
 class EclAccountService @Inject() (
   eclAccountConnector: EclAccountConnector
-)(implicit ec: ExecutionContext)
-    extends Logging {
+)(implicit ec: ExecutionContext) {
 
   def retrieveFinancialData(implicit
     hc: HeaderCarrier
@@ -72,98 +70,28 @@ class EclAccountService @Inject() (
     Try {
       financialDataOption.flatMap { response =>
         response.documentDetails.map { documentDetailsList =>
-
-          logger.info("==== RAW DOCUMENT DETAILS ====")
-
-          documentDetailsList.foreach { d =>
-            logger.info(
-              s"""
-                 |docType=${d.documentType}
-                 |chargeRef=${d.chargeReferenceNumber}
-                 |outstanding=${d.documentOutstandingAmount}
-                 |cleared=${d.documentClearedAmount}
-                 |isCleared=${d.isCleared}
-                 |isPartiallyPaid=${d.isPartiallyPaid}
-                 |isOverdue=${d.isOverdue}
-                 |fyFrom=${d.fyFrom}
-                 |fyTo=${d.fyTo}
-                 |paymentDueDate=${d.paymentDueDate}
-                 |paymentType=${d.paymentType}
-                 |lineItems=${d.lineItemDetails}
-                 |-------------------------------
-                 |""".stripMargin
-            )
-          }
-
           val outstandingPayments = documentDetailsList
             .collect(DocumentDetails.filterOutstandingPayment)
             .collect(DocumentDetails.filterTransactionType)
             .collect(getOutstandingPayments(documentDetailsList))
-
-          logger.info("==== OUTSTANDING PAYMENTS ====")
-          outstandingPayments.foreach { p =>
-            logger.info(
-              s"""
-                 |chargeRef=${p.chargeReference}
-                 |amount=${p.amount}
-                 |status=${p.paymentStatus}
-                 |type=${p.paymentType}
-                 |dueDate=${p.paymentDueDate}
-                 |fyFrom=${p.fyFrom}
-                 |fyTo=${p.fyTo}
-                 |-------------------------------
-                 |""".stripMargin
-            )
-          }
 
           val paymentsHistory = documentDetailsList
             .collect(DocumentDetails.filterOutOverPayment)
             .flatMap { details =>
               details.lineItemDetails.map {
                 _.collect(
-                  LineItemDetails.useOnlyRegularLineItemDetails andThen
-                    LineItemDetails.isCleared andThen
-                    getPaymentHistory(details, documentDetailsList, response)
+                  LineItemDetails.useOnlyRegularLineItemDetails andThen LineItemDetails.isCleared
+                    andThen getPaymentHistory(details, documentDetailsList, response)
                 )
               }
             }
             .flatten
-
-          logger.info("==== PAYMENT HISTORY ====")
-          paymentsHistory.foreach { p =>
-            logger.info(
-              s"""
-                 |chargeRef=${p.chargeReference}
-                 |amount=${p.amount}
-                 |status=${p.paymentStatus}
-                 |type=${p.paymentType}
-                 |paymentDate=${p.paymentDate}
-                 |fyFrom=${p.fyFrom}
-                 |fyTo=${p.fyTo}
-                 |-------------------------------
-                 |""".stripMargin
-            )
-          }
 
           val accruingInterestOutstandingPayments = documentDetailsList
             .collect(DocumentDetails.filterItemsThatHaveAccruingInterest)
             .collect {
               getOutstandingPaymentsAccruingInterest
             }
-
-          logger.info("==== ACCRUING INTEREST PAYMENTS ====")
-          accruingInterestOutstandingPayments.foreach { p =>
-            logger.info(
-              s"""
-                 |chargeRef=${p.chargeReference}
-                 |amount=${p.amount}
-                 |status=${p.paymentStatus}
-                 |type=${p.paymentType}
-                 |dueDate=${p.paymentDueDate}
-                 |-------------------------------
-                 |""".stripMargin
-            )
-          }
 
           PaymentsViewModel(
             outstandingPayments = outstandingPayments ++ accruingInterestOutstandingPayments,
@@ -175,8 +103,7 @@ class EclAccountService @Inject() (
       }
     } match {
       case Success(viewModel) => EitherT.rightT[Future, EclAccountError](viewModel)
-      case Failure(ex)        =>
-        logger.error("Error building PaymentsViewModel", ex)
+      case Failure(_)         =>
         EitherT.leftT[Future, Option[PaymentsViewModel]](
           EclAccountError.InternalUnexpectedError("Missing data required for PaymentsViewModel", None)
         )
