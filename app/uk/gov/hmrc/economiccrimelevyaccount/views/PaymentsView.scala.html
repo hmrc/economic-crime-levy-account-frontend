@@ -29,56 +29,21 @@
 
 @(viewModel: PaymentsViewModel, appConfig: AppConfig)(implicit request: Request[_], messages: Messages)
 
-@generateTableOutstandingPayments = @{
-    val outstandingPayments = viewModel.outstandingPayments
-            .filter(payment => payment.paymentStatus == Due || payment.paymentStatus == Overdue)
-    if(outstandingPayments.nonEmpty) {
-        table(
-            Table(
-                rows = tableRowsOutstandingPayments(outstandingPayments),
-                head = Some(Seq(
-                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.1")), classes = "govuk-!-width-one-quarter"),
-                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.2")), classes = "govuk-!-width-one-quarter"),
-                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.3")), classes = "govuk-!-width-one-quarter"),
-                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.4")), classes = "govuk-!-width-one-quarter"),
-                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.5")), classes = "govuk-!-width-one-quarter"),
-                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.6")), classes = "govuk-!-width-one-quarter")
-                )),
-                caption = Some(messages("account.viewPayments.table.outstandingPayments.header.title")),
-                captionClasses = "govuk-table__caption--m",
-                classes = "govuk-table"
-            )
-        )
-    }
+@outstandingPayments = @{
+    viewModel.outstandingPayments
+        .filter(payment => payment.paymentStatus == Due || payment.paymentStatus == Overdue)
 }
 
 
-@generateTablePaymentHistory() = @{
-
+@paymentHistory = @{
     implicit val paymentHistoryOrdering: Ordering[PaymentHistory] = Ordering.by { (p: PaymentHistory) =>
         (p.paymentDate, p.paymentDocument)
     }
 
-    val paymentHistory = viewModel.paymentHistory
+    viewModel.paymentHistory
         .filter(payment => payment.paymentStatus == Paid || payment.paymentStatus == PartiallyPaid)
         .sorted
         .reverse
-    if(paymentHistory.nonEmpty) {
-        table(Table(
-            rows = tableRowsPaymentHistory(paymentHistory),
-            head = Some(Seq(
-                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.1")), classes = "govuk-!-width-one-quarter"),
-                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.2")), classes = "govuk-!-width-one-quarter"),
-                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.3")), classes = "govuk-!-width-one-quarter"),
-                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.4")), classes = "govuk-!-width-one-quarter"),
-                HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.5")), classes = "govuk-!-width-one-quarter"),
-                HeadCell(content = if (appConfig.disableRefund) " " else Text(messages("account.viewPayments.table.paymentsHistory.header.6")), classes = "govuk-!-width-one-quarter")
-            )),
-            caption = Some(messages("account.viewPayments.table.paymentsHistory.header.title")),
-            captionClasses = "govuk-table__caption--m",
-            classes = "govuk-table"
-        ))
-    }
 }
 
 @tableRowsOutstandingPayments(rowData: Seq[OutstandingPayments]) = @{
@@ -184,7 +149,45 @@
 ) {
     <h1 class="govuk-heading-xl">@messages("account.viewPayments.heading")</h1>
 
-    @generateTableOutstandingPayments
-    @generateTablePaymentHistory()
+        @if(outstandingPayments.nonEmpty) {
+        @table(
+            Table(
+                rows = tableRowsOutstandingPayments(outstandingPayments),
+                head = Some(Seq(
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.1")), classes = "govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.2")), classes = "govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.3")), classes = "govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.4")), classes = "govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.5")), classes = "govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.outstandingPayments.header.6")), classes = "govuk-!-width-one-quarter")
+                )),
+                caption = Some(messages("account.viewPayments.table.outstandingPayments.header.title")),
+                captionClasses = "govuk-table__caption--m",
+                classes = "govuk-table"
+            )
+        )
+    }
+
+    @if(paymentHistory.nonEmpty) {
+        @table(
+            Table(
+                rows = tableRowsPaymentHistory(paymentHistory),
+                head = Some(Seq(
+                    HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.1")), classes = "govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.2")), classes = "govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.3")), classes = "govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.4")), classes = "govuk-!-width-one-quarter"),
+                    HeadCell(content = Text(messages("account.viewPayments.table.paymentsHistory.header.5")), classes = "govuk-!-width-one-quarter"),
+                    HeadCell(
+                        content = if (appConfig.disableRefund) Text(" ") else Text(messages("account.viewPayments.table.paymentsHistory.header.6")),
+                        classes = "govuk-!-width-one-quarter"
+                    )
+                )),
+                caption = Some(messages("account.viewPayments.table.paymentsHistory.header.title")),
+                captionClasses = "govuk-table__caption--m",
+                classes = "govuk-table"
+            )
+        )
+    }
 
 }
