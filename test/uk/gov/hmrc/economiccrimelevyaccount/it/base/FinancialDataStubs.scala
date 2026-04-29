@@ -82,6 +82,71 @@ trait FinancialDataStubs {
         )
     )
 
+  def stubFinancialDataWithReversal(): StubMapping =
+    stub(
+      get(urlEqualTo("/economic-crime-levy-account/financial-data")),
+      aResponse()
+        .withStatus(OK)
+        .withBody(
+          Json
+            .toJson(
+              FinancialData(
+                None,
+                Some(
+                  Seq(
+                    DocumentDetails(
+                      documentType = Some(NewCharge),
+                      chargeReferenceNumber = Some("XMECL0000000006"),
+                      postingDate = Some("2022-03-31"),
+                      issueDate = Some("2022-03-31"),
+                      documentTotalAmount = Some(BigDecimal("1800")),
+                      documentClearedAmount = Some(BigDecimal("1800")),
+                      documentOutstandingAmount = Some(BigDecimal("0")),
+                      lineItemDetails = Some(
+                        Seq(
+                          LineItemDetails(
+                            chargeDescription = Some("ECL 2nd Late Filing Penalty"),
+                            periodFromDate = Some(LocalDate.parse("2023-04-01")),
+                            periodToDate = Some(LocalDate.parse("2024-03-31")),
+                            periodKey = Some(periodKey),
+                            netDueDate = Some(LocalDate.parse("2025-03-19")),
+                            amount = Some(BigDecimal("1800")),
+                            clearingDate = Some(LocalDate.parse("2025-10-30")),
+                            clearingDocument = Some("003149635040"),
+                            clearingReason = Some("Reversal"),
+                            mainTransaction = Some("6220"),
+                            subTransaction = Some("3410")
+                          ),
+                          LineItemDetails(
+                            chargeDescription = Some("ECL 2nd Late Filing Penalty"),
+                            periodFromDate = Some(LocalDate.parse("2023-04-01")),
+                            periodToDate = Some(LocalDate.parse("2024-03-31")),
+                            periodKey = Some(periodKey),
+                            netDueDate = Some(LocalDate.parse("2025-03-19")),
+                            amount = Some(BigDecimal("1800")),
+                            clearingDate = Some(LocalDate.parse("2025-12-01")),
+                            clearingDocument = Some("267002767685"),
+                            clearingReason = Some("Incoming Payment"),
+                            mainTransaction = Some("6220"),
+                            subTransaction = Some("3410")
+                          )
+                        )
+                      ),
+                      interestPostedAmount = None,
+                      interestAccruingAmount = None,
+                      interestPostedChargeRef = None,
+                      penaltyTotals = None,
+                      contractObjectNumber = Some("00000290000000001372"),
+                      contractObjectType = Some("ECL")
+                    )
+                  )
+                )
+              )
+            )
+            .toString()
+        )
+    )
+
   def stubFinancialDataError(): StubMapping =
     stub(
       get(urlEqualTo("/economic-crime-levy-account/financial-data")),

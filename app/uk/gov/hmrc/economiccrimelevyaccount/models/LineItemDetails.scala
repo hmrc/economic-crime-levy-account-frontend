@@ -42,8 +42,7 @@ object LineItemDetails {
   def useOnlyRegularLineItemDetails: PartialFunction[LineItemDetails, LineItemDetails] = {
     case lineItemDetails: LineItemDetails
         if containsString(lineItemDetails.clearingReason, "automatic clearing")
-          | containsString(lineItemDetails.clearingReason, "incoming payment")
-          | containsString(lineItemDetails.clearingReason, "reversal") =>
+          | containsString(lineItemDetails.clearingReason, "incoming payment") =>
       lineItemDetails
   }
 
