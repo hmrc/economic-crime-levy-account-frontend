@@ -53,6 +53,20 @@ class ViewYourPaymentsISpec extends ISpecBase with AuthorisedBehaviour {
           .withHeader(HttpHeader.xCorrelationId, matching(uuidRegex))
       )
     }
+
+    "not display reversal items in payment history" in {
+      stubAuthorised()
+      stubFinancialDataWithReversal()
+      stubGetSubscriptionStatus(testEclReference, testSubscribedSubscriptionStatus)
+
+      val result = callRoute(FakeRequest(routes.ViewYourPaymentsController.onPageLoad()))
+
+      status(result) shouldBe OK
+      html(result)     should include("Your Economic Crime Levy payments")
+      html(result)  shouldNot include("30 October 2025")
+      html(result)     should include("1 December 2025")
+    }
+
     "retry the get submission call 3 times after the initial attempt if it fails with a 500 INTERNAL_SERVER_ERROR response" in {
       stubAuthorised()
       stubFinancialDataError()
