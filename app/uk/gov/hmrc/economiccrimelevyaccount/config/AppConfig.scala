@@ -85,4 +85,10 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
     economicCrimeLevyRegistrationBaseUrl + servicesConfig.getString(
       "microservice.services.economic-crime-levy-registration.endpoints.subscriptionStatus"
     )
+
+  val researchBannerEnabled: Boolean =
+    configuration.get[Boolean]("features.researchBannerEnabled")
+
+  val researchBannerUrl: String =
+    configuration.get[String]("urls.researchBanner")
 }

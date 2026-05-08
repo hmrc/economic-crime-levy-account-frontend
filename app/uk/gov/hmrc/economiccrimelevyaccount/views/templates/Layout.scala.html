@@ -15,8 +15,11 @@
  *@
 
 @import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
-@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.hmrcstandardpage.{HmrcStandardPageParams, ServiceURLs, TemplateOverrides}
 @import views.html.helper.CSPNonce
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.hmrcstandardpage.{Banners, HmrcStandardPageParams, ServiceURLs, TemplateOverrides}
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.language.{Cy, En}
+@import uk.gov.hmrc.hmrcfrontend.views.viewmodels.userresearchbanner.UserResearchBanner
+
 @this(
         appConfig: AppConfig,
         hmrcStandardPage: HmrcStandardPage,
@@ -26,7 +29,7 @@
         hmrcReportTechnicalIssueHelper: HmrcReportTechnicalIssueHelper
 )
 
-@(pageTitle: String, showBackLink: Boolean = true, timeout: Boolean = true, showSignOut: Boolean = true, fullWidthContent: Boolean = false)(contentBlock: Html)(implicit request: RequestHeader, messages: Messages)
+@(pageTitle: String, showBackLink: Boolean = true, timeout: Boolean = true, showSignOut: Boolean = true, fullWidthContent: Boolean = false, showResearchBanner: Boolean = false)(contentBlock: Html)(implicit request: RequestHeader, messages: Messages)
 
 @language_key = @{"PLAY_LANG"}
 
@@ -78,6 +81,16 @@
     serviceURLs = ServiceURLs(
         serviceUrl = Some(AccountController.onPageLoad().url),
         signOutUrl = Some(SignOutController.signOut().url)
+    ),
+    banners = Banners(
+        userResearchBanner =
+            if(showResearchBanner && appConfig.researchBannerEnabled)
+                Some(UserResearchBanner(
+                    language = if(messages.lang.code == "cy") Cy else En,
+                    url = appConfig.researchBannerUrl,
+                    hideCloseButton = false
+                ))
+            else None
     ),
     isWelshTranslationAvailable = appConfig.languageTranslationEnabled,
     templateOverrides = TemplateOverrides(
