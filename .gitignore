@@ -36,3 +36,5 @@ bin
 .bsp
 /migrations
 /generated-test
+.metals/
+.vscode/
