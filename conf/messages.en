@@ -47,6 +47,9 @@ account.viewReturns.noReturnsFound.title = Your Economic Crime Levy returns
 account.viewReturns.noReturnsFound.heading = Your Economic Crime Levy returns
 account.viewReturns.noReturnsFound.p1 = You have not submitted any Economic Crime Levy returns.
 account.viewReturns.noReturnsFound.p2 = Once you have submitted a return, it will appear here.
+account.viewReturns.prevented.column.details = Details
+account.viewReturns.prevented.details = You cannot submit this return yet. It will be available from {0}.
+
 account.return.card.title = Returns
 account.due.return.subHeading = Your return for {0} to {1} is due by {2}.
 account.overdue.return.subHeading = You have an overdue return for {0} to {1}.
@@ -59,6 +62,7 @@ account.payments.viewHistory = View your payments
 account.noneDue.payments.subHeading = You have no payments due.
 account.due.payments.subHeading = You have a payment of {0} due on 30 September {1} for 1 April {2} to 31 March {3}.
 account.overdue.payments.subHeading.1 = You have an overdue payment for 1 April {0} to 31 March {1}. <br> We are charging you interest on this payment. You owe {2}.
+account.prevented.return.subHeading = You cannot submit your next return yet. It will be available from {0}.
 account.viewPayments.title = Your Economic Crime Levy payments
 account.viewPayments.heading = Your Economic Crime Levy payments
 account.viewPayments.table.outstandingPayments.header.title = Payments you owe
@@ -91,6 +95,9 @@ account.registration.card.title = Registration
 account.registration.card.amendRegistration = Amend registration
 account.registration.card.deregister = Request to deregister
 account.deregistration.p1 = You deregistered this account.
+
+account.returnPrevented.banner.title = Important
+account.returnPrevented.banner.content = Your return for 1 April 2026 to 31 March 2027 is not available yet. You can submit this return from 1 April 2027.
 
 account.viewPayments.history.table.cell.interest.reference = Interest charge for ECL return number {0}
 account.viewPayments.outstanding.table.cell.interest.reference = Interest charge {0} for ECL return number {1}

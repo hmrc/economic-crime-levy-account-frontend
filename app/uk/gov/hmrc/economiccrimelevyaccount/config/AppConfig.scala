@@ -91,4 +91,11 @@ class AppConfig @Inject() (configuration: Configuration, servicesConfig: Service
 
   val researchBannerUrl: String =
     configuration.get[String]("urls.researchBanner")
+
+  val preventReturnSubmissionEnabled: Boolean =
+    configuration.get[Boolean]("features.preventReturnSubmissionEnabled")
+
+  val preventedReturnTaxYears: Seq[String] =
+    configuration.get[Seq[String]]("features.preventedReturnTaxYears")
+
 }

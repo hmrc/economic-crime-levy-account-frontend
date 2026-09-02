@@ -47,7 +47,8 @@ class ViewYourReturnsControllerSpec extends SpecBase {
     mockEclAccountService,
     returnsView,
     noReturnsView,
-    mockEclRegistrationService
+    mockEclRegistrationService,
+    appConfig
   )
 
   val financialYearStartYear = s"${LocalDate.now().minusYears(1).getYear}"
@@ -77,7 +78,10 @@ class ViewYourReturnsControllerSpec extends SpecBase {
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Due,
             "21XY",
-            None
+            None,
+            false,
+            obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceToDate
+              .plusDays(1)
           )
         )
 
@@ -112,7 +116,10 @@ class ViewYourReturnsControllerSpec extends SpecBase {
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Due,
             "21XY",
-            None
+            None,
+            false,
+            obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceToDate
+              .plusDays(1)
           )
         )
 
@@ -146,7 +153,10 @@ class ViewYourReturnsControllerSpec extends SpecBase {
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Overdue,
             "21XY",
-            None
+            None,
+            false,
+            obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceToDate
+              .plusDays(1)
           )
         )
 
@@ -180,7 +190,10 @@ class ViewYourReturnsControllerSpec extends SpecBase {
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Overdue,
             "21XY",
-            None
+            None,
+            false,
+            obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceToDate
+              .plusDays(1)
           )
         )
 
@@ -214,7 +227,10 @@ class ViewYourReturnsControllerSpec extends SpecBase {
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Overdue,
             "21XY",
-            None
+            None,
+            false,
+            obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceToDate
+              .plusDays(1)
           )
         )
 
@@ -248,7 +264,10 @@ class ViewYourReturnsControllerSpec extends SpecBase {
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Submitted,
             "21XY",
-            Some(testEclReference.value)
+            Some(testEclReference.value),
+            false,
+            obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceToDate
+              .plusDays(1)
           )
         )
 
@@ -282,7 +301,10 @@ class ViewYourReturnsControllerSpec extends SpecBase {
             obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceDueDate,
             Submitted,
             "21XY",
-            None
+            None,
+            false,
+            obligationData.obligationData.obligations.head.obligationDetails.head.inboundCorrespondenceToDate
+              .plusDays(1)
           )
         )
 

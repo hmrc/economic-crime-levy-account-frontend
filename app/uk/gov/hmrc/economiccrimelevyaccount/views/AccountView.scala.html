@@ -17,11 +17,13 @@
 @import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 @import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.AccountViewModel
 @import uk.gov.hmrc.economiccrimelevyaccount.views.html.templates.Layout
+@import uk.gov.hmrc.govukfrontend.views.html.components.{GovukNotificationBanner, NotificationBanner, Text}
 
 @this(
         layout: Layout,
         summaryList: GovukSummaryList,
         button: GovukButton,
+        notificationBanner: GovukNotificationBanner,
         appConfig: AppConfig,
         card: uk.gov.hmrc.economiccrimelevyaccount.views.html.components.Card
 )
@@ -35,6 +37,15 @@
     fullWidthContent = true,
     showResearchBanner = true
 ) {
+
+    @if(appConfig.preventReturnSubmissionEnabled) {
+        @notificationBanner(
+            NotificationBanner(
+                title = Text(messages("account.returnPrevented.banner.title")),
+                content = Text(messages("account.returnPrevented.banner.content"))
+            )
+        )
+    }
 
     <h1 class="govuk-heading-xl govuk-!-margin-bottom-0">
     @messages("account.heading")
