@@ -17,6 +17,7 @@
 package uk.gov.hmrc.economiccrimelevyaccount.controllers
 
 import play.api.i18n.{I18nSupport, Messages}
+import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import play.api.mvc.{Action, AnyContent, MessagesControllerComponents, Request, Result}
 import uk.gov.hmrc.economiccrimelevyaccount.controllers.actions.AuthorisedAction
 import uk.gov.hmrc.economiccrimelevyaccount.models._
@@ -39,7 +40,8 @@ class ViewYourReturnsController @Inject() (
   eclAccountService: EclAccountService,
   returnsView: ReturnsView,
   noReturnsView: NoReturnsView,
-  eclRegistrationService: EclRegistrationService
+  eclRegistrationService: EclRegistrationService,
+  appConfig: AppConfig
 )(implicit ec: ExecutionContext, errorTemplate: ErrorTemplate)
     extends FrontendBaseController
     with I18nSupport
@@ -92,12 +94,21 @@ class ViewYourReturnsController @Inject() (
         val fromToCaption =
           s"${details.inboundCorrespondenceFromDate.getYear}-${details.inboundCorrespondenceToDate.getYear}"
 
+        val isReturnPrevented =
+          appConfig.preventReturnSubmissionEnabled &&
+            appConfig.preventedReturnTaxYears.contains(fromToCaption)
+
+        val availableFrom =
+          details.inboundCorrespondenceToDate.plusDays(1)
+
         ReturnsOverview(
           fromToCaption,
           details.inboundCorrespondenceDueDate,
           status,
           details.periodKey,
-          reference
+          reference,
+          isReturnPrevented,
+          availableFrom
         )
       }
       .sortBy(_.dueDate)(Ordering[LocalDate].reverse)

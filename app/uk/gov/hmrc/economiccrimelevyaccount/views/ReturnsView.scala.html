@@ -83,6 +83,24 @@
     )
 }
 
+@preventedTableRows(rowData: ReturnsOverview) = @{
+    Seq(
+        TableRow(
+            content = Text(ViewUtils.formatLocalDate(rowData.dueDate)),
+            classes = "govuk-!-width-one-half"
+        ),
+        TableRow(
+            content = Text(
+              messages(
+                "account.viewReturns.prevented.details",
+                ViewUtils.formatLocalDate(rowData.availableFrom)
+              )
+            ),
+            classes = "govuk-!-width-one-half"
+        )
+    )
+}
+
 @getChargeReferenceHeader(data: ReturnsOverview) = @{
     if(data.chargeReference.isDefined) {
         Seq(HeadCell(content = Text(messages("account.viewReturns.table.column.3")), classes = "govuk-!-width-one-quarter"))
@@ -93,20 +111,59 @@
 
 @generateTable = @{
     viewModel.returns.map { data =>
-        table(Table(
-            rows = Seq(tableRows(data)),
-            head = Some(Seq(
-                HeadCell(content = Text(messages("account.viewReturns.table.column.1")), classes = "govuk-!-width-one-half"),
-                HeadCell(content = Text(messages("account.viewReturns.table.column.2")), classes = "govuk-!-width-one-quarter"),
-            ) ++ getChargeReferenceHeader(data)
-                    ++ Seq(HeadCell(content = Text(messages("account.viewReturns.table.column.4")), classes = "govuk-!-width-one-quarter"))
-            ),
-            caption = Some(data.fromTo),
-            captionClasses = "govuk-table__caption--m",
-            classes = "govuk-table"
-        ))
+        if (data.isReturnPrevented) {
+            table(
+                Table(
+                    rows = Seq(preventedTableRows(data)),
+                    head = Some(
+                        Seq(
+                            HeadCell(
+                                content = Text(messages("account.viewReturns.table.column.1")),
+                                classes = "govuk-!-width-one-half"
+                            ),
+                            HeadCell(
+                                content = Text(messages("account.viewReturns.prevented.column.details")),
+                                classes = "govuk-!-width-one-half"
+                            )
+                        )
+                    ),
+                    caption = Some(data.fromTo),
+                    captionClasses = "govuk-table__caption--m",
+                    classes = "govuk-table"
+                )
+            )
+        } else {
+            table(
+                Table(
+                    rows = Seq(tableRows(data)),
+                    head = Some(
+                        Seq(
+                            HeadCell(
+                                content = Text(messages("account.viewReturns.table.column.1")),
+                                classes = "govuk-!-width-one-half"
+                            ),
+                            HeadCell(
+                                content = Text(messages("account.viewReturns.table.column.2")),
+                                classes = "govuk-!-width-one-quarter"
+                            )
+                        ) ++
+                            getChargeReferenceHeader(data) ++
+                            Seq(
+                                HeadCell(
+                                    content = Text(messages("account.viewReturns.table.column.4")),
+                                    classes = "govuk-!-width-one-quarter"
+                                )
+                            )
+                    ),
+                    caption = Some(data.fromTo),
+                    captionClasses = "govuk-table__caption--m",
+                    classes = "govuk-table"
+                )
+            )
+        }
     }
 }
+
 @layout(
     pageTitle = title(messages("account.viewReturns.title")),
     showBackLink = true,

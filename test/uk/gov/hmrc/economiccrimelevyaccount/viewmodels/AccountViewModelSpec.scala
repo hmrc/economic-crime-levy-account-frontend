@@ -23,6 +23,8 @@ import uk.gov.hmrc.economiccrimelevyaccount.ObligationDataWithObligation
 import uk.gov.hmrc.economiccrimelevyaccount.base.SpecBase
 import uk.gov.hmrc.economiccrimelevyaccount.config.AppConfig
 import org.mockito.Mockito.{reset, times, verify, when}
+import uk.gov.hmrc.economiccrimelevyaccount.models.{ObligationDetails, Open}
+import java.time.LocalDate
 
 class AccountViewModelSpec extends SpecBase {
 
@@ -32,6 +34,19 @@ class AccountViewModelSpec extends SpecBase {
 
   override def beforeEach(): Unit =
     reset(appConfig)
+
+  private def obligationFor(
+    fromYear: Int,
+    toYear: Int
+  ): ObligationDetails =
+    ObligationDetails(
+      status = Open,
+      inboundCorrespondenceFromDate = LocalDate.of(fromYear, 4, 1),
+      inboundCorrespondenceToDate = LocalDate.of(toYear, 3, 31),
+      inboundCorrespondenceDateReceived = None,
+      inboundCorrespondenceDueDate = LocalDate.of(toYear, 9, 30),
+      periodKey = s"${fromYear.toString.takeRight(2)}XY"
+    )
 
   "canAmendRegistration" should {
     "return true when amendRegistrationEnabled is true and subscribed" in {
@@ -382,6 +397,46 @@ class AccountViewModelSpec extends SpecBase {
 
       action should have size 0
     }
+
+    "not return the submit return action when the return is prevented" in {
+      when(appConfig.preventReturnSubmissionEnabled)
+        .thenReturn(true)
+
+      when(appConfig.preventedReturnTaxYears)
+        .thenReturn(Seq("2026-2027"))
+
+      val sut = AccountViewModel(
+        appConfig,
+        testSubscribedSubscriptionStatus,
+        testEclReference,
+        Some(obligationFor(2026, 2027)),
+        None
+      )
+
+      val actions = sut.returnsActions()(messages)
+
+      actions should have size 2
+    }
+
+    "return the submit return action when prevention is disabled" in {
+      when(appConfig.preventReturnSubmissionEnabled)
+        .thenReturn(false)
+
+      when(appConfig.preventedReturnTaxYears)
+        .thenReturn(Seq("2026-2027"))
+
+      val sut = AccountViewModel(
+        appConfig,
+        testSubscribedSubscriptionStatus,
+        testEclReference,
+        Some(obligationFor(2026, 2027)),
+        None
+      )
+
+      val actions = sut.returnsActions()(messages)
+
+      actions should have size 3
+    }
   }
 
   "returnsActions" should {
@@ -442,6 +497,27 @@ class AccountViewModelSpec extends SpecBase {
       val subHeading: Html = sut.returnsSubHeading()(messages)
 
       subHeading.body should startWith("You have no returns due")
+    }
+
+    "return prevented return content with the correct available from date" in {
+      when(appConfig.preventReturnSubmissionEnabled)
+        .thenReturn(true)
+
+      when(appConfig.preventedReturnTaxYears)
+        .thenReturn(Seq("2026-2027"))
+
+      val sut = AccountViewModel(
+        appConfig,
+        testSubscribedSubscriptionStatus,
+        testEclReference,
+        Some(obligationFor(2026, 2027)),
+        None
+      )
+
+      val subHeading: Html = sut.returnsSubHeading()(messages)
+
+      subHeading.body shouldBe
+        "You cannot submit your next return yet. It will be available from 1 April 2027."
     }
   }
 
@@ -568,6 +644,81 @@ class AccountViewModelSpec extends SpecBase {
       )
 
       sut.canViewRegistration shouldBe false
+    }
+
+    "isReturnPrevented" should {
+
+      "return true when prevention is enabled and the obligation tax year is configured for prevention" in {
+        when(appConfig.preventReturnSubmissionEnabled)
+          .thenReturn(true)
+
+        when(appConfig.preventedReturnTaxYears)
+          .thenReturn(Seq("2026-2027"))
+
+        val sut = AccountViewModel(
+          appConfig,
+          testSubscribedSubscriptionStatus,
+          testEclReference,
+          Some(obligationFor(2026, 2027)),
+          None
+        )
+
+        sut.isReturnPrevented shouldBe true
+      }
+
+      "return false when prevention is disabled" in {
+        when(appConfig.preventReturnSubmissionEnabled)
+          .thenReturn(false)
+
+        when(appConfig.preventedReturnTaxYears)
+          .thenReturn(Seq("2026-2027"))
+
+        val sut = AccountViewModel(
+          appConfig,
+          testSubscribedSubscriptionStatus,
+          testEclReference,
+          Some(obligationFor(2026, 2027)),
+          None
+        )
+
+        sut.isReturnPrevented shouldBe false
+      }
+
+      "return false when the obligation tax year is not configured for prevention" in {
+        when(appConfig.preventReturnSubmissionEnabled)
+          .thenReturn(true)
+
+        when(appConfig.preventedReturnTaxYears)
+          .thenReturn(Seq("2026-2027"))
+
+        val sut = AccountViewModel(
+          appConfig,
+          testSubscribedSubscriptionStatus,
+          testEclReference,
+          Some(obligationFor(2025, 2026)),
+          None
+        )
+
+        sut.isReturnPrevented shouldBe false
+      }
+
+      "support future tax years configured for prevention" in {
+        when(appConfig.preventReturnSubmissionEnabled)
+          .thenReturn(true)
+
+        when(appConfig.preventedReturnTaxYears)
+          .thenReturn(Seq("2029-2030"))
+
+        val sut = AccountViewModel(
+          appConfig,
+          testSubscribedSubscriptionStatus,
+          testEclReference,
+          Some(obligationFor(2029, 2030)),
+          None
+        )
+
+        sut.isReturnPrevented shouldBe true
+      }
     }
   }
 }

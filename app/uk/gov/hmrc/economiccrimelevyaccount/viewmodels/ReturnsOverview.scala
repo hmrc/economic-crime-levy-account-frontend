@@ -31,5 +31,7 @@ case class ReturnsOverview(
   dueDate: LocalDate,
   status: ReturnStatus,
   periodKey: String,
-  chargeReference: Option[String]
+  chargeReference: Option[String],
+  isReturnPrevented: Boolean,
+  availableFrom: LocalDate
 )

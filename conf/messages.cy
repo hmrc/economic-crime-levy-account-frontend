@@ -47,6 +47,9 @@ account.viewReturns.noReturnsFound.title = Eich datganiadau Ardoll Troseddau Eco
 account.viewReturns.noReturnsFound.heading = Eich datganiadau Ardoll Troseddau Economaidd
 account.viewReturns.noReturnsFound.p1 = Nid ydych wedi cyflwyno unrhyw ddatganiadau Ardoll Troseddau Economaidd.
 account.viewReturns.noReturnsFound.p2 = Bydd eich datganiad yn ymddangos yn y fan hon ar ôl i chi ei gyflwyno.
+account.viewReturns.prevented.column.details = Manylion
+account.viewReturns.prevented.details = Ni allwch gyflwyno’r Ffurflen Dreth hon eto. Bydd ar gael o {0} ymlaen.
+
 account.return.card.title = Datganiadau
 account.due.return.subHeading = Mae angen cyflwyno’ch datganiad ar gyfer {0} i {1} erbyn {2}.
 account.overdue.return.subHeading = Mae gennych ddatganiad sy’n hwyr ar gyfer {0} i {1}.
@@ -59,6 +62,7 @@ account.payments.viewHistory = Gweld eich taliadau
 account.noneDue.payments.subHeading = Nid oes gennych unrhyw daliadau'n ddyledus.
 account.due.payments.subHeading = Mae angen i chi gwneud taliad o {0} erbyn 30 Medi {1} ar gyfer {2} i {3}.
 account.overdue.payments.subHeading.1 = Mae gennych daliad sy’n hwyr ar gyfer 1 Ebrill {0} i 31 Mawrth {1}. <br> Rydym yn codi llog arnoch ar y taliad hwn. Mae arnoch {2}.
+account.prevented.return.subHeading = Ni allwch gyflwyno’ch Ffurflen Dreth nesaf eto. Bydd ar gael o {0} ymlaen.
 account.viewPayments.title = Eich taliadau Ardoll Troseddau Economaidd
 account.viewPayments.heading = Eich taliadau Ardoll Troseddau Economaidd
 account.viewPayments.table.outstandingPayments.header.title = Taliadau sydd arnoch
@@ -91,6 +95,9 @@ account.registration.card.title = Cofrestriad
 account.registration.card.amendRegistration = Diwygio cofrestriad
 account.registration.card.deregister = Cais i ddadgofrestru
 account.deregistration.p1 = Gwnaethoch ddadgofrestru'r cyfrif hwn.
+
+account.returnPrevented.banner.title = Pwysig
+account.returnPrevented.banner.content = Nid yw’ch Ffurflen Dreth ar gyfer 1 Ebrill 2026 i 31 Mawrth 2027 ar gael eto.
 
 account.viewPayments.history.table.cell.interest.reference = Tâl llog ar gyfer rhif datganiad ECL {0}
 account.viewPayments.outstanding.table.cell.interest.reference = Tâl llog {0} ar gyfer rhif datganiad ECL {1}

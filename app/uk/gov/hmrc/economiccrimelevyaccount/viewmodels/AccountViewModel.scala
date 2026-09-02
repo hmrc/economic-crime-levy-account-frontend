@@ -24,6 +24,7 @@ import uk.gov.hmrc.economiccrimelevyaccount.models.EclSubscriptionStatus.{DeRegi
 import uk.gov.hmrc.economiccrimelevyaccount.models.{EclReference, EclSubscriptionStatus, FinancialDetails, ObligationDetails}
 import uk.gov.hmrc.economiccrimelevyaccount.viewmodels.PaymentType.StandardPayment
 import uk.gov.hmrc.economiccrimelevyaccount.views.ViewUtils
+import java.time.LocalDate
 
 final case class AccountViewModel(
   appConfig: AppConfig,
@@ -50,6 +51,20 @@ final case class AccountViewModel(
   val canViewReturns: Boolean       = appConfig.returnsEnabled
   val canViewRegistration: Boolean  = isSubscribed && (canAmendRegistration || canDeregister)
 
+  private object ReturnPrevention {
+
+    def appliesTo(details: ObligationDetails): Boolean = {
+      val taxYear =
+        s"${details.inboundCorrespondenceFromDate.getYear}-${details.inboundCorrespondenceToDate.getYear}"
+
+      appConfig.preventedReturnTaxYears.contains(taxYear)
+    }
+  }
+
+  val isReturnPrevented: Boolean =
+    appConfig.preventReturnSubmissionEnabled &&
+      optOpenObligation.exists(ReturnPrevention.appliesTo)
+
   private def getViewReturnsLinkName()(implicit messages: Messages): String =
     if (canAmendReturns) {
       messages("account.viewOrAmendReturns")
@@ -65,7 +80,11 @@ final case class AccountViewModel(
     }
 
   private def submitReturnLink(): Option[String] =
-    optOpenObligation.map(o => s"${appConfig.returnsUrl}/period/${o.periodKey}")
+    if (isReturnPrevented) {
+      None
+    } else {
+      optOpenObligation.map(o => s"${appConfig.returnsUrl}/period/${o.periodKey}")
+    }
 
   def paymentsActions()(implicit messages: Messages): Seq[CardAction] =
     addIf(
@@ -148,25 +167,39 @@ final case class AccountViewModel(
     ).flatten
 
   def returnsSubHeading()(implicit messages: Messages): Html =
-    optOpenObligation match {
-      case Some(o) if o.isOverdue =>
-        Html(
-          messages(
-            "account.overdue.return.subHeading",
-            ViewUtils.formatLocalDate(o.inboundCorrespondenceFromDate),
-            ViewUtils.formatLocalDate(o.inboundCorrespondenceToDate)
+    if (isReturnPrevented) {
+      optOpenObligation match {
+        case Some(o) =>
+          Html(
+            messages(
+              "account.prevented.return.subHeading",
+              ViewUtils.formatLocalDate(o.inboundCorrespondenceToDate.plusDays(1))
+            )
           )
-        )
-      case Some(o)                =>
-        Html(
-          messages(
-            "account.due.return.subHeading",
-            ViewUtils.formatLocalDate(o.inboundCorrespondenceFromDate),
-            ViewUtils.formatLocalDate(o.inboundCorrespondenceToDate),
-            ViewUtils.formatLocalDate(o.inboundCorrespondenceDueDate)
+        case _       =>
+          Html(messages("account.noneDue.return.subHeading"))
+      }
+    } else {
+      optOpenObligation match {
+        case Some(o) if o.isOverdue =>
+          Html(
+            messages(
+              "account.overdue.return.subHeading",
+              ViewUtils.formatLocalDate(o.inboundCorrespondenceFromDate),
+              ViewUtils.formatLocalDate(o.inboundCorrespondenceToDate)
+            )
           )
-        )
-      case _                      => Html(messages("account.noneDue.return.subHeading"))
+        case Some(o)                =>
+          Html(
+            messages(
+              "account.due.return.subHeading",
+              ViewUtils.formatLocalDate(o.inboundCorrespondenceFromDate),
+              ViewUtils.formatLocalDate(o.inboundCorrespondenceToDate),
+              ViewUtils.formatLocalDate(o.inboundCorrespondenceDueDate)
+            )
+          )
+        case _                      =>
+          Html(messages("account.noneDue.return.subHeading"))
+      }
     }
-
 }
