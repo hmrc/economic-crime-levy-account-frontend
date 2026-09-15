@@ -21,13 +21,15 @@
 @import uk.gov.hmrc.economiccrimelevyaccount.views.html.templates.Layout
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.content.Empty
 @import uk.gov.hmrc.govukfrontend.views.viewmodels.table.HeadCell
+@import uk.gov.hmrc.govukfrontend.views.html.components.{GovukNotificationBanner, NotificationBanner, Text}
 
 @import java.time.LocalDate
 
 @this(
         layout: Layout,
         appConfig: AppConfig,
-        table: GovukTable
+        table: GovukTable,
+        notificationBanner: GovukNotificationBanner
 )
 
 @(viewModel: ReturnsViewModel)(implicit request: Request[_], messages: Messages)
@@ -169,7 +171,19 @@
     showBackLink = true,
     fullWidthContent = false
 ) {
-    <h1 id="returnView-heading" class="govuk-heading-xl govuk-!-margin-bottom-0">@messages("account.viewReturns.heading")</h1>
+
+    @if(appConfig.preventReturnSubmissionEnabled) {
+        @notificationBanner(
+            NotificationBanner(
+                title = Text(messages("account.returnPrevented.banner.title")),
+                content = Text(messages("account.returnPrevented.banner.content"))
+            )
+        )
+    }
+
+    <h1 id="returnView-heading" class="govuk-heading-xl govuk-!-margin-bottom-0">
+        @messages("account.viewReturns.heading")
+    </h1>
 
     @generateTable
 }
